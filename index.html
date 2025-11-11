@@ -131,11 +131,10 @@
     // 配置設定
     // ========================================
 
-    // 所有的直播連結列表 (請在這裡新增您想監看的直播)
-    // 格式： "自定義標籤": {"id": "YouTube-Video-ID", "label": "顯示名稱", "source": "來源頻道名稱"}
+    // 所有的直播連結列表 (已替換為桃園機場北跑道 ID)
     const ALL_STREAMS = {
         "台北-象山看101": {"id": "z_fY1pj1VBw", "label": "台北象山", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
-        "桃園-國際機場": {"id": "sR-d1qC18-Q", "label": "桃園機場 (北跑道)", "source": "Taoyuan Airport"}, // <--- 已更新為北跑道清晰版
+        "桃園-國際機場": {"id": "sR-d1qC18-Q", "label": "桃園機場 (北跑道)", "source": "Taoyuan Airport"}, // <--- 已替換為新的跑道 ID
         "新北-漁人碼頭": {"id": "WzX83Xj3nS4", "label": "新北漁人碼頭", "source": "New Taipei City"},
         "台東-多良車站": {"id": "d0m7U1q0M1o", "label": "台東多良車站", "source": "TTN 台東新聞"},
         
@@ -147,12 +146,12 @@
         // 更多直播可以繼續添加...
     };
 
-    // 初始載入四分割畫面時的預設配置 (請用這裡的順序來控制畫面位置)
+    // 初始載入四分割畫面時的預設配置 (已調整順序，讓桃園機場在左下角)
     // 順序：[左上, 右上, 左下, 右下]
     let INITIAL_CAMS_KEYS = [
         "台北-象山看101", 
-        "新北-漁人碼頭",   // 調整到右上角
-        "桃園-國際機場",  // 調整到左下角
+        "新北-漁人碼頭",   // 右上角
+        "桃園-國際機場",  // 左下角
         "台東-多良車站"
     ];
 
@@ -312,7 +311,7 @@
         if (state === YT.PlayerState.ENDED) { 
             refreshPlayer(player); 
         } 
-        // 確保影片在暫停或緩衝時能自動恢復播放 (達成背景播放效果)
+        // 無論頁面是否可見，都嘗試恢復暫停/緩衝的播放 (實現背景播放)
         else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING) {
             player.playVideo();
         }
@@ -322,8 +321,6 @@
      * 播放器錯誤處理
      */
     function onPlayerError(event) {
-        // 錯誤代碼 150/101 表示影片無法播放 (例如：版權或隱私限制)
-        // 這裡我們只刷新
         console.error(`Player Error on Index ${event.target.a.id.split('-')[1]}: Code ${event.data}`);
         refreshPlayer(event.target);
     }
@@ -369,7 +366,10 @@
      */
     function selectCam(index) {
         // 1. 更新選中狀態
-        document.getElementById(`container-${currentIndex}`).classList.remove('selected');
+        const oldSelected = document.querySelector('.video-container.selected');
+        if (oldSelected) {
+            oldSelected.classList.remove('selected');
+        }
         currentIndex = index;
         document.getElementById(`container-${currentIndex}`).classList.add('selected');
 
