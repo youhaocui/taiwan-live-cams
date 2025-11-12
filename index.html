@@ -247,7 +247,6 @@
     function renderCityButtons() {
         const buttonContainer = document.getElementById('regionButtons');
         buttonContainer.innerHTML = ''; 
-        
         CITY_LIST.forEach(city => {
             const button = document.createElement('button');
             button.innerText = city;
@@ -290,13 +289,11 @@
         if (ALL_STREAMS[streamKey]) {
             createPlayer(i, streamKey); 
         } else {
-            // 如果預設的鍵不存在，使用預設第一個串流
             createPlayer(i, Object.keys(ALL_STREAMS)[i] || "台北-象山看101");
         }
       }
     }
     
-    // 統一的播放器創建函數
     function createPlayer(index, streamKey) {
       const videoId = streamIds[streamKey];
       const labelText = ALL_STREAMS[streamKey].label;
@@ -308,7 +305,6 @@
       players[index] = new YT.Player('player' + index, {
         videoId: videoId,
         playerVars: {
-          // 最小化參數：只保留必須的
           'autoplay': 1, 
           'mute': 1, 
           'controls': 0, 
@@ -324,11 +320,9 @@
     function getNextStreamKey(failingKey) {
         const streamKeys = Object.keys(ALL_STREAMS);
         const failingIndex = streamKeys.indexOf(failingKey);
-        
         for (let i = 1; i <= streamKeys.length; i++) {
             const nextIndex = (failingIndex + i) % streamKeys.length; 
             const nextKey = streamKeys[nextIndex];
-            
             if (nextKey !== failingKey) { return nextKey; }
         }
         return null; 
@@ -338,11 +332,8 @@
         const player = event.target;
         const errorData = event.data;
         const index = players.findIndex(p => p === player); 
-        
         const failingKey = currentCamKeys[index];
         labels[index].innerHTML = `${ALL_STREAMS[failingKey].label} **[錯誤 ${errorData}]**<span class="source-on-screen">嘗試自動切換中...</span>`;
-
-        // 遇到錯誤時，自動換到下一個串流 (100, 101, 150 為無法播放或嵌入被拒絕)
         if (errorData === 5 || errorData === 100 || errorData === 101 || errorData === 150) {
             const newStreamKey = getNextStreamKey(failingKey); 
             if (newStreamKey) {
@@ -350,8 +341,6 @@
                 return; 
             }
         }
-        
-        // 遇到其他錯誤時 (包括 153)，嘗試刷新播放器
         if (errorData === 153 || errorData === 5 || errorData === 101) {
             refreshPlayer(player);
         }
@@ -359,7 +348,6 @@
 
     function onPlayerReady(event) { 
         event.target.playVideo(); 
-        // 首次播放時，強制檢查一次選中的延遲
         updateLatencyDisplay(event.target);
     }
     
@@ -377,9 +365,8 @@
         if (state === YT.PlayerState.ENDED) { 
             refreshPlayer(player); 
         } 
-        // 當頁面可見時，嘗試恢復暫停/緩衝的播放
-        else if (document.visibilityState === 'visible' && 
-                 (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING)) {
+        // 不論頁面可見性，暫停或緩衝都強制維持播放
+        else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING) {
             player.playVideo();
         }
     }
@@ -388,11 +375,9 @@
         currentIndex = index;
         camSelectButtons.forEach(btn=>btn.classList.remove('active'));
         camSelectButtons[index].classList.add('active');
-        // 切換畫面時，強制檢查一次延遲
         if(isApiReady) updateLatencyDisplay(players[currentIndex]);
     }
 
-    // 替換當前選中的畫面串流
     function setStream(streamKey){
         const videoId = streamIds[streamKey];
         if(!videoId) return alert("來源不存在："+streamKey);
@@ -401,7 +386,6 @@
         const labelText = ALL_STREAMS[streamKey].label;
         const sourceText = ALL_STREAMS[streamKey].source;
 
-        // 使用 loadVideoById 進行切換
         players[currentIndex].loadVideoById({
             videoId: videoId,
             startSeconds: 0 
@@ -417,51 +401,36 @@
      * ======================================== */
     const latencyDisplay = document.getElementById('latencyInfo');
 
-    /**
-     * 檢查單一播放器延遲，如果超過閾值則在背景自動刷新 (無畫面提示)
-     */
     function _refreshPlayerIfHighLatency(player) {
         if (!player || player.getPlayerState() !== YT.PlayerState.PLAYING) return;
-        
         try {
             const mediaTime = player.getMediaReferenceTime(); 
             const nowTime = Date.now() / 1000; 
             const latency = nowTime - mediaTime; 
-            
-            // 超過 30 秒就強制刷新
             if (latency > 30) {
                 refreshPlayer(player);
             }
-        } catch (e) {
-            // 忽略無法讀取或播放器錯誤
-        }
+        } catch (e) {}
     }
 
-    /**
-     * 僅更新當前選中畫面的延遲顯示
-     */
     function updateLatencyDisplay(player) {
         if (!player || player.getPlayerState() !== YT.PlayerState.PLAYING) {
              latencyDisplay.innerText = '延遲：暫停/載入中';
              latencyDisplay.style.color = '#f90'; 
              return;
         }
-
         try {
             const mediaTime = player.getMediaReferenceTime(); 
             const nowTime = Date.now() / 1000; 
             const latency = nowTime - mediaTime; 
-            
             if (latency >= 0) {
                 latencyDisplay.innerText = `延遲：約 ${latency.toFixed(1)} 秒`;
-                
-                // 顯示顏色判斷
                 if (latency > 29) {
-                    latencyDisplay.style.color = '#f00'; // 紅色 (高於閾值)
+                    latencyDisplay.style.color = '#f00';
                 } else if (latency > 5) {
-                    latencyDisplay.style.color = '#ff0'; // 黃色 (中等延遲)
+                    latencyDisplay.style.color = '#ff0';
                 } else {
-                    latencyDisplay.style.color = '#0f0'; // 綠色 (低延遲)
+                    latencyDisplay.style.color = '#0f0';
                 }
             } else {
                 latencyDisplay.innerText = '延遲：即時/誤差';
@@ -472,39 +441,16 @@
         }
     }
     
-    /**
-     * 全局監控函數：檢查並刷新所有播放器，並更新選中畫面的延遲顯示
-     */
     function globalMonitor() {
         if (!isApiReady) return;
-
-        // 1. 檢查並刷新所有四個播放器 (自動化部分)
         players.forEach(_refreshPlayerIfHighLatency);
-
-        // 2. 更新當前選中畫面的延遲顯示 (介面顯示部分)
         updateLatencyDisplay(players[currentIndex]);
     }
 
-    // 每 5 秒執行全局監控
     setInterval(globalMonitor, 5000); 
-
-
-    // 初始化時，第一次選中左上角 (index 0)
     selectCam(0); 
-    
-    // 處理頁面不可見時的暫停/恢復播放
-    document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'visible') {
-            if (!isApiReady) return;
-            // 頁面重新可見時，嘗試恢復所有播放器
-            players.forEach(player => {
-                if (player && typeof player.playVideo === 'function' && player.getPlayerState() === YT.PlayerState.PAUSED) {
-                    player.playVideo();
-                }
-            });
-        }
-    });
 
+    // 已移除 visibilitychange 事件，避免背景分頁暫停
   </script>
 </body>
 </html>
