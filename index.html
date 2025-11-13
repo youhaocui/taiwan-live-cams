@@ -1,452 +1,474 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="utf-8" />
-  <title>台灣即時直播四分割監看 (最終 API 最小化參數版)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    /* ========================================
-     * 基礎 CSS 樣式
-     * ======================================== */
-    html,body{
-      height:100%; margin:0; padding:0; background:#000;
-      font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
-    }
-    .controls{
-      position:fixed; bottom:0; left:0; width:100%; height:70px; 
-      background:rgba(12,12,12,0.9); color:#fff; padding:5px 10px; 
-      box-sizing:border-box; 
-      display:flex; flex-direction:row; align-items: center; 
-      gap:10px; 
-      z-index:999;
-      overflow-y: hidden;
-    }
+  <meta charset="utf-8" />
+  <title>台灣即時直播四分割監看 (最終 API 最小化參數版)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* ========================================
+     * 基礎 CSS 樣式
+     * ======================================== */
+    html,body{
+      height:100%; margin:0; padding:0; background:#000;
+      font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
+    }
+    .controls{
+      position:fixed; bottom:0; left:0; width:100%; height:70px; 
+      background:rgba(12,12,12,0.9); color:#fff; padding:5px 10px; 
+      box-sizing:border-box; 
+      display:flex; flex-direction:row; align-items: center; 
+      gap:10px; 
+      z-index:999;
+      overflow-y: hidden;
+    }
 
-    /* 滾動條樣式 */
-    .controls::-webkit-scrollbar{ height: 4px; background-color: rgba(255, 255, 255, 0.1); }
-    .controls::-webkit-scrollbar-thumb { background-color: #555; border-radius: 2px; }
-    .row{ display:flex; flex-wrap:nowrap; gap:6px; align-items: center; flex-shrink: 0; }
-    .divider { width: 1px; height: 80%; background: #333; flex-shrink: 0; margin: 0; }
-    .controls #regionButtons{
-        display:flex; flex-grow: 1; min-width: 0; gap:4px;
-        overflow-x: auto; padding-bottom: 5px; height: 100%; align-items: center;
-    }
-    .controls button{
-      background-color:#222; color:#fff; border:1px solid #444;
-      padding:4px 8px; font-size:12px; cursor:pointer; border-radius:4px;
-      height: 40px; flex-shrink: 0; white-space: nowrap; text-align: center;
-    }
-    .controls button.active{
-      background-color:#0099ff; border-color:#0099ff;
-    }
-    .controls button.back-button { background-color: #555; }
+    /* 滾動條樣式 */
+    .controls::-webkit-scrollbar{ height: 4px; background-color: rgba(255, 255, 255, 0.1); }
+    .controls::-webkit-scrollbar-thumb { background-color: #555; border-radius: 2px; }
+    .row{ display:flex; flex-wrap:nowrap; gap:6px; align-items: center; flex-shrink: 0; }
+    .divider { width: 1px; height: 80%; background: #333; flex-shrink: 0; margin: 0; }
+    .controls #regionButtons{
+        display:flex; flex-grow: 1; min-width: 0; gap:4px;
+        overflow-x: auto; padding-bottom: 5px; height: 100%; align-items: center;
+    }
+    .controls button{
+      background-color:#222; color:#fff; border:1px solid #444;
+      padding:4px 8px; font-size:12px; cursor:pointer; border-radius:4px;
+      height: 40px; flex-shrink: 0; white-space: nowrap; text-align: center;
+    }
+    .controls button.active{
+      background-color:#0099ff; border-color:#0099ff;
+    }
+    .controls button.back-button { background-color: #555; }
 
-    /* 2. 影片舞台樣式 */
-    .stage-wrap{
-      position:fixed; top:0; left:0; width:100vw; height:calc(100vh - 70px);
-      display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
-      gap:0; z-index:1;
-    }
-    .cell{
-      position:relative; width:100%; height:100%; overflow:hidden;
-    }
-    
-    /* YouTube 裁切 CSS */
-    .player-container, .player-container iframe {
-      position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
-      object-fit:cover; object-position:center; background:black;
-      transform: scale(1.65) translateY(-6%); 
-    }
-    
-    .cell iframe { pointer-events: auto !important; }
-    .interaction-shield {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 5; background: transparent; cursor: default; 
-    }
-    .label{
-      position:absolute; left:8px; right:8px; bottom:8px; display:flex;
-      flex-direction: column; align-items:flex-start; padding: 3px 6px; 
-      font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:3px;
-      pointer-events:none; z-index:10; 
-    }
-    .source-on-screen { font-size: 10px; color: #ccc; margin-top: 1px; line-height: 1.2; }
-    
-  </style>
+    /* 2. 影片舞台樣式 */
+    .stage-wrap{
+      position:fixed; top:0; left:0; width:100vw; height:calc(100vh - 70px);
+      display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
+      gap:0; z-index:1;
+    }
+    .cell{
+      position:relative; width:100%; height:100%; overflow:hidden;
+    }
+    
+    /* YouTube 裁切 CSS */
+    .player-container, .player-container iframe {
+      position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+      object-fit:cover; object-position:center; background:black;
+      transform: scale(1.65) translateY(-6%); 
+    }
+    
+    .cell iframe { pointer-events: auto !important; }
+    .interaction-shield {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 5; background: transparent; cursor: default; 
+    }
+    .label{
+      position:absolute; left:8px; right:8px; bottom:8px; display:flex;
+      flex-direction: column; align-items:flex-start; padding: 3px 6px; 
+      font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:3px;
+      pointer-events:none; z-index:10; 
+    }
+    .source-on-screen { font-size: 10px; color: #ccc; margin-top: 1px; line-height: 1.2; }
+    
+  </style>
 </head>
 <body>
-  <div class="controls" id="controls">
-    <div class="row cam-select">
-      <button id="select-cam-0" class="active" onclick="selectCam(0)">左上</button>
-      <button id="select-cam-1" onclick="selectCam(1)">右上</button>
-      <button id="select-cam-2" onclick="selectCam(2)">左下</button>
-      <button id="select-cam-3" onclick="selectCam(3)">右下</button>
-    </div>
-    <div class="divider"></div>
-    <div class="row" id="latencyInfo" style="color:#f90; font-size:12px; margin-left:5px; flex-shrink:0;">
-        延遲：讀取中...
-    </div>
-    <div class="divider"></div>
-    <div class="row" id="regionButtons">
-    </div>
-  </div>
+  <div class="controls" id="controls">
+    <div class="row cam-select">
+      <button id="select-cam-0" class="active" onclick="selectCam(0)">左上</button>
+      <button id="select-cam-1" onclick="selectCam(1)">右上</button>
+      <button id="select-cam-2" onclick="selectCam(2)">左下</button>
+      <button id="select-cam-3" onclick="selectCam(3)">右下</button>
+    </div>
+    <div class="divider"></div>
+    <div class="row" id="latencyInfo" style="color:#f90; font-size:12px; margin-left:5px; flex-shrink:0;">
+        延遲：讀取中...
+    </div>
+    <div class="divider"></div>
+    <div class="row" id="regionButtons">
+    </div>
+  </div>
 
-  <div class="stage-wrap" id="stageWrap">
-    <div class="cell" data-index="0">
-      <div id="player0" class="player-container"></div>
-      <div class="interaction-shield"></div>
-      <div class="label" id="label0">載入中...</div>
-    </div>
-    <div class="cell" data-index="1">
-      <div id="player1" class="player-container"></div>
-      <div class="interaction-shield"></div>
-      <div class="label" id="label1">載入中...</div>
-    </div>
-    <div class="cell" data-index="2">
-      <div id="player2" class="player-container"></div>
-      <div class="interaction-shield"></div>
-      <div class="label" id="label2">載入中...</div>
-    </div>
-    <div class="cell" data-index="3">
-      <div id="player3" class="player-container"></div>
-      <div class="interaction-shield"></div>
-      <div class="label" id="label3">載入中...</div>
-    </div>
-  </div>
+  <div class="stage-wrap" id="stageWrap">
+    <div class="cell" data-index="0">
+      <div id="player0" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label0">載入中...</div>
+    </div>
+    <div class="cell" data-index="1">
+      <div id="player1" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label1">載入中...</div>
+    </div>
+    <div class="cell" data-index="2">
+      <div id="player2" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label2">載入中...</div>
+    </div>
+    <div class="cell" data-index="3">
+      <div id="player3" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label3">載入中...</div>
+    </div>
+  </div>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 
-  <script>
-    // ========================================
-    // 數據層
-    // ========================================
-    const ALL_STREAMS = {
-        "台北-象山看101": {"id": "z_fY1pj1VBw", "label": "台北象山", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
-        "台北-大稻埕": {"id": "Ndo_8RuefH4", "label": "大稻埕", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
-        "台北-碧山巖": {"id": "uvwfYzwY8tg", "label": "碧山巖", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
-        "台北-微風平台": {"id": "34h_Cy_n0Ok", "label": "微風平台", "source": "Taipei Travel Live Cam 台北觀光即時影像"}, 
-        "台北-貓空指南宮": {"id": "215ahZ_0rTg", "label": "貓空指南宮", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
-        "台北-冷水坑停車場": {"id": "GB64WeZZQPQ", "label": "冷水坑停車場", "source": "陽明山國家公園"},
-        "台北-遠眺七星山": {"id": "PvJr2efA6n0", "label": "遠眺七星山", "source": "陽明山國家公園"},
-        "台北-小油坑停車場": {"id": "kKD-ZBLs8-4", "label": "小油坑停車場", "source": "陽明山國家公園"},
-        "台北-陽明書屋": {"id": "RttyIGHbN_w", "label": "陽明書屋", "source": "陽明山國家公園"},
-        "台北-大屯自然公園": {"id": "6ghffcNt3Nw", "label": "大屯自然公園", "source": "陽明山國家公園"},
-        "新北-漁人碼頭": {"id": "xwAWSh35uuw", "label": "新北淡水", "source": "新北旅客 New Taipei Tour"},
-        "新北-烘爐地": {"id": "xxMRjVwCQ3o", "label": "新北烘爐地", "source": "新北旅客 New Taipei Tour"}, 
-        "新北-十分瀑布": {"id": "HirBQsQEUeA", "label": "十分瀑布", "source": "新北旅客 New Taipei Tour"}, 
-        "新北-九份": {"id": "XSD5ptYisw8", "label": "新北九份", "source": "新北旅客 New Taipei Tour"},
-        "新北-鼻頭服務區": {"id": "4Bm3IKcGkQY", "label": "新北鼻頭", "source": "necoast nsa"},
-        "基隆-外木山": {"id": "LInNQYAbAwQ", "label": "外木山", "source": "GoOcean海洋遊憩風險資訊"}, 
-        "桃園-國際機場": {"id": "91PfFoqvuUk", "label": "桃園機場", "source": "遊桃園 Taoyuan Travel"},
-        "桃園-桃園機場南跑道": {"id": "y3_x8el5ZJY", "label": "TPE 南跑道", "source": "Taoyuan Airport"}, 
-        "桃園-桃園機場北跑道": {"id": "wWEnxWA7nnY", "label": "TPE 北跑道", "source": "Taoyuan Airport"}, 
-        "桃園-永安漁港": {"id": "tD_a03trUvE", "label": "永安漁港", "source": "遊桃園 Taoyuan Travel"},
-        "桃園-拉拉山遊客中心": {"id": "YkIUZjVlhv4", "label": "拉拉山遊客中心", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-虎頭山環保公園": {"id": "tu_gsIkNt-w", "label": "虎頭山環保公園", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-小烏來天空步道": {"id": "neaiCec1kec", "label": "小烏來天空步道", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-角板山思親亭": {"id": "3Za9y4z_Lzc", "label": "角板山思親亭", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-三龜戲水觀景平台": {"id": "5YDXZ1aiR5Y", "label": "三龜戲水觀景平台", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-大溪橋": {"id": "oFJ6gCaBb_Q", "label": "大溪橋", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-虎頭山奧爾森林學堂": {"id": "yQSmajHyMhU", "label": "虎頭山奧爾森林學堂", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-角板山梅園": {"id": "-xT1bZhWLuU", "label": "角板山梅園", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-角板山生態池": {"id": "XEbo8NzMTbQ", "label": "角板山生態池", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-大溪老街": {"id": "XUWjAsajKXg", "label": "大溪老街", "source": "遊桃園 Taoyuan Travel"},
-        "桃園-石門水庫": {"id": "GUCaVR88ZFU", "label": "石門水庫", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-慈湖水岸廣場": {"id": "pSQ0e-ZTZ5g", "label": "慈湖水岸廣場", "source": "遊桃園 Taoyuan Travel"},
-        "桃園-阿姆坪薑母島": {"id": "EUOp2LchPQM", "label": "阿姆坪薑母島", "source": "遊桃園 Taoyuan Travel"},
-        "桃園-上巴陵": {"id": "nV-DKquUjFs", "label": "上巴陵", "source": "遊桃園 Taoyuan Travel"},
-        "桃園-桃園國際機場凱悅酒店": {"id": "68GFgzQxrXs", "label": "機場凱悅", "source": "遊桃園 Taoyuan Travel"},
-        "桃園-小烏來寰宇平台": {"id": "PJWye36lEj4", "label": "寰宇平台", "source": "遊桃園 Taoyuan Travel"}, 
-        "桃園-許厝港濕地": {"id": "44JArbF682k", "label": "許厝港濕地", "source": "遊桃園 Taoyuan Travel"}, 
-        "宜蘭-外澳沙灘": {"id": "UgoT-QTbYvo", "label": "宜蘭外澳", "source": "necoast nsa"},
-        "宜蘭-福隆海水浴場": {"id": "AxG-Jssz8fg", "label": "宜蘭福隆", "source": "necoast nsa"},
-        "宜蘭-舊隧道南口": {"id": "f38lFhncLVA", "label": "宜蘭石城", "source": "necoast nsa"},
-        "宜蘭-礁溪寒沐酒店": {"id": "cPh2vzrtG_w", "label": "礁溪寒沐酒店", "source": "礁溪寒沐酒店MU JIAO XI HOTEL"},
-        "宜蘭-無尾港": {"id": "gPeJuFuNcRc", "label": "無尾港", "source": "GoOcean海洋遊憩風險資訊"}, 
-        "宜蘭-石城漁港": {"id": "ozZVLl0h--A", "label": "石城漁港", "source": "GoOcean海洋遊憩風險資訊"}, 
-        "台東-鯉魚山": {"id": "BUJJaW0vkJs", "label": "台東鯉魚山", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-金崙大橋": {"id": "9QqBz3kNHis", "label": "台東金崙大橋", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-金樽觀浪": {"id": "q3KJt-SZc2s", "label": "台東金樽觀浪", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-富山": {"id": "Rsq95SQ26bY", "label": "台東富山", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-杉原灣": {"id": "VqS_Y8ZCj6M", "label": "台東杉原灣", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-富岡漁港": {"id": "D945F_dauls", "label": "台東富岡漁港", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-華源曙光觀景台": {"id": "TY4qQElcUrA", "label": "台東華源曙光觀景台", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-南橫埡口": {"id": "LSkq-wHMxQY", "label": "台東南橫埡口", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-池上天堂路": {"id": "6kUEK3LVrro", "label": "台東池上天堂路", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-多良車站": {"id": "UCG1aXVO8H8", "label": "台東多良", "source": "Amazing Taitung 台東就醬玩"}, 
-        "台東-鹿野高台": {"id": "rvc1klNIgQc", "label": "鹿野高台", "source": "花東縱谷國家風景區管理處"}, 
-        "花蓮-石梯坪": {"id": "mXnigLvIL0Q", "label": "花蓮石梯坪", "source": "東部海岸國家風景區管理處"},
-        "花蓮-赤科山": {"id": "5GTFLN9gZrc", "label": "赤科山", "source": "花東縱谷國家風景區管理處"}, 
-        "花蓮-長虹橋": {"id": "JnD8Rk3o0BM", "label": "長虹橋", "source": "東部海岸國家風景區管理處"},
-        "花蓮-馬太鞍溪左岸水尺2": {"id": "Ic6hqus0tjA", "label": "馬太鞍溪水尺2", "source": "水利署水利防災組"}, 
-        "花蓮-七星潭安檢所": {"id": "j3l32VFi5M8", "label": "七星潭安檢所", "source": "水利署水利防災組"},
-        "花蓮-六十石山": {"id": "DliL9uMtPrI", "label": "六十石山", "source": "花東縱谷國家風景區管理處"}, 
-        "台東-成功三仙台": {"id": "dQ7Sd6PGLdA", "label": "三仙台", "source": "東部海岸國家風景區管理處"},
-        "台東-金樽遊憩區": {"id": "ZdqHgQwvZOw", "label": "金樽遊憩區", "source": "東部海岸國家風景區管理處"}, 
-        "台東-綠島南寮": {"id": "wTHhv7M0vCI", "label": "綠島南寮", "source": "東部海岸國家風景區管理處"},
-        "台東-都歷遊客中心": {"id": "JhQuR77AR7U", "label": "都歷遊客中心", "source": "東部海岸國家風景區管理處"},
-        "台東-加路蘭遊憩區": {"id": "AKl3F6cAY2Q", "label": "加路蘭遊憩區", "source": "東部海岸國家風景區管理處"}, 
-        "花蓮-大石鼻山": {"id": "JkoXcXI04Qk", "label": "大石鼻山", "source": "東部海岸國家風景區管理處"}, 
-        "台東-綠島帆船鼻": {"id": "pLdBc8PvZko", "label": "綠島帆船鼻", "source": "東部海岸國家風景區管理處"}, 
-        "台東-綠島柴口浮潛區": {"id": "a8nJQr5rBGs", "label": "綠島柴口浮潛區", "source": "東部海岸國家風景區管理處"}, 
-        "台中-高美濕地": {"id": "fjhg3gAn54Y", "label": "高美濕地", "source": "臺中觀光旅遊網"},
-        "南投-清境農場": {"id": "vM84mY2R-7o", "label": "清境農場", "source": "清境農場"},
-        "南投-日月潭向山": {"id": "Hw0gEwE-Gqg", "label": "日月潭向山", "source": "交通部觀光署日月潭國家風景區管理處"},
-        "南投-日月潭水社": {"id": "JgQ8Y8_j-Hk", "label": "日月潭水社", "source": "交通部觀光署日月潭國家風景區管理處"}, 
-        "嘉義-阿里山": {"id": "Yc0_Ea_6zVw", "label": "阿里山", "source": "Alishan National Forest Recreation Area"},
-        "高雄-壽山情人觀景台": {"id": "i7zL46S6w4g", "label": "壽山觀景台", "source": "高雄旅遊網"}, 
-        "高雄-典寶溪_楠梓聖興橋": {"id": "1vVCtk5OXVk", "label": "典寶溪_楠梓聖興橋", "source": "水利署水利防災組"}, 
-        "高雄-海岸_蚵寮國小": {"id": "sKrqs-5Auqo", "label": "海岸_蚵寮國小", "source": "水利署水利防災組"}, 
-        "高雄-高雄燈塔": {"id": "HqrPgNErSOA", "label": "高雄燈塔", "source": "Ship"},
-        "高雄-旗津沙灘": {"id": "lh7OdmxRvTg", "label": "旗津沙灘", "source": "ship"},
-        "屏東-關山日落": {"id": "fO-rF2bU4vY", "label": "屏東關山", "source": "墾丁國家公園"},
-        "屏東-鵝鑾鼻燈塔": {"id": "uV8018h2n4o", "label": "鵝鑾鼻", "source": "墾丁國家公園"},
-        "屏東-船帆石": {"id": "3Wb_Lgw7Ltc", "label": "船帆石", "source": "墾丁國家公園"},
-        "屏東-林邊溪_羌園排水": {"id": "13C8jdbqQcI", "label": "林邊溪(羌光橋)", "source": "水利署水利防災組"}, 
-        "金門-水頭碼頭": {"id": "t9y49XpQyLg", "label": "金門水頭", "source": "金門國家公園"},
-        "馬祖-北竿航空站外候機室": {"id": "EaUVZ49xKQ4", "label": "北竿航空站", "source": "MFK北竿航空站"}
-    };
+  <script>
+    // ========================================
+    // 數據層 (已更新)
+    // ========================================
+    const ALL_STREAMS = {
+        "台北-象山看101": {"id": "z_fY1pj1VBw", "label": "台北象山", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
+        "台北-大稻埕": {"id": "Ndo_8RuefH4", "label": "大稻埕", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
+        "台北-碧山巖": {"id": "uvwfYzwY8tg", "label": "碧山巖", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
+        "台北-微風平台": {"id": "34h_Cy_n0Ok", "label": "微風平台", "source": "Taipei Travel Live Cam 台北觀光即時影像"}, 
+        "台北-貓空指南宮": {"id": "215ahZ_0rTg", "label": "貓空指南宮", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
+        "台北-冷水坑停車場": {"id": "GB64WeZZQPQ", "label": "冷水坑停車場", "source": "陽明山國家公園"},
+        "台北-遠眺七星山": {"id": "PvJr2efA6n0", "label": "遠眺七星山", "source": "陽明山國家公園"},
+        "台北-小油坑停車場": {"id": "kKD-ZBLs8-4", "label": "小油坑停車場", "source": "陽明山國家公園"},
+        "台北-陽明書屋": {"id": "RttyIGHbN_w", "label": "陽明書屋", "source": "陽明山國家公園"},
+        "台北-大屯自然公園": {"id": "6ghffcNt3Nw", "label": "大屯自然公園", "source": "陽明山國家公園"},
+        "新北-漁人碼頭": {"id": "xwAWSh35uuw", "label": "新北淡水", "source": "新北旅客 New Taipei Tour"},
+        "新北-烘爐地": {"id": "xxMRjVwCQ3o", "label": "新北烘爐地", "source": "新北旅客 New Taipei Tour"}, 
+        "新北-十分瀑布": {"id": "HirBQsQEUeA", "label": "十分瀑布", "source": "新北旅客 New Taipei Tour"}, 
+        "新北-九份": {"id": "XSD5ptYisw8", "label": "新北九份", "source": "新北旅客 New Taipei Tour"},
+        "新北-鼻頭服務區": {"id": "4Bm3IKcGkQY", "label": "新北鼻頭", "source": "necoast nsa"},
+        "基隆-外木山": {"id": "LInNQYAbAwQ", "label": "外木山", "source": "GoOcean海洋遊憩風險資訊"}, 
+        "桃園-國際機場": {"id": "91PfFoqvuUk", "label": "桃園機場", "source": "遊桃園 Taoyuan Travel"},
+        "桃園-桃園機場南跑道": {"id": "y3_x8el5ZJY", "label": "TPE 南跑道", "source": "Taoyuan Airport"}, 
+        "桃園-桃園機場北跑道": {"id": "wWEnxWA7nnY", "label": "TPE 北跑道", "source": "Taoyuan Airport"}, 
+        "桃園-永安漁港": {"id": "tD_a03trUvE", "label": "永安漁港", "source": "遊桃園 Taoyuan Travel"},
+        "桃園-拉拉山遊客中心": {"id": "YkIUZjVlhv4", "label": "拉拉山遊客中心", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-虎頭山環保公園": {"id": "tu_gsIkNt-w", "label": "虎頭山環保公園", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-小烏來天空步道": {"id": "neaiCec1kec", "label": "小烏來天空步道", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-角板山思親亭": {"id": "3Za9y4z_Lzc", "label": "角板山思親亭", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-三龜戲水觀景平台": {"id": "5YDXZ1aiR5Y", "label": "三龜戲水觀景平台", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-大溪橋": {"id": "oFJ6gCaBb_Q", "label": "大溪橋", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-虎頭山奧爾森林學堂": {"id": "yQSmajHyMhU", "label": "虎頭山奧爾森林學堂", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-角板山梅園": {"id": "-xT1bZhWLuU", "label": "角板山梅園", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-角板山生態池": {"id": "XEbo8NzMTbQ", "label": "角板山生態池", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-大溪老街": {"id": "XUWjAsajKXg", "label": "大溪老街", "source": "遊桃園 Taoyuan Travel"},
+        "桃園-石門水庫": {"id": "GUCaVR88ZFU", "label": "石門水庫", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-慈湖水岸廣場": {"id": "pSQ0e-ZTZ5g", "label": "慈湖水岸廣場", "source": "遊桃園 Taoyuan Travel"},
+        "桃園-阿姆坪薑母島": {"id": "EUOp2LchPQM", "label": "阿姆坪薑母島", "source": "遊桃園 Taoyuan Travel"},
+        "桃園-上巴陵": {"id": "nV-DKquUjFs", "label": "上巴陵", "source": "遊桃園 Taoyuan Travel"},
+        "桃園-桃園國際機場凱悅酒店": {"id": "68GFgzQxrXs", "label": "機場凱悅", "source": "遊桃園 Taoyuan Travel"},
+        "桃園-小烏來寰宇平台": {"id": "PJWye36lEj4", "label": "寰宇平台", "source": "遊桃園 Taoyuan Travel"}, 
+        "桃園-許厝港濕地": {"id": "44JArbF682k", "label": "許厝港濕地", "source": "遊桃園 Taoyuan Travel"}, 
+        "宜蘭-外澳沙灘": {"id": "UgoT-QTbYvo", "label": "宜蘭外澳", "source": "necoast nsa"},
+        "宜蘭-福隆海水浴場": {"id": "AxG-Jssz8fg", "label": "宜蘭福隆", "source": "necoast nsa"},
+        "宜蘭-舊隧道南口": {"id": "f38lFhncLVA", "label": "宜蘭石城", "source": "necoast nsa"},
+        "宜蘭-礁溪寒沐酒店": {"id": "cPh2vzrtG_w", "label": "礁溪寒沐酒店", "source": "礁溪寒沐酒店MU JIAO XI HOTEL"},
+        "宜蘭-無尾港": {"id": "gPeJuFuNcRc", "label": "無尾港", "source": "GoOcean海洋遊憩風險資訊"}, 
+        "宜蘭-石城漁港": {"id": "ozZVLl0h--A", "label": "石城漁港", "source": "GoOcean海洋遊憩風險資訊"}, 
+        "台東-鯉魚山": {"id": "BUJJaW0vkJs", "label": "台東鯉魚山", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-金崙大橋": {"id": "9QqBz3kNHis", "label": "台東金崙大橋", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-金樽觀浪": {"id": "q3KJt-SZc2s", "label": "台東金樽觀浪", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-富山": {"id": "Rsq95SQ26bY", "label": "台東富山", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-杉原灣": {"id": "VqS_Y8ZCj6M", "label": "台東杉原灣", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-富岡漁港": {"id": "D945F_dauls", "label": "台東富岡漁港", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-華源曙光觀景台": {"id": "TY4qQElcUrA", "label": "台東華源曙光觀景台", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-南橫埡口": {"id": "LSkq-wHMxQY", "label": "台東南橫埡口", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-池上天堂路": {"id": "6kUEK3LVrro", "label": "台東池上天堂路", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-多良車站": {"id": "UCG1aXVO8H8", "label": "台東多良", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-鹿野高台": {"id": "rvc1klNIgQc", "label": "鹿野高台", "source": "花東縱谷國家風景區管理處"}, 
+        "花蓮-石梯坪": {"id": "mXnigLvIL0Q", "label": "花蓮石梯坪", "source": "東部海岸國家風景區管理處"},
+        "花蓮-赤科山": {"id": "5GTFLN9gZrc", "label": "赤科山", "source": "花東縱谷國家風景區管理處"}, 
+        "花蓮-長虹橋": {"id": "JnD8Rk3o0BM", "label": "長虹橋", "source": "東部海岸國家風景區管理處"},
+        "花蓮-馬太鞍溪左岸水尺2": {"id": "Ic6hqus0tjA", "label": "馬太鞍溪水尺2", "source": "水利署水利防災組"}, 
+        "花蓮-七星潭安檢所": {"id": "j3l32VFi5M8", "label": "七星潭安檢所", "source": "水利署水利防災組"},
+        "花蓮-六十石山": {"id": "DliL9uMtPrI", "label": "六十石山", "source": "花東縱谷國家風景區管理處"}, 
+        "台東-成功三仙台": {"id": "dQ7Sd6PGLdA", "label": "三仙台", "source": "東部海岸國家風景區管理處"},
+        "台東-金樽遊憩區": {"id": "ZdqHgQwvZOw", "label": "金樽遊憩區", "source": "東部海岸國家風景區管理處"}, 
+        "台東-綠島南寮": {"id": "wTHhv7M0vCI", "label": "綠島南寮", "source": "東部海岸國家風景區管理處"},
+        "台東-都歷遊客中心": {"id": "JhQuR77AR7U", "label": "都歷遊客中心", "source": "東部海岸國家風景區管理處"},
+        "台東-加路蘭遊憩區": {"id": "AKl3F6cAY2Q", "label": "加路蘭遊憩區", "source": "東部海岸國家風景區管理處"}, 
+        "花蓮-大石鼻山": {"id": "JkoXcXI04Qk", "label": "大石鼻山", "source": "東部海岸國家風景區管理處"}, 
+        "台東-綠島帆船鼻": {"id": "pLdBc8PvZko", "label": "綠島帆船鼻", "source": "東部海岸國家風景區管理處"}, 
+        "台東-綠島柴口浮潛區": {"id": "a8nJQr5rBGs", "label": "綠島柴口浮潛區", "source": "東部海岸國家風景區管理處"}, 
+        "台中-高美濕地": {"id": "fjhg3gAn54Y", "label": "高美濕地", "source": "臺中觀光旅遊網"},
+        "南投-清境農場": {"id": "vM84mY2R-7o", "label": "清境農場", "source": "清境農場"},
+        "南投-日月潭向山": {"id": "Hw0gEwE-Gqg", "label": "日月潭向山", "source": "交通部觀光署日月潭國家風景區管理處"},
+        "南投-日月潭水社": {"id": "JgQ8Y8_j-Hk", "label": "日月潭水社", "source": "交通部觀光署日月潭國家風景區管理處"}, 
+        "嘉義-阿里山": {"id": "Yc0_Ea_6zVw", "label": "阿里山", "source": "Alishan National Forest Recreation Area"},
+        "高雄-壽山情人觀景台": {"id": "i7zL46S6w4g", "label": "壽山觀景台", "source": "高雄旅遊網"}, 
+        "高雄-典寶溪_楠梓聖興橋": {"id": "1vVCtk5OXVk", "label": "典寶溪_楠梓聖興橋", "source": "水利署水利防災組"}, 
+        "高雄-海岸_蚵寮國小": {"id": "sKrqs-5Auqo", "label": "海岸_蚵寮國小", "source": "水利署水利防災組"}, 
+        "高雄-高雄燈塔": {"id": "HqrPgNErSOA", "label": "高雄燈塔", "source": "Ship"},
+        "高雄-旗津沙灘": {"id": "lh7OdmxRvTg", "label": "旗津沙灘", "source": "ship"},
+        "屏東-關山日落": {"id": "fO-rF2bU4vY", "label": "屏東關山", "source": "墾丁國家公園"},
+        "屏東-鵝鑾鼻燈塔": {"id": "uV8018h2n4o", "label": "鵝鑾鼻", "source": "墾丁國家公園"},
+        "屏東-船帆石": {"id": "3Wb_Lgw7Ltc", "label": "船帆石", "source": "墾丁國家公園"},
+        "屏東-林邊溪_羌園排水": {"id": "13C8jdbqQcI", "label": "林邊溪(羌光橋)", "source": "水利署水利防災組"}, 
+        "金門-水頭碼頭": {"id": "t9y49XpQyLg", "label": "金門水頭", "source": "金門國家公園"},
+        "馬祖-北竿航空站外候機室": {"id": "EaUVZ49xKQ4", "label": "北竿航空站", "source": "MFK北竿航空站"}
+    };
 
-    // 縣市自然地理順序列表 (用於修正縣市混亂問題)
-    const REGION_ORDER = [
-        "台北", "新北", "基隆", "桃園", "宜蘭",
-        "台中", "南投", "嘉義", 
-        "高雄", "屏東",
-        "台東", "花蓮",
-        "金門", "馬祖"
-    ];
+    // 更新初始鏡頭，選取新資料集中的四個代表地點
+    let INITIAL_CAMS_KEYS = [
+        "台北-象山看101", "桃園-桃園機場北跑道", "台中-高美濕地", "台東-多良車站" 
+    ];
+    
+    // 縣市分組結構
+    const GROUPED_STREAMS = {};
+    const cityNames = new Set();
+    
+    for (const key in ALL_STREAMS) {
+        const cityMatch = key.match(/^(.+?)-/);
+        const city = cityMatch ? cityMatch[1] : '其他'; 
+        cityNames.add(city);
+        if (!GROUPED_STREAMS[city]) {
+            GROUPED_STREAMS[city] = [];
+        }
+        GROUPED_STREAMS[city].push({
+            key: key,
+            label: ALL_STREAMS[key].label,
+            source: ALL_STREAMS[key].source,
+            id: ALL_STREAMS[key].id
+        });
+    }
+    const CITY_LIST = Array.from(cityNames);
 
-    // ========================================
-    // JavaScript 邏輯層 
-    // ========================================
-    const players = [null, null, null, null];
-    let selectedCam = 0;
-    let currentRegion = ""; 
+    let currentCamKeys = [...INITIAL_CAMS_KEYS]; 
+    let players = [];
+    let isApiReady = false;
+    const streamIds = {};
+    
+    for (const key in ALL_STREAMS) {
+        streamIds[key] = ALL_STREAMS[key].id;
+    }
 
-    function getRegions() {
-        const uniqueRegions = Array.from(new Set(
-            Object.keys(ALL_STREAMS).map(key => key.split('-')[0])
-        ));
-        
-        // 依照 REGION_ORDER 進行排序 (修正縣市混亂)
-        return uniqueRegions.sort((a, b) => {
-            return REGION_ORDER.indexOf(a) - REGION_ORDER.indexOf(b);
-        });
-    }
+    const camSelectButtons = [
+      document.getElementById('select-cam-0'), document.getElementById('select-cam-1'),
+      document.getElementById('select-cam-2'), document.getElementById('select-cam-3')
+    ];
+    const labels = [
+      document.getElementById('label0'), document.getElementById('label1'),
+      document.getElementById('label2'), document.getElementById('label3')
+    ];
+    let currentIndex = 0;
+    
 
-    function getStreamsByRegion(region) {
-        const prefix = region + "-";
-        return Object.keys(ALL_STREAMS)
-            .filter(key => key.startsWith(prefix))
-            .map(key => ({ 
-                key: key, 
-                ...ALL_STREAMS[key] 
-            }));
-    }
+    document.addEventListener('DOMContentLoaded', loadRegionButtons);
 
-    function generateRegionButtons() {
-        const container = document.getElementById('regionButtons');
-        container.innerHTML = ''; // 清空現有按鈕
 
-        const regions = getRegions();
+    /* ========================================
+     * 核心：地區選單渲染邏輯
+     * ======================================== */
+    function loadRegionButtons() {
+        renderCityButtons();
+    }
+    
+    function renderCityButtons() {
+        const buttonContainer = document.getElementById('regionButtons');
+        buttonContainer.innerHTML = ''; 
+        CITY_LIST.forEach(city => {
+            const button = document.createElement('button');
+            button.innerText = city;
+            button.setAttribute('onclick', `renderLocationButtons('${city}')`);
+            buttonContainer.appendChild(button);
+        });
+        buttonContainer.scrollLeft = 0;
+    }
 
-        regions.forEach(region => {
-            const button = document.createElement('button');
-            button.textContent = region;
-            // 按鈕點擊後，自動載入該地區的第一個串流
-            button.onclick = () => showStreamsForRegion(region); 
-            if (region === currentRegion) {
-                button.classList.add('active');
-            }
-            container.appendChild(button);
-        });
-        
-        // 確保初始時第一個地區按鈕是選中的
-        if (!document.querySelector(`#regionButtons button.active`)) {
-            const firstButton = document.querySelector(`#regionButtons button`);
-            if (firstButton) {
-                firstButton.classList.add('active');
-            }
-        }
-    }
+    function renderLocationButtons(city) {
+        const buttonContainer = document.getElementById('regionButtons');
+        buttonContainer.innerHTML = ''; 
+        
+        const backButton = document.createElement('button');
+        backButton.innerText = '← 返回縣市選單';
+        backButton.setAttribute('onclick', `renderCityButtons()`);
+        backButton.classList.add('back-button');
+        buttonContainer.appendChild(backButton);
 
-    function showStreamsForRegion(region) {
-        currentRegion = region;
-        
-        // 1. 更新地區按鈕的 active 狀態
-        document.querySelectorAll('#regionButtons button').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.textContent === region) {
-                btn.classList.add('active');
-            }
-        });
+        GROUPED_STREAMS[city].forEach(stream => {
+            const button = document.createElement('button');
+            button.innerText = stream.label;
+            button.setAttribute('onclick', `setStream('${stream.key}')`);
+            buttonContainer.appendChild(button);
+        });
+        
+        buttonContainer.scrollLeft = 0;
+    }
 
-        // 2. 清空並重建直播流按鈕
-        const controls = document.getElementById('controls');
-        let streamContainer = document.getElementById('streamButtonsContainer');
-        if (!streamContainer) {
-            streamContainer = document.createElement('div');
-            streamContainer.id = 'streamButtonsContainer';
-            streamContainer.classList.add('row');
 
-            const streamButtons = document.createElement('div');
-            streamButtons.id = 'streamButtons';
-            streamButtons.classList.add('row');
-            streamContainer.appendChild(streamButtons);
+    /* ========================================
+     * 播放器初始化與控制
+     * ======================================== */
 
-            const latencyInfoRow = document.getElementById('latencyInfo').parentNode;
-            controls.insertBefore(streamContainer, latencyInfoRow.nextElementSibling.nextElementSibling);
-            
-            const divider = document.createElement('div');
-            divider.classList.add('divider');
-            controls.insertBefore(divider, streamContainer);
-        }
-        
-        const streamButtons = document.getElementById('streamButtons');
-        streamButtons.innerHTML = '';
-        streamContainer.style.display = 'flex';
+    function onYouTubeIframeAPIReady() {
+      isApiReady = true;
+      // 初始化所有四個 YT 播放器 (0, 1, 2, 3)
+      for (let i = 0; i < 4; i++) {
+        const streamKey = INITIAL_CAMS_KEYS[i];
+        if (ALL_STREAMS[streamKey]) {
+            createPlayer(i, streamKey); 
+        } else {
+            // 如果初始設定的 key 不存在，則使用第一個可用的直播
+            createPlayer(i, Object.keys(ALL_STREAMS)[i] || "台北-象山看101");
+        }
+      }
+    }
+    
+    function createPlayer(index, streamKey) {
+      const videoId = streamIds[streamKey];
+      const labelText = ALL_STREAMS[streamKey].label;
+      const sourceText = ALL_STREAMS[streamKey].source;
+      
+      if (players[index]) { players[index].destroy(); }
+      currentCamKeys[index] = streamKey; 
 
-        const streams = getStreamsByRegion(region);
-        
-        streams.forEach((stream) => {
-            const button = document.createElement('button');
-            button.textContent = stream.label;
-            button.onclick = () => selectStream(stream.key);
-            streamButtons.appendChild(button);
-        });
-        
-        // 3. 確保 '返回區塊' 按鈕存在
-        let backButton = document.getElementById('backButton');
-        if (!backButton) {
-            backButton = document.createElement('button');
-            backButton.id = 'backButton';
-            backButton.textContent = '返回區塊';
-            backButton.classList.add('back-button');
-            backButton.onclick = showRegionSelection;
-            document.querySelector('.controls .row:first-child').appendChild(backButton);
-        }
+      players[index] = new YT.Player('player' + index, {
+        videoId: videoId,
+        playerVars: {
+          'autoplay': 1, 
+          'mute': 1, 
+          'controls': 0, 
+        },
+        events: {
+          'onReady': onPlayerReady, 'onError': onPlayerError, 'onStateChange': onPlayerStateChange
+        }
+      });
+      
+      labels[index].innerHTML = `${labelText}<span class="source-on-screen">來源: ${sourceText}</span>`;
+    }
 
-        // 4. 顯示直播流按鈕，隱藏區塊按鈕
-        document.getElementById('regionButtons').style.display = 'none';
+    function getNextStreamKey(failingKey) {
+        const streamKeys = Object.keys(ALL_STREAMS);
+        const failingIndex = streamKeys.indexOf(failingKey);
+        for (let i = 1; i <= streamKeys.length; i++) {
+            const nextIndex = (failingIndex + i) % streamKeys.length; 
+            const nextKey = streamKeys[nextIndex];
+            if (nextKey !== failingKey) { return nextKey; }
+        }
+        return null; 
+    }
 
-        // 5. 載入該地區的第一個直播流 (修正不會自動跳進去的問題)
-        if (streams.length > 0) {
-            selectStream(streams[0].key); 
-            
-            // 讓第一個直播流按鈕高亮
-            const firstStreamButton = streamButtons.querySelector('button');
-            if (firstStreamButton) {
-                firstStreamButton.classList.add('active');
-            }
-        }
-    }
+    function onPlayerError(event) {
+        const player = event.target;
+        const errorData = event.data;
+        const index = players.findIndex(p => p === player); 
+        const failingKey = currentCamKeys[index];
+        labels[index].innerHTML = `${ALL_STREAMS[failingKey].label} **[錯誤 ${errorData}]**<span class="source-on-screen">嘗試自動切換中...</span>`;
+        if (errorData === 5 || errorData === 100 || errorData === 101 || errorData === 150) {
+            const newStreamKey = getNextStreamKey(failingKey); 
+            if (newStreamKey) {
+                createPlayer(index, newStreamKey);
+                return; 
+            }
+        }
+        if (errorData === 153 || errorData === 5 || errorData === 101) {
+            refreshPlayer(player);
+        }
+    }
 
-    function showRegionSelection() {
-        document.getElementById('regionButtons').style.display = 'flex';
-        const streamContainer = document.getElementById('streamButtonsContainer');
-        if (streamContainer) {
-            streamContainer.style.display = 'none';
-        }
-        const backButton = document.getElementById('backButton');
-        if (backButton) {
-             backButton.remove();
-        }
-    }
+    function onPlayerReady(event) { 
+        event.target.playVideo(); 
+        updateLatencyDisplay(event.target);
+    }
+    
+    function refreshPlayer(player) {
+        if (!player) return;
+        const videoData = player.getVideoData();
+        const videoId = videoData.video_id;
+        if (!videoId) return;
+        player.loadVideoById({ videoId: videoId, startSeconds: 0 });
+    }
 
-    function selectStream(streamKey) {
-        const stream = ALL_STREAMS[streamKey];
-        if (!stream) return;
+    function onPlayerStateChange(event) {
+        const player = event.target;
+        const state = event.data;
+        if (state === YT.PlayerState.ENDED) { 
+            refreshPlayer(player); 
+        } 
+        // 不論頁面可見性，暫停或緩衝都強制維持播放
+        else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING) {
+            player.playVideo();
+        }
+    }
 
-        // 1. 取得當前選中的攝影機索引
-        const camIndex = selectedCam; 
+    function selectCam(index){
+        currentIndex = index;
+        camSelectButtons.forEach(btn=>btn.classList.remove('active'));
+        camSelectButtons[index].classList.add('active');
+        if(isApiReady) updateLatencyDisplay(players[currentIndex]);
+    }
 
-        // 2. 更新按鈕狀態 (讓選中的直播流按鈕高亮)
-        document.querySelectorAll('#streamButtons button').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.textContent === stream.label) {
-                btn.classList.add('active');
-            }
-        });
+    function setStream(streamKey){
+        const videoId = streamIds[streamKey];
+        if(!videoId) return alert("來源不存在："+streamKey);
+        if (!isApiReady || !players[currentIndex]) return;
+        
+        const labelText = ALL_STREAMS[streamKey].label;
+        const sourceText = ALL_STREAMS[streamKey].source;
 
-        // 3. 載入直播流
-        loadStream(camIndex, stream.id, stream.label, stream.source);
-        
-        // 4. 自動切換到下一個鏡頭，但不要讓它超過 3 (右下)
-        if (selectedCam < 3) {
-            selectCam(selectedCam + 1);
-        } else {
-            selectCam(3); // 保持在右下
-        }
-    }
+        players[currentIndex].loadVideoById({
+            videoId: videoId,
+            startSeconds: 0 
+        });
+        
+        currentCamKeys[currentIndex] = streamKey; 
+        labels[currentIndex].innerHTML = `${labelText}<span class="source-on-screen">來源: ${sourceText}</span>`;
+    }
+    
+    
+    /* ========================================
+     * 延遲檢查功能 - 全局自動化
+     * ======================================== */
+    const latencyDisplay = document.getElementById('latencyInfo');
 
-    function selectCam(camIndex) {
-        selectedCam = camIndex;
+    function _refreshPlayerIfHighLatency(player) {
+        if (!player || player.getPlayerState() !== YT.PlayerState.PLAYING) return;
+        try {
+            const mediaTime = player.getMediaReferenceTime(); 
+            const nowTime = Date.now() / 1000; 
+            const latency = nowTime - mediaTime; 
+            if (latency > 30) {
+                refreshPlayer(player);
+            }
+        } catch (e) {}
+    }
 
-        // 1. 更新鏡頭選擇按鈕 active 狀態
-        document.querySelectorAll('.cam-select button').forEach((btn, index) => {
-            btn.classList.remove('active');
-            if (index === camIndex) {
-                btn.classList.add('active');
-            }
-        });
-    }
+    function updateLatencyDisplay(player) {
+        if (!player || player.getPlayerState() !== YT.PlayerState.PLAYING) {
+             latencyDisplay.innerText = '延遲：暫停/載入中';
+             latencyDisplay.style.color = '#f90'; 
+             return;
+        }
+        try {
+            const mediaTime = player.getMediaReferenceTime(); 
+            const nowTime = Date.now() / 1000; 
+            const latency = nowTime - mediaTime; 
+            if (latency >= 0) {
+                latencyDisplay.innerText = `延遲：約 ${latency.toFixed(1)} 秒`;
+                if (latency > 29) {
+                    latencyDisplay.style.color = '#f00';
+                } else if (latency > 5) {
+                    latencyDisplay.style.color = '#ff0';
+                } else {
+                    latencyDisplay.style.color = '#0f0';
+                }
+            } else {
+                latencyDisplay.innerText = '延遲：即時/誤差';
+                latencyDisplay.style.color = '#fff';
+            }
+        } catch (e) {
+            latencyDisplay.innerText = '延遲：無法讀取';
+        }
+    }
+    
+    function globalMonitor() {
+        if (!isApiReady) return;
+        players.forEach(_refreshPlayerIfHighLatency);
+        updateLatencyDisplay(players[currentIndex]);
+    }
 
-    // 載入 YouTube 播放器
-    function loadStream(camIndex, videoId, labelText, sourceText) {
-        const cell = document.querySelector(`.cell[data-index="${camIndex}"]`);
-        const shield = cell.querySelector('.interaction-shield');
-        
-        shield.style.display = 'none'; 
-        
-        if (players[camIndex]) {
-            players[camIndex].destroy();
-        }
-        
-        players[camIndex] = new YT.Player(`player${camIndex}`, {
-            videoId: videoId,
-            playerVars: {
-                autoplay: 1,
-                controls: 0,
-                rel: 0,
-                fs: 0,
-                loop: 1,
-                playlist: videoId,
-                modestbranding: 1
-            },
-            events: {
-                'onReady': (event) => onPlayerReady(event, camIndex, labelText, sourceText),
-                'onError': (event) => {
-                    shield.style.display = 'block'; 
-                    updateLabel(camIndex, `載入錯誤: ${videoId}`, '請檢查直播狀態');
-                }
-            }
-        });
-        updateLabel(camIndex, labelText, sourceText);
-    }
-    
-    function onPlayerReady(event, camIndex, labelText, sourceText) {
-        updateLabel(camIndex, labelText, sourceText);
-    }
+    setInterval(globalMonitor, 5000); 
+    selectCam(0); 
 
-    function updateLabel(camIndex, labelText, sourceText) {
-        const labelDiv = document.getElementById(`label${camIndex}`);
-        labelDiv.innerHTML = `${labelText} <br><span class="source-on-screen">來源: ${sourceText}</span>`;
-    }
-
-    function onYouTubeIframeAPIReady() {
-        // 1. 設置選單
-        generateRegionButtons();
-        
-        // 2. 載入預設串流 (修正不會自動加載畫面的問題)
-        const regions = getRegions();
-        if (regions.length > 0) {
-            currentRegion = regions[0]; // 設定第一個地區為預設
-            
-            // 透過呼叫此函數，同時產生串流按鈕並載入第一個串流
-            showStreamsForRegion(currentRegion);
-        } else {
-             updateLabel(0, "無可用串流", "請檢查 ALL_STREAMS 設定");
-        }
-    }
-  </script>
+    // 已移除 visibilitychange 事件，避免背景分頁暫停
+  </script>
 </body>
 </html>
