@@ -117,7 +117,7 @@
 
   <script>
     // ========================================
-    // 數據層 (已移除中央山脈)
+    // 數據層
     // ========================================
     const ALL_STREAMS = {
         "台北-象山看101": {"id": "z_fY1pj1VBw", "label": "台北象山", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
@@ -206,17 +206,31 @@
         "馬祖-北竿航空站外候機室": {"id": "EaUVZ49xKQ4", "label": "北竿航空站", "source": "MFK北竿航空站"}
     };
 
+    // 縣市自然地理順序列表 (用於修正縣市混亂問題)
+    const REGION_ORDER = [
+        "台北", "新北", "基隆", "桃園", "宜蘭",
+        "台中", "南投", "嘉義", 
+        "高雄", "屏東",
+        "台東", "花蓮",
+        "金門", "馬祖"
+    ];
+
     // ========================================
-    // JavaScript 邏輯層 (已移除聲音與全螢幕相關邏輯)
+    // JavaScript 邏輯層 
     // ========================================
     const players = [null, null, null, null];
     let selectedCam = 0;
-    let currentRegion = "台北"; // 預設第一個地區
+    let currentRegion = ""; 
 
     function getRegions() {
-        return Array.from(new Set(
+        const uniqueRegions = Array.from(new Set(
             Object.keys(ALL_STREAMS).map(key => key.split('-')[0])
-        )).sort();
+        ));
+        
+        // 依照 REGION_ORDER 進行排序 (修正縣市混亂)
+        return uniqueRegions.sort((a, b) => {
+            return REGION_ORDER.indexOf(a) - REGION_ORDER.indexOf(b);
+        });
     }
 
     function getStreamsByRegion(region) {
@@ -238,7 +252,8 @@
         regions.forEach(region => {
             const button = document.createElement('button');
             button.textContent = region;
-            button.onclick = () => showStreamsForRegion(region);
+            // 按鈕點擊後，自動載入該地區的第一個串流
+            button.onclick = () => showStreamsForRegion(region); 
             if (region === currentRegion) {
                 button.classList.add('active');
             }
@@ -278,11 +293,9 @@
             streamButtons.classList.add('row');
             streamContainer.appendChild(streamButtons);
 
-            // 插入在 latencyInfo 之後
             const latencyInfoRow = document.getElementById('latencyInfo').parentNode;
             controls.insertBefore(streamContainer, latencyInfoRow.nextElementSibling.nextElementSibling);
             
-            // 插入分隔線
             const divider = document.createElement('div');
             divider.classList.add('divider');
             controls.insertBefore(divider, streamContainer);
@@ -314,6 +327,17 @@
 
         // 4. 顯示直播流按鈕，隱藏區塊按鈕
         document.getElementById('regionButtons').style.display = 'none';
+
+        // 5. 載入該地區的第一個直播流 (修正不會自動跳進去的問題)
+        if (streams.length > 0) {
+            selectStream(streams[0].key); 
+            
+            // 讓第一個直播流按鈕高亮
+            const firstStreamButton = streamButtons.querySelector('button');
+            if (firstStreamButton) {
+                firstStreamButton.classList.add('active');
+            }
+        }
     }
 
     function showRegionSelection() {
@@ -371,7 +395,6 @@
         const cell = document.querySelector(`.cell[data-index="${camIndex}"]`);
         const shield = cell.querySelector('.interaction-shield');
         
-        // 確保 iframe 可以被點擊，移除防護罩
         shield.style.display = 'none'; 
         
         if (players[camIndex]) {
@@ -392,7 +415,6 @@
             events: {
                 'onReady': (event) => onPlayerReady(event, camIndex, labelText, sourceText),
                 'onError': (event) => {
-                    // 發生錯誤時顯示防護罩
                     shield.style.display = 'block'; 
                     updateLabel(camIndex, `載入錯誤: ${videoId}`, '請檢查直播狀態');
                 }
@@ -402,7 +424,6 @@
     }
     
     function onPlayerReady(event, camIndex, labelText, sourceText) {
-        // 舊版預設不操作聲音
         updateLabel(camIndex, labelText, sourceText);
     }
 
@@ -415,17 +436,13 @@
         // 1. 設置選單
         generateRegionButtons();
         
-        // 2. 載入預設串流 (第一個地區的第一個串流)
+        // 2. 載入預設串流 (修正不會自動加載畫面的問題)
         const regions = getRegions();
         if (regions.length > 0) {
-            currentRegion = regions[0]; 
-        }
-        
-        const firstStreamKey = Object.keys(ALL_STREAMS).find(key => key.startsWith(currentRegion + "-"));
-        
-        if (firstStreamKey) {
-            const stream = ALL_STREAMS[firstStreamKey];
-            loadStream(0, stream.id, stream.label, stream.source);
+            currentRegion = regions[0]; // 設定第一個地區為預設
+            
+            // 透過呼叫此函數，同時產生串流按鈕並載入第一個串流
+            showStreamsForRegion(currentRegion);
         } else {
              updateLabel(0, "無可用串流", "請檢查 ALL_STREAMS 設定");
         }
