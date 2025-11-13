@@ -117,16 +117,20 @@
 
   <script>
     // ========================================
-    // 數據層 (未變動)
+    // 數據層 (已新增所有項目，並修正桃機名稱)
     // ========================================
     const ALL_STREAMS = {
         "台北-象山看101": {"id": "z_fY1pj1VBw", "label": "台北象山", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
         "台北-大稻埕": {"id": "Ndo_8RuefH4", "label": "大稻埕", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
         "台北-碧山巖": {"id": "uvwfYzwY8tg", "label": "碧山巖", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
+        "台北-微風平台": {"id": "34h_Cy_n0Ok", "label": "微風平台", "source": "Taipei Travel Live Cam 台北觀光即時影像"}, 
+        "台北-貓空指南宮": {"id": "215ahZ_0rTg", "label": "貓空指南宮", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
         "新北-漁人碼頭": {"id": "xwAWSh35uuw", "label": "新北淡水", "source": "新北旅客 New Taipei Tour"},
         "新北-鼻頭服務區": {"id": "4Bm3IKcGkQY", "label": "新北鼻頭", "source": "necoast nsa"},
         "基隆-外木山": {"id": "LInNQYAbAwQ", "label": "外木山", "source": "GoOcean海洋遊憩風險資訊"}, 
         "桃園-國際機場": {"id": "91PfFoqvuUk", "label": "桃園機場", "source": "遊桃園 Taoyuan Travel"},
+        "桃園-桃園機場南跑道": {"id": "y3_x8el5ZJY", "label": "TPE 南跑道", "source": "Taoyuan Airport"}, // 修正後的名稱
+        "桃園-桃園機場北跑道": {"id": "wWEnxWA7nnY", "label": "TPE 北跑道", "source": "Taoyuan Airport"}, // 修正後的名稱
         "桃園-永安漁港": {"id": "tD_a03trUvE", "label": "永安漁港", "source": "遊桃園 Taoyuan Travel"},
         "桃園-拉拉山遊客中心": {"id": "YkIUZjVlhv4", "label": "拉拉山遊客中心", "source": "遊桃園 Taoyuan Travel"}, 
         "桃園-虎頭山環保公園": {"id": "tu_gsIkNt-w", "label": "虎頭山環保公園", "source": "遊桃園 Taoyuan Travel"}, 
@@ -160,6 +164,7 @@
         "台東-南橫埡口": {"id": "LSkq-wHMxQY", "label": "台東南橫埡口", "source": "Amazing Taitung 台東就醬玩"}, 
         "台東-池上天堂路": {"id": "6kUEK3LVrro", "label": "台東池上天堂路", "source": "Amazing Taitung 台東就醬玩"}, 
         "台東-多良車站": {"id": "UCG1aXVO8H8", "label": "台東多良", "source": "Amazing Taitung 台東就醬玩"}, 
+        "台東-鹿野高台": {"id": "rvc1klNIgQc", "label": "鹿野高台", "source": "ervnsa"},
         "花蓮-石梯坪": {"id": "mXnigLvIL0Q", "label": "花蓮石梯坪", "source": "東部海岸國家風景區管理處"},
         "台東-成功三仙台": {"id": "dQ7Sd6PGLdA", "label": "三仙台", "source": "東部海岸國家風景區管理處"},
         "台東-金樽遊憩區": {"id": "ZdqHgQwvZOw", "label": "金樽遊憩區", "source": "東部海岸國家風景區管理處"}, 
@@ -184,6 +189,8 @@
         "屏東-墾丁南灣": {"id": "jUnFuJSj0OU", "label": "墾丁南灣", "source": "我愛墾丁旅遊票券中心"},
         "台南-七股賞鳥台": {"id": "5KJe2gCTngA", "label": "台南七股", "source": "內政部國家公園署台江國家公園管理處"},
         "台南-北汕尾水鳥保護區": {"id": "FES0gWTFUHQ", "label": "北汕尾水鳥保護區", "source": "內政部國家公園署台江國家公園管理處"}, 
+        "台南-曾文水庫": {"id": "EH4V8IwFIp4", "label": "曾文水庫", "source": "西拉雅國家風景區管理處 Siraya National Scenic Area Administration"}, 
+        "台南-火山碧雲寺": {"id": "zkX6X9p-6iA", "label": "火山碧雲寺", "source": "西拉雅國家風景區管理處 Siraya National Scenic Area Administration"},
         "高雄-壽山觀景台": {"id": "C03Itx8iSC0", "label": "壽山觀景", "source": "高雄旅遊網"},
         "金門-麒麟山森林公園": {"id": "M4EJtf_iP8s", "label": "金門麒麟山公園", "source": "樂遊金門"},
         "金門-134高地": {"id": "-srNHTE-Nf0", "label": "金門134高地", "source": "樂遊金門"},
