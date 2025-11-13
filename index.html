@@ -1,125 +1,125 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="utf-8" />
-  <title>台灣即時直播四分割監看 (最終 API 最小化參數版)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    /* ========================================
-     * 基礎 CSS 樣式
-     * ======================================== */
-    html,body{
-      height:100%; margin:0; padding:0; background:#000;
-      font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
-    }
-    .controls{
-      position:fixed; bottom:0; left:0; width:100%; height:70px; 
-      background:rgba(12,12,12,0.9); color:#fff; padding:5px 10px; 
-      box-sizing:border-box; 
-      display:flex; flex-direction:row; align-items: center; 
-      gap:10px; 
-      z-index:999;
-      overflow-y: hidden;
-    }
+  <meta charset="utf-8" />
+  <title>台灣即時直播四分割監看 (最終 API 最小化參數版)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* ========================================
+     * 基礎 CSS 樣式
+     * ======================================== */
+    html,body{
+      height:100%; margin:0; padding:0; background:#000;
+      font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
+    }
+    .controls{
+      position:fixed; bottom:0; left:0; width:100%; height:70px; 
+      background:rgba(12,12,12,0.9); color:#fff; padding:5px 10px; 
+      box-sizing:border-box; 
+      display:flex; flex-direction:row; align-items: center; 
+      gap:10px; 
+      z-index:999;
+      overflow-y: hidden;
+    }
 
-    /* 滾動條樣式 */
-    .controls::-webkit-scrollbar{ height: 4px; background-color: rgba(255, 255, 255, 0.1); }
-    .controls::-webkit-scrollbar-thumb { background-color: #555; border-radius: 2px; }
-    .row{ display:flex; flex-wrap:nowrap; gap:6px; align-items: center; flex-shrink: 0; }
-    .divider { width: 1px; height: 80%; background: #333; flex-shrink: 0; margin: 0; }
-    .controls #regionButtons{
-        display:flex; flex-grow: 1; min-width: 0; gap:4px;
-        overflow-x: auto; padding-bottom: 5px; height: 100%; align-items: center;
-    }
-    .controls button{
-      background-color:#222; color:#fff; border:1px solid #444;
-      padding:4px 8px; font-size:12px; cursor:pointer; border-radius:4px;
-      height: 40px; flex-shrink: 0; white-space: nowrap; text-align: center;
-    }
-    .controls button.active{
-      background-color:#0099ff; border-color:#0099ff;
-    }
-    .controls button.back-button { background-color: #555; }
+    /* 滾動條樣式 */
+    .controls::-webkit-scrollbar{ height: 4px; background-color: rgba(255, 255, 255, 0.1); }
+    .controls::-webkit-scrollbar-thumb { background-color: #555; border-radius: 2px; }
+    .row{ display:flex; flex-wrap:nowrap; gap:6px; align-items: center; flex-shrink: 0; }
+    .divider { width: 1px; height: 80%; background: #333; flex-shrink: 0; margin: 0; }
+    .controls #regionButtons{
+        display:flex; flex-grow: 1; min-width: 0; gap:4px;
+        overflow-x: auto; padding-bottom: 5px; height: 100%; align-items: center;
+    }
+    .controls button{
+      background-color:#222; color:#fff; border:1px solid #444;
+      padding:4px 8px; font-size:12px; cursor:pointer; border-radius:4px;
+      height: 40px; flex-shrink: 0; white-space: nowrap; text-align: center;
+    }
+    .controls button.active{
+      background-color:#0099ff; border-color:#0099ff;
+    }
+    .controls button.back-button { background-color: #555; }
 
-    /* 2. 影片舞台樣式 */
-    .stage-wrap{
-      position:fixed; top:0; left:0; width:100vw; height:calc(100vh - 70px);
-      display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
-      gap:0; z-index:1;
-    }
-    .cell{
-      position:relative; width:100%; height:100%; overflow:hidden;
-    }
-    
-    /* YouTube 裁切 CSS */
-    .player-container, .player-container iframe {
-      position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
-      object-fit:cover; object-position:center; background:black;
-      transform: scale(1.65) translateY(-6%); 
-    }
-    
-    .cell iframe { pointer-events: auto !important; }
-    .interaction-shield {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 5; background: transparent; cursor: default; 
-    }
-    .label{
-      position:absolute; left:8px; right:8px; bottom:8px; display:flex;
-      flex-direction: column; align-items:flex-start; padding: 3px 6px; 
-      font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:3px;
-      pointer-events:none; z-index:10; 
-    }
-    .source-on-screen { font-size: 10px; color: #ccc; margin-top: 1px; line-height: 1.2; }
-    
-  </style>
+    /* 2. 影片舞台樣式 */
+    .stage-wrap{
+      position:fixed; top:0; left:0; width:100vw; height:calc(100vh - 70px);
+      display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
+      gap:0; z-index:1;
+    }
+    .cell{
+      position:relative; width:100%; height:100%; overflow:hidden;
+    }
+    
+    /* YouTube 裁切 CSS */
+    .player-container, .player-container iframe {
+      position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+      object-fit:cover; object-position:center; background:black;
+      transform: scale(1.65) translateY(-6%); 
+    }
+    
+    .cell iframe { pointer-events: auto !important; }
+    .interaction-shield {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 5; background: transparent; cursor: default; 
+    }
+    .label{
+      position:absolute; left:8px; right:8px; bottom:8px; display:flex;
+      flex-direction: column; align-items:flex-start; padding: 3px 6px; 
+      font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:3px;
+      pointer-events:none; z-index:10; 
+    }
+    .source-on-screen { font-size: 10px; color: #ccc; margin-top: 1px; line-height: 1.2; }
+    
+  </style>
 </head>
 <body>
-  <div class="controls" id="controls">
-    <div class="row cam-select">
-      <button id="select-cam-0" class="active" onclick="selectCam(0)">左上</button>
-      <button id="select-cam-1" onclick="selectCam(1)">右上</button>
-      <button id="select-cam-2" onclick="selectCam(2)">左下</button>
-      <button id="select-cam-3" onclick="selectCam(3)">右下</button>
-    </div>
-    <div class="divider"></div>
-    <div class="row" id="latencyInfo" style="color:#f90; font-size:12px; margin-left:5px; flex-shrink:0;">
-        延遲：讀取中...
-    </div>
-    <div class="divider"></div>
-    <div class="row" id="regionButtons">
-    </div>
-  </div>
+  <div class="controls" id="controls">
+    <div class="row cam-select">
+      <button id="select-cam-0" class="active" onclick="selectCam(0)">左上</button>
+      <button id="select-cam-1" onclick="selectCam(1)">右上</button>
+      <button id="select-cam-2" onclick="selectCam(2)">左下</button>
+      <button id="select-cam-3" onclick="selectCam(3)">右下</button>
+    </div>
+    <div class="divider"></div>
+    <div class="row" id="latencyInfo" style="color:#f90; font-size:12px; margin-left:5px; flex-shrink:0;">
+        延遲：讀取中...
+    </div>
+    <div class="divider"></div>
+    <div class="row" id="regionButtons">
+    </div>
+  </div>
 
-  <div class="stage-wrap" id="stageWrap">
-    <div class="cell" data-index="0">
-      <div id="player0" class="player-container"></div>
-      <div class="interaction-shield"></div>
-      <div class="label" id="label0">載入中...</div>
-    </div>
-    <div class="cell" data-index="1">
-      <div id="player1" class="player-container"></div>
-      <div class="interaction-shield"></div>
-      <div class="label" id="label1">載入中...</div>
-    </div>
-    <div class="cell" data-index="2">
-      <div id="player2" class="player-container"></div>
-      <div class="interaction-shield"></div>
-      <div class="label" id="label2">載入中...</div>
-    </div>
-    <div class="cell" data-index="3">
-      <div id="player3" class="player-container"></div>
-      <div class="interaction-shield"></div>
-      <div class="label" id="label3">載入中...</div>
-    </div>
-  </div>
+  <div class="stage-wrap" id="stageWrap">
+    <div class="cell" data-index="0">
+      <div id="player0" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label0">載入中...</div>
+    </div>
+    <div class="cell" data-index="1">
+      <div id="player1" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label1">載入中...</div>
+    </div>
+    <div class="cell" data-index="2">
+      <div id="player2" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label2">載入中...</div>
+    </div>
+    <div class="cell" data-index="3">
+      <div id="player3" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label3">載入中...</div>
+    </div>
+  </div>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
 
-  <script>
-    // ========================================
-    // 數據層 (已更新)
-    // ========================================
-    const ALL_STREAMS = {
+  <script>
+    // ========================================
+    // 數據層 (替換為新增地點版本)
+    // ========================================
+    const ALL_STREAMS = {
         "台北-象山看101": {"id": "z_fY1pj1VBw", "label": "台北象山", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
         "台北-大稻埕": {"id": "Ndo_8RuefH4", "label": "大稻埕", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
         "台北-碧山巖": {"id": "uvwfYzwY8tg", "label": "碧山巖", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
@@ -206,268 +206,267 @@
         "馬祖-北竿航空站外候機室": {"id": "EaUVZ49xKQ4", "label": "北竿航空站", "source": "MFK北竿航空站"}
     };
 
-    let INITIAL_CAMS_KEYS = [
-        "台北-象山看101", "桃園-桃園機場南跑道", "新北-九份", "台東-多良車站" 
-    ];
-    
-    // 縣市分組結構 (自動從 ALL_STREAMS 生成，無需手動修改)
-    const GROUPED_STREAMS = {};
-    const cityNames = new Set();
-    
-    for (const key in ALL_STREAMS) {
-        const cityMatch = key.match(/^(.+?)-/);
-        const city = cityMatch ? cityMatch[1] : '其他'; 
-        cityNames.add(city);
-        if (!GROUPED_STREAMS[city]) {
-            GROUPED_STREAMS[city] = [];
-        }
-        GROUPED_STREAMS[city].push({
-            key: key,
-            label: ALL_STREAMS[key].label,
-            source: ALL_STREAMS[key].source,
-            id: ALL_STREAMS[key].id
-        });
-    }
-    const CITY_LIST = Array.from(cityNames);
+    let INITIAL_CAMS_KEYS = [
+        "台北-象山看101", "桃園-國際機場", "新北-漁人碼頭", "台東-多良車站" 
+    ];
+    
+    // 縣市分組結構
+    const GROUPED_STREAMS = {};
+    const cityNames = new Set();
+    
+    for (const key in ALL_STREAMS) {
+        const cityMatch = key.match(/^(.+?)-/);
+        const city = cityMatch ? cityMatch[1] : '其他'; 
+        cityNames.add(city);
+        if (!GROUPED_STREAMS[city]) {
+            GROUPED_STREAMS[city] = [];
+        }
+        GROUPED_STREAMS[city].push({
+            key: key,
+            label: ALL_STREAMS[key].label,
+            source: ALL_STREAMS[key].source,
+            id: ALL_STREAMS[key].id
+        });
+    }
+    const CITY_LIST = Array.from(cityNames);
 
-    let currentCamKeys = [...INITIAL_CAMS_KEYS]; 
-    let players = [];
-    let isApiReady = false;
-    const streamIds = {};
-    
-    for (const key in ALL_STREAMS) {
-        streamIds[key] = ALL_STREAMS[key].id;
-    }
+    let currentCamKeys = [...INITIAL_CAMS_KEYS]; 
+    let players = [];
+    let isApiReady = false;
+    const streamIds = {};
+    
+    for (const key in ALL_STREAMS) {
+        streamIds[key] = ALL_STREAMS[key].id;
+    }
 
-    const camSelectButtons = [
-      document.getElementById('select-cam-0'), document.getElementById('select-cam-1'),
-      document.getElementById('select-cam-2'), document.getElementById('select-cam-3')
-    ];
-    const labels = [
-      document.getElementById('label0'), document.getElementById('label1'),
-      document.getElementById('label2'), document.getElementById('label3')
-    ];
-    let currentIndex = 0;
-    
+    const camSelectButtons = [
+      document.getElementById('select-cam-0'), document.getElementById('select-cam-1'),
+      document.getElementById('select-cam-2'), document.getElementById('select-cam-3')
+    ];
+    const labels = [
+      document.getElementById('label0'), document.getElementById('label1'),
+      document.getElementById('label2'), document.getElementById('label3')
+    ];
+    let currentIndex = 0;
+    
 
-    document.addEventListener('DOMContentLoaded', loadRegionButtons);
-
-
-    /* ========================================
-     * 核心：地區選單渲染邏輯
-     * ======================================== */
-    function loadRegionButtons() {
-        renderCityButtons();
-    }
-    
-    function renderCityButtons() {
-        const buttonContainer = document.getElementById('regionButtons');
-        buttonContainer.innerHTML = ''; 
-        CITY_LIST.forEach(city => {
-            const button = document.createElement('button');
-            button.innerText = city;
-            button.setAttribute('onclick', `renderLocationButtons('${city}')`);
-            buttonContainer.appendChild(button);
-        });
-        buttonContainer.scrollLeft = 0;
-    }
-
-    function renderLocationButtons(city) {
-        const buttonContainer = document.getElementById('regionButtons');
-        buttonContainer.innerHTML = ''; 
-        
-        const backButton = document.createElement('button');
-        backButton.innerText = '← 返回縣市選單';
-        backButton.setAttribute('onclick', `renderCityButtons()`);
-        backButton.classList.add('back-button');
-        buttonContainer.appendChild(backButton);
-
-        GROUPED_STREAMS[city].forEach(stream => {
-            const button = document.createElement('button');
-            button.innerText = stream.label;
-            button.setAttribute('onclick', `setStream('${stream.key}')`);
-            buttonContainer.appendChild(button);
-        });
-        
-        buttonContainer.scrollLeft = 0;
-    }
+    document.addEventListener('DOMContentLoaded', loadRegionButtons);
 
 
-    /* ========================================
-     * 播放器初始化與控制
-     * ======================================== */
+    /* ========================================
+     * 核心：地區選單渲染邏輯
+     * ======================================== */
+    function loadRegionButtons() {
+        renderCityButtons();
+    }
+    
+    function renderCityButtons() {
+        const buttonContainer = document.getElementById('regionButtons');
+        buttonContainer.innerHTML = ''; 
+        CITY_LIST.forEach(city => {
+            const button = document.createElement('button');
+            button.innerText = city;
+            button.setAttribute('onclick', `renderLocationButtons('${city}')`);
+            buttonContainer.appendChild(button);
+        });
+        buttonContainer.scrollLeft = 0;
+    }
 
-    function onYouTubeIframeAPIReady() {
-      isApiReady = true;
-      // 初始化所有四個 YT 播放器 (0, 1, 2, 3)
-      for (let i = 0; i < 4; i++) {
-        const streamKey = INITIAL_CAMS_KEYS[i];
-        if (ALL_STREAMS[streamKey]) {
-            createPlayer(i, streamKey); 
-        } else {
-            // 如果預設值不存在，則嘗試載入清單中的第一個或預設值
-            createPlayer(i, Object.keys(ALL_STREAMS)[i] || Object.keys(ALL_STREAMS)[0]);
-        }
-      }
-    }
-    
-    function createPlayer(index, streamKey) {
-      const videoId = streamIds[streamKey];
-      const labelText = ALL_STREAMS[streamKey].label;
-      const sourceText = ALL_STREAMS[streamKey].source;
-      
-      if (players[index]) { players[index].destroy(); }
-      currentCamKeys[index] = streamKey; 
+    function renderLocationButtons(city) {
+        const buttonContainer = document.getElementById('regionButtons');
+        buttonContainer.innerHTML = ''; 
+        
+        const backButton = document.createElement('button');
+        backButton.innerText = '← 返回縣市選單';
+        backButton.setAttribute('onclick', `renderCityButtons()`);
+        backButton.classList.add('back-button');
+        buttonContainer.appendChild(backButton);
 
-      players[index] = new YT.Player('player' + index, {
-        videoId: videoId,
-        playerVars: {
-          'autoplay': 1, 
-          'mute': 1, 
-          'controls': 0, 
-        },
-        events: {
-          'onReady': onPlayerReady, 'onError': onPlayerError, 'onStateChange': onPlayerStateChange
-        }
-      });
-      
-      labels[index].innerHTML = `${labelText}<span class="source-on-screen">來源: ${sourceText}</span>`;
-    }
+        GROUPED_STREAMS[city].forEach(stream => {
+            const button = document.createElement('button');
+            button.innerText = stream.label;
+            button.setAttribute('onclick', `setStream('${stream.key}')`);
+            buttonContainer.appendChild(button);
+        });
+        
+        buttonContainer.scrollLeft = 0;
+    }
 
-    function getNextStreamKey(failingKey) {
-        const streamKeys = Object.keys(ALL_STREAMS);
-        const failingIndex = streamKeys.indexOf(failingKey);
-        for (let i = 1; i <= streamKeys.length; i++) {
-            const nextIndex = (failingIndex + i) % streamKeys.length; 
-            const nextKey = streamKeys[nextIndex];
-            if (nextKey !== failingKey) { return nextKey; }
-        }
-        return null; 
-    }
 
-    function onPlayerError(event) {
-        const player = event.target;
-        const errorData = event.data;
-        const index = players.findIndex(p => p === player); 
-        const failingKey = currentCamKeys[index];
-        labels[index].innerHTML = `${ALL_STREAMS[failingKey].label} **[錯誤 ${errorData}]**<span class="source-on-screen">嘗試自動切換中...</span>`;
-        if (errorData === 5 || errorData === 100 || errorData === 101 || errorData === 150) {
-            const newStreamKey = getNextStreamKey(failingKey); 
-            if (newStreamKey) {
-                createPlayer(index, newStreamKey);
-                return; 
-            }
-        }
-        if (errorData === 153 || errorData === 5 || errorData === 101) {
-            refreshPlayer(player);
-        }
-    }
+    /* ========================================
+     * 播放器初始化與控制
+     * ======================================== */
 
-    function onPlayerReady(event) { 
-        event.target.playVideo(); 
-        updateLatencyDisplay(event.target);
-    }
-    
-    function refreshPlayer(player) {
-        if (!player) return;
-        const videoData = player.getVideoData();
-        const videoId = videoData.video_id;
-        if (!videoId) return;
-        player.loadVideoById({ videoId: videoId, startSeconds: 0 });
-    }
+    function onYouTubeIframeAPIReady() {
+      isApiReady = true;
+      // 初始化所有四個 YT 播放器 (0, 1, 2, 3)
+      for (let i = 0; i < 4; i++) {
+        const streamKey = INITIAL_CAMS_KEYS[i];
+        if (ALL_STREAMS[streamKey]) {
+            createPlayer(i, streamKey); 
+        } else {
+            createPlayer(i, Object.keys(ALL_STREAMS)[i] || "台北-象山看101");
+        }
+      }
+    }
+    
+    function createPlayer(index, streamKey) {
+      const videoId = streamIds[streamKey];
+      const labelText = ALL_STREAMS[streamKey].label;
+      const sourceText = ALL_STREAMS[streamKey].source;
+      
+      if (players[index]) { players[index].destroy(); }
+      currentCamKeys[index] = streamKey; 
 
-    function onPlayerStateChange(event) {
-        const player = event.target;
-        const state = event.data;
-        if (state === YT.PlayerState.ENDED) { 
-            refreshPlayer(player); 
-        } 
-        // 不論頁面可見性，暫停或緩衝都強制維持播放
-        else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING) {
-            player.playVideo();
-        }
-    }
+      players[index] = new YT.Player('player' + index, {
+        videoId: videoId,
+        playerVars: {
+          'autoplay': 1, 
+          'mute': 1, 
+          'controls': 0, 
+        },
+        events: {
+          'onReady': onPlayerReady, 'onError': onPlayerError, 'onStateChange': onPlayerStateChange
+        }
+      });
+      
+      labels[index].innerHTML = `${labelText}<span class="source-on-screen">來源: ${sourceText}</span>`;
+    }
 
-    function selectCam(index){
-        currentIndex = index;
-        camSelectButtons.forEach(btn=>btn.classList.remove('active'));
-        camSelectButtons[index].classList.add('active');
-        if(isApiReady) updateLatencyDisplay(players[currentIndex]);
-    }
+    function getNextStreamKey(failingKey) {
+        const streamKeys = Object.keys(ALL_STREAMS);
+        const failingIndex = streamKeys.indexOf(failingKey);
+        for (let i = 1; i <= streamKeys.length; i++) {
+            const nextIndex = (failingIndex + i) % streamKeys.length; 
+            const nextKey = streamKeys[nextIndex];
+            if (nextKey !== failingKey) { return nextKey; }
+        }
+        return null; 
+    }
 
-    function setStream(streamKey){
-        const videoId = streamIds[streamKey];
-        if(!videoId) return alert("來源不存在："+streamKey);
-        if (!isApiReady || !players[currentIndex]) return;
-        
-        const labelText = ALL_STREAMS[streamKey].label;
-        const sourceText = ALL_STREAMS[streamKey].source;
+    function onPlayerError(event) {
+        const player = event.target;
+        const errorData = event.data;
+        const index = players.findIndex(p => p === player); 
+        const failingKey = currentCamKeys[index];
+        labels[index].innerHTML = `${ALL_STREAMS[failingKey].label} **[錯誤 ${errorData}]**<span class="source-on-screen">嘗試自動切換中...</span>`;
+        if (errorData === 5 || errorData === 100 || errorData === 101 || errorData === 150) {
+            const newStreamKey = getNextStreamKey(failingKey); 
+            if (newStreamKey) {
+                createPlayer(index, newStreamKey);
+                return; 
+            }
+        }
+        if (errorData === 153 || errorData === 5 || errorData === 101) {
+            refreshPlayer(player);
+        }
+    }
 
-        players[currentIndex].loadVideoById({
-            videoId: videoId,
-            startSeconds: 0 
-        });
-        
-        currentCamKeys[currentIndex] = streamKey; 
-        labels[currentIndex].innerHTML = `${labelText}<span class="source-on-screen">來源: ${sourceText}</span>`;
-    }
-    
-    
-    /* ========================================
-     * 延遲檢查功能 - 全局自動化
-     * ======================================== */
-    const latencyDisplay = document.getElementById('latencyInfo');
+    function onPlayerReady(event) { 
+        event.target.playVideo(); 
+        updateLatencyDisplay(event.target);
+    }
+    
+    function refreshPlayer(player) {
+        if (!player) return;
+        const videoData = player.getVideoData();
+        const videoId = videoData.video_id;
+        if (!videoId) return;
+        player.loadVideoById({ videoId: videoId, startSeconds: 0 });
+    }
 
-    function _refreshPlayerIfHighLatency(player) {
-        if (!player || player.getPlayerState() !== YT.PlayerState.PLAYING) return;
-        try {
-            const mediaTime = player.getMediaReferenceTime(); 
-            const nowTime = Date.now() / 1000; 
-            const latency = nowTime - mediaTime; 
-            if (latency > 30) {
-                refreshPlayer(player);
-            }
-        } catch (e) {}
-    }
+    function onPlayerStateChange(event) {
+        const player = event.target;
+        const state = event.data;
+        if (state === YT.PlayerState.ENDED) { 
+            refreshPlayer(player); 
+        } 
+        // 不論頁面可見性，暫停或緩衝都強制維持播放
+        else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING) {
+            player.playVideo();
+        }
+    }
 
-    function updateLatencyDisplay(player) {
-        if (!player || player.getPlayerState() !== YT.PlayerState.PLAYING) {
-             latencyDisplay.innerText = '延遲：暫停/載入中';
-             latencyDisplay.style.color = '#f90'; 
-             return;
-        }
-        try {
-            const mediaTime = player.getMediaReferenceTime(); 
-            const nowTime = Date.now() / 1000; 
-            const latency = nowTime - mediaTime; 
-            if (latency >= 0) {
-                latencyDisplay.innerText = `延遲：約 ${latency.toFixed(1)} 秒`;
-                if (latency > 29) {
-                    latencyDisplay.style.color = '#f00';
-                } else if (latency > 5) {
-                    latencyDisplay.style.color = '#ff0';
-                } else {
-                    latencyDisplay.style.color = '#0f0';
-                }
-            } else {
-                latencyDisplay.innerText = '延遲：即時/誤差';
-                latencyDisplay.style.color = '#fff';
-            }
-        } catch (e) {
-            latencyDisplay.innerText = '延遲：無法讀取';
-        }
-    }
-    
-    function globalMonitor() {
-        if (!isApiReady) return;
-        players.forEach(_refreshPlayerIfHighLatency);
-        updateLatencyDisplay(players[currentIndex]);
-    }
+    function selectCam(index){
+        currentIndex = index;
+        camSelectButtons.forEach(btn=>btn.classList.remove('active'));
+        camSelectButtons[index].classList.add('active');
+        if(isApiReady) updateLatencyDisplay(players[currentIndex]);
+    }
 
-    setInterval(globalMonitor, 5000); 
-    selectCam(0); 
+    function setStream(streamKey){
+        const videoId = streamIds[streamKey];
+        if(!videoId) return alert("來源不存在："+streamKey);
+        if (!isApiReady || !players[currentIndex]) return;
+        
+        const labelText = ALL_STREAMS[streamKey].label;
+        const sourceText = ALL_STREAMS[streamKey].source;
 
-    // 已移除 visibilitychange 事件，避免背景分頁暫停
-  </script>
+        players[currentIndex].loadVideoById({
+            videoId: videoId,
+            startSeconds: 0 
+        });
+        
+        currentCamKeys[currentIndex] = streamKey; 
+        labels[currentIndex].innerHTML = `${labelText}<span class="source-on-screen">來源: ${sourceText}</span>`;
+    }
+    
+    
+    /* ========================================
+     * 延遲檢查功能 - 全局自動化
+     * ======================================== */
+    const latencyDisplay = document.getElementById('latencyInfo');
+
+    function _refreshPlayerIfHighLatency(player) {
+        if (!player || player.getPlayerState() !== YT.PlayerState.PLAYING) return;
+        try {
+            const mediaTime = player.getMediaReferenceTime(); 
+            const nowTime = Date.now() / 1000; 
+            const latency = nowTime - mediaTime; 
+            if (latency > 30) {
+                refreshPlayer(player);
+            }
+        } catch (e) {}
+    }
+
+    function updateLatencyDisplay(player) {
+        if (!player || player.getPlayerState() !== YT.PlayerState.PLAYING) {
+             latencyDisplay.innerText = '延遲：暫停/載入中';
+             latencyDisplay.style.color = '#f90'; 
+             return;
+        }
+        try {
+            const mediaTime = player.getMediaReferenceTime(); 
+            const nowTime = Date.now() / 1000; 
+            const latency = nowTime - mediaTime; 
+            if (latency >= 0) {
+                latencyDisplay.innerText = `延遲：約 ${latency.toFixed(1)} 秒`;
+                if (latency > 29) {
+                    latencyDisplay.style.color = '#f00';
+                } else if (latency > 5) {
+                    latencyDisplay.style.color = '#ff0';
+                } else {
+                    latencyDisplay.style.color = '#0f0';
+                }
+            } else {
+                latencyDisplay.innerText = '延遲：即時/誤差';
+                latencyDisplay.style.color = '#fff';
+            }
+        } catch (e) {
+            latencyDisplay.innerText = '延遲：無法讀取';
+        }
+    }
+    
+    function globalMonitor() {
+        if (!isApiReady) return;
+        players.forEach(_refreshPlayerIfHighLatency);
+        updateLatencyDisplay(players[currentIndex]);
+    }
+
+    setInterval(globalMonitor, 5000); 
+    selectCam(0); 
+
+    // 已移除 visibilitychange 事件，避免背景分頁暫停
+  </script>
 </body>
 </html>
