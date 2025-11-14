@@ -2,42 +2,65 @@
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8" />
-  <title>台灣即時直播四分割監看 (最終 API 最小化參數版)</title>
+  <title>台灣即時直播四分割監看</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     html,body{
       height:100%; margin:0; padding:0; background:#000;
       font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
     }
+
+    /* 底部控制列 */
     .controls{
       position:fixed; bottom:0; left:0; width:100%; height:70px;
-      background:rgba(12,12,12,0.9); color:#fff; padding:5px 10px;
+      background:rgba(12,12,12,0.95); color:#fff; padding:6px 12px;
       box-sizing:border-box; display:flex; flex-direction:row; align-items:center;
-      gap:10px; z-index:999; overflow:hidden;
+      gap:10px; z-index:3000; overflow:hidden;
     }
-    #regionButtons::-webkit-scrollbar{ height:4px; background-color:rgba(255,255,255,0.1); }
-    #regionButtons::-webkit-scrollbar-thumb{ background-color:#555; border-radius:2px; }
-    .row{ display:flex; flex-wrap:nowrap; gap:6px; align-items:center; }
-    .divider{ width:1px; height:80%; background:#333; flex-shrink:0; margin:0; }
-    .fixed-cams{ flex-shrink:0; }
+
+    /* 縣市 / 景點 容器（可左右滾動） */
     #regionButtons{
-      display:flex; flex-grow:1; min-width:0; gap:4px;
-      overflow-x:auto; padding-bottom:5px; height:100%; align-items:center;
+      display:flex; flex-grow:1; min-width:0; gap:6px;
+      overflow-x:auto; padding-bottom:6px; height:100%; align-items:center;
     }
+    #regionButtons::-webkit-scrollbar{ height:6px; background-color:rgba(255,255,255,0.06); }
+    #regionButtons::-webkit-scrollbar-thumb{ background-color:#444; border-radius:3px; }
+
+    .row{ display:flex; flex-wrap:nowrap; gap:6px; align-items:center; }
+    .divider{ width:1px; height:60%; background:#333; flex-shrink:0; margin:0; }
+    .fixed-cams{ flex-shrink:0; display:flex; gap:6px; }
+
     .controls button{
       background-color:#222; color:#fff; border:1px solid #444;
-      padding:4px 8px; font-size:12px; cursor:pointer; border-radius:4px;
+      padding:6px 10px; font-size:13px; cursor:pointer; border-radius:6px;
       height:40px; flex-shrink:0; white-space:nowrap; text-align:center;
     }
-    .controls button.active{ background-color:#0099ff; border-color:#0099ff; }
-    .controls button.back-button{ background-color:#555; }
+    .controls button.active{ background-color:#0078d7; border-color:#0078d7; box-shadow:0 1px 0 rgba(0,0,0,0.3); }
+    .controls button.back-button{ background-color:#444; border-color:#555; }
+
+    /* 區域純文字標示（白色） */
+    #regionButtons .region-label {
+      color:#fff;
+      margin:0 8px 0 4px;
+      font-weight:600;
+      flex-shrink:0;
+      user-select:none;
+    }
+
+    /* 統一框框樣式（縣市與景點按鈕一致） */
+    #regionButtons .city-btn{
+      background-color:#111; color:#fff; border:1px solid #555;
+      padding:6px 10px; margin:0 4px; border-radius:6px; cursor:pointer;
+      height:36px; flex-shrink:0; font-size:13px;
+    }
+    #regionButtons .city-btn:hover{ background-color:#1a1a1a; border-color:#666; }
 
     .stage-wrap{
       position:fixed; top:0; left:0; width:100vw; height:calc(100vh - 70px);
       display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
       gap:0; z-index:1;
     }
-    .cell{ position:relative; width:100%; height:100%; overflow:hidden; }
+    .cell{ position:relative; width:100%; height:100%; overflow:hidden; background:#000; }
 
     .player-container, .player-container iframe{
       position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
@@ -45,30 +68,49 @@
       transform: scale(1.65) translateY(-6%);
     }
 
-    .cell iframe{ pointer-events:auto !important; }
-    .interaction-shield{
-      position:absolute; top:0; left:0; width:100%; height:100%;
-      z-index:5; background:transparent; cursor:default;
-    }
+    .interaction-shield{ position:absolute; inset:0; z-index:5; background:transparent; cursor:default; }
+
     .label{
       position:absolute; left:8px; right:8px; bottom:8px; display:flex;
-      flex-direction:column; align-items:flex-start; padding:3px 6px;
-      font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:3px;
+      flex-direction:column; align-items:flex-start; padding:6px 8px;
+      font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:6px;
       pointer-events:none; z-index:10;
     }
-    .source-on-screen{ font-size:10px; color:#ccc; margin-top:1px; line-height:1.2; }
+    .source-on-screen{ font-size:11px; color:#ccc; margin-top:4px; line-height:1.1; }
 
-    /* 設定：隱藏標籤 */
+    /* 隱藏所有標籤（設定） */
     .hide-labels .label{ display:none; }
 
     /* 全螢幕模式 */
     .fullscreen-active .controls{ display:none; }
     .fullscreen-active .stage-wrap{ height:100vh; }
+
+    /* 設定介面：固定於畫面上層（不被 iframe 蓋過） */
+    .settings-menu{ position:relative; }
+    .settings-panel{
+      position:fixed; bottom:86px; right:20px;
+      background:rgba(20,20,20,0.98); border:1px solid #444; border-radius:8px;
+      display:flex; flex-direction:column; gap:8px; padding:10px; min-width:180px;
+      z-index:99999; /* 保證在最上層 */
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+    .settings-panel.hidden{ display:none; }
+    .settings-panel button{
+      background:#111; color:#fff; border:1px solid #333;
+      padding:8px 10px; font-size:13px; cursor:pointer; border-radius:6px; text-align:left;
+    }
+
+    @media (max-width:640px){
+      .controls{ padding:6px 8px; height:72px; }
+      .controls button{ padding:6px 8px; font-size:12px; height:36px; }
+      #regionButtons .city-btn{ padding:6px 8px; font-size:12px; height:34px; }
+      .settings-panel{ right:10px; bottom:90px; min-width:160px; }
+    }
   </style>
 </head>
 <body>
   <div class="controls" id="controls">
-    <div class="row cam-select fixed-cams">
+    <div class="row fixed-cams">
       <button id="select-cam-0" class="active" onclick="selectCam(0)">左上</button>
       <button id="select-cam-1" onclick="selectCam(1)">右上</button>
       <button id="select-cam-2" onclick="selectCam(2)">左下</button>
@@ -77,13 +119,20 @@
 
     <div class="divider"></div>
 
-    <div class="row" id="regionButtons"></div>
+    <div id="regionButtons" aria-label="縣市與景點選單" role="toolbar"></div>
 
     <div class="divider"></div>
     <button id="fullscreenBtn" onclick="toggleFullscreen()">全螢幕</button>
 
     <div class="divider"></div>
-    <button id="settingsBtn" onclick="toggleLabels()">設定: 隱藏標籤</button>
+
+    <!-- 設定按鈕與面板（移除母子畫面，只保留標籤切換） -->
+    <div class="settings-menu">
+      <button id="settingsBtn" onclick="toggleSettingsMenu()">設定 ⚙️</button>
+      <div id="settingsPanel" class="settings-panel hidden" role="dialog" aria-hidden="true">
+        <button id="labelsToggleBtn" onclick="toggleLabels()">標籤隱藏</button>
+      </div>
+    </div>
 
     <div class="divider"></div>
     <button id="muteBtn" onclick="toggleMute()">取消靜音</button>
@@ -93,28 +142,28 @@
     <div class="cell" data-index="0">
       <div id="player0" class="player-container"></div>
       <div class="interaction-shield"></div>
-      <div class="label" id="label0">載入中...</div>
+      <div class="label" id="label0">載入中...<span class="source-on-screen"></span></div>
     </div>
     <div class="cell" data-index="1">
       <div id="player1" class="player-container"></div>
       <div class="interaction-shield"></div>
-      <div class="label" id="label1">載入中...</div>
+      <div class="label" id="label1">載入中...<span class="source-on-screen"></span></div>
     </div>
     <div class="cell" data-index="2">
       <div id="player2" class="player-container"></div>
       <div class="interaction-shield"></div>
-      <div class="label" id="label2">載入中...</div>
+      <div class="label" id="label2">載入中...<span class="source-on-screen"></span></div>
     </div>
     <div class="cell" data-index="3">
       <div id="player3" class="player-container"></div>
       <div class="interaction-shield"></div>
-      <div class="label" id="label3">載入中...</div>
+      <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
     </div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
-
   <script>
+    // 只保留你提供的直播來源（不要多餘）
     const ALL_STREAMS = {
       "台北-象山看101": {"id": "z_fY1pj1VBw", "label": "台北象山", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-大稻埕": {"id": "Ndo_8RuefH4", "label": "大稻埕", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
@@ -193,22 +242,35 @@
       "金門-建功嶼": {"id": "uh_yNAE01w8", "label": "金門建功嶼", "source": "樂遊金門"}
     };
 
+    // 區域與縣市（顯示分類文字＋縣市框）
+    const REGION_GROUPS = {
+      "北部": ["台北","新北","基隆","桃園","宜蘭"],
+      "中部": ["台中","南投","彰化","苗栗","雲林","嘉義"],
+      "南部": ["台南","高雄","屏東"],
+      "東部": ["花蓮","台東"],
+      "外島": ["金門","澎湖","馬祖"]
+    };
+
+    // 初始四格（如有不存在的 key 會自動回退）
     let INITIAL_CAMS_KEYS = [
       "台北-象山看101", "桃園-國際機場", "新北-漁人碼頭", "台東-多良車站"
     ];
 
+    // 依縣市分組（只用你提供的來源）
     const GROUPED_STREAMS = {};
-    const cityNames = new Set();
-    for (const key in ALL_STREAMS) {
-      const cityMatch = key.match(/^(.+?)-/);
-      const city = cityMatch ? cityMatch[1] : '其他';
-      cityNames.add(city);
+    for (const key in ALL_STREAMS){
+      const city = key.split('-')[0] || '其他';
       if (!GROUPED_STREAMS[city]) GROUPED_STREAMS[city] = [];
       GROUPED_STREAMS[city].push({
-        key, label: ALL_STREAMS[key].label, source: ALL_STREAMS[key].source, id: ALL_STREAMS[key].id
+        key, id: ALL_STREAMS[key].id, label: ALL_STREAMS[key].label, source: ALL_STREAMS[key].source
       });
     }
-    const CITY_LIST = Array.from(cityNames);
+    // 保證每個縣市至少有空陣列（即使沒有直播）
+    for (const region in REGION_GROUPS){
+      REGION_GROUPS[region].forEach(city=>{
+        if (!GROUPED_STREAMS[city]) GROUPED_STREAMS[city] = [];
+      });
+    }
 
     let currentCamKeys = [...INITIAL_CAMS_KEYS];
     let players = [];
@@ -217,77 +279,92 @@
     for (const key in ALL_STREAMS) streamIds[key] = ALL_STREAMS[key].id;
 
     const camSelectButtons = [
-      document.getElementById('select-cam-0'), document.getElementById('select-cam-1'),
-      document.getElementById('select-cam-2'), document.getElementById('select-cam-3')
+      document.getElementById('select-cam-0'),
+      document.getElementById('select-cam-1'),
+      document.getElementById('select-cam-2'),
+      document.getElementById('select-cam-3')
     ];
     const labels = [
-      document.getElementById('label0'), document.getElementById('label1'),
-      document.getElementById('label2'), document.getElementById('label3')
+      document.getElementById('label0'),
+      document.getElementById('label1'),
+      document.getElementById('label2'),
+      document.getElementById('label3')
     ];
     let currentIndex = 0;
 
-    document.addEventListener('DOMContentLoaded', loadRegionButtons);
+    document.addEventListener('DOMContentLoaded', ()=> renderRegionButtons());
 
-    function loadRegionButtons(){ renderCityButtons(); }
-    function renderCityButtons(){
+    // 顯示格式：北部： [台北][新北] ... 中部： [台中][南投]...
+    function renderRegionButtons(){
       const buttonContainer = document.getElementById('regionButtons');
       buttonContainer.innerHTML = '';
-      CITY_LIST.forEach(city=>{
-        const button = document.createElement('button');
-        button.innerText = city;
-        button.setAttribute('onclick', `renderLocationButtons('${city}')`);
-        buttonContainer.appendChild(button);
-      });
+
+      for (const region in REGION_GROUPS){
+        const regionLabel = document.createElement('span');
+        regionLabel.className = 'region-label';
+        regionLabel.textContent = region + '：';
+        buttonContainer.appendChild(regionLabel);
+
+        REGION_GROUPS[region].forEach(city=>{
+          const btn = document.createElement('button');
+          btn.className = 'city-btn';
+          btn.innerText = city;
+          btn.setAttribute('onclick', `renderLocationButtons('${city}')`);
+          buttonContainer.appendChild(btn);
+        });
+      }
       buttonContainer.scrollLeft = 0;
     }
+
     function renderLocationButtons(city){
       const buttonContainer = document.getElementById('regionButtons');
       buttonContainer.innerHTML = '';
       const backButton = document.createElement('button');
-      backButton.innerText = '← 返回縣市選單';
-      backButton.setAttribute('onclick', `renderCityButtons()`);
-      backButton.classList.add('back-button');
+      backButton.innerText = '← 返回';
+      backButton.className = 'back-button';
+      backButton.setAttribute('onclick', `renderRegionButtons()`);
       buttonContainer.appendChild(backButton);
-      GROUPED_STREAMS[city].forEach(stream=>{
-        const button = document.createElement('button');
-        button.innerText = stream.label;
-        button.setAttribute('onclick', `setStream('${stream.key}')`);
-        buttonContainer.appendChild(button);
-      });
+
+      // 若該縣市無景點則顯示提示
+      if (!GROUPED_STREAMS[city] || GROUPED_STREAMS[city].length === 0){
+        const emptyLabel = document.createElement('span');
+        emptyLabel.innerText = "（目前沒有景點）";
+        emptyLabel.style.color = "#bbb";
+        emptyLabel.style.marginLeft = "10px";
+        buttonContainer.appendChild(emptyLabel);
+      } else {
+        GROUPED_STREAMS[city].forEach(stream=>{
+          const button = document.createElement('button');
+          button.className = 'city-btn';
+          button.innerText = stream.label; // 顯示純景點名稱
+          button.setAttribute('onclick', `setStream('${stream.key}')`);
+          buttonContainer.appendChild(button);
+        });
+      }
       buttonContainer.scrollLeft = 0;
     }
 
+    // YouTube API callback
     function onYouTubeIframeAPIReady(){
       isApiReady = true;
       for (let i=0;i<4;i++){
-        const streamKey = INITIAL_CAMS_KEYS[i];
-        if (ALL_STREAMS[streamKey]){
-          createPlayer(i, streamKey);
-        } else {
-          createPlayer(i, Object.keys(ALL_STREAMS)[i] || "台北-象山看101");
-        }
+        const streamKey = INITIAL_CAMS_KEYS[i] || Object.keys(ALL_STREAMS)[i];
+        const validKey = ALL_STREAMS[streamKey] ? streamKey : (Object.keys(ALL_STREAMS)[i] || Object.keys(ALL_STREAMS)[0]);
+        createPlayer(i, validKey);
       }
       updateMuteButtonLabel();
     }
 
     function createPlayer(index, streamKey){
       const videoId = streamIds[streamKey];
-      const labelText = ALL_STREAMS[streamKey].label;
-      const sourceText = ALL_STREAMS[streamKey].source;
-
-      if (players[index]) players[index].destroy();
+      if (!videoId) return;
+      if (players[index] && players[index].destroy) players[index].destroy();
       currentCamKeys[index] = streamKey;
 
       players[index] = new YT.Player('player'+index, {
         videoId,
         playerVars: {
-          autoplay: 1,
-          mute: 1,
-          controls: 0,
-          rel: 0,             // 盡可能移除推薦影片
-          modestbranding: 1,  // 降低 YouTube 標誌可見度
-          fs: 0,              // 移除播放器內建全螢幕按鈕
-          iv_load_policy: 3   // 不顯示註解/提示卡片
+          autoplay: 1, mute: 1, controls: 0, rel: 0, modestbranding: 1, fs: 0, iv_load_policy: 3
         },
         events: {
           onReady: onPlayerReady,
@@ -296,7 +373,9 @@
         }
       });
 
-      labels[index].innerHTML = `${labelText}<span class="source-on-screen">來源: ${sourceText}</span>`;
+      const lbl = ALL_STREAMS[streamKey].label || streamKey;
+      const src = ALL_STREAMS[streamKey].source || '';
+      labels[index].innerHTML = `${lbl}<span class="source-on-screen">來源: ${src}</span>`;
     }
 
     function getNextStreamKey(failingKey){
@@ -312,41 +391,35 @@
 
     function onPlayerError(event){
       const player = event.target;
-      const errorData = event.data;
       const index = players.findIndex(p => p === player);
       const failingKey = currentCamKeys[index];
-      labels[index].innerHTML = `${ALL_STREAMS[failingKey].label} **[錯誤 ${errorData}]**<span class="source-on-screen">嘗試自動切換中...</span>`;
-      if (errorData === 5 || errorData === 100 || errorData === 101 || errorData === 150){
-        const newStreamKey = getNextStreamKey(failingKey);
-        if (newStreamKey){
-          createPlayer(index, newStreamKey);
-          return;
-        }
-      }
-      if (errorData === 153 || errorData === 5 || errorData === 101){
-        refreshPlayer(player);
+      const code = event.data;
+      labels[index].innerHTML = `${ALL_STREAMS[failingKey]?.label || failingKey} [錯誤 ${code}]<span class="source-on-screen">嘗試自動切換中...</span>`;
+      if ([5,100,101,150].includes(code)){
+        const newKey = getNextStreamKey(failingKey);
+        if (newKey) createPlayer(index, newKey);
       }
     }
 
     function onPlayerReady(event){
-      event.target.playVideo();
+      try { event.target.playVideo(); } catch(e){}
     }
 
     function refreshPlayer(player){
       if (!player) return;
-      const videoData = player.getVideoData();
-      const videoId = videoData.video_id;
-      if (!videoId) return;
-      player.loadVideoById({ videoId, startSeconds: 0 });
+      try {
+        const videoData = player.getVideoData();
+        const id = videoData.video_id;
+        if (id) player.loadVideoById({ videoId: id, startSeconds: 0 });
+      } catch(e){}
     }
 
     function onPlayerStateChange(event){
       const player = event.target;
       const state = event.data;
-      if (state === YT.PlayerState.ENDED){
-        refreshPlayer(player);
-      } else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING){
-        player.playVideo(); // 分頁不可見也強制播放，盡量避免暫停疊層
+      if (state === YT.PlayerState.ENDED) refreshPlayer(player);
+      if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING){
+        try { player.playVideo(); } catch(e){}
       }
     }
 
@@ -359,37 +432,38 @@
 
     function setStream(streamKey){
       const videoId = streamIds[streamKey];
-      if(!videoId) return alert("來源不存在："+streamKey);
+      if (!videoId) return alert("來源不存在：" + streamKey);
       if (!isApiReady || !players[currentIndex]) return;
-      const labelText = ALL_STREAMS[streamKey].label;
-      const sourceText = ALL_STREAMS[streamKey].source;
-      players[currentIndex].loadVideoById({ videoId, startSeconds: 0 });
+      players[currentIndex].loadVideoById({ videoId, startSeconds:0 });
       currentCamKeys[currentIndex] = streamKey;
-      labels[currentIndex].innerHTML = `${labelText}<span class="source-on-screen">來源: ${sourceText}</span>`;
+      const lbl = ALL_STREAMS[streamKey].label || streamKey;
+      const src = ALL_STREAMS[streamKey].source || '';
+      labels[currentIndex].innerHTML = `${lbl}<span class="source-on-screen">來源: ${src}</span>`;
     }
 
+    // 設定面板顯示切換
+    function toggleSettingsMenu(){
+      const panel = document.getElementById('settingsPanel');
+      const hidden = panel.classList.toggle('hidden');
+      panel.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+    }
+
+    // 標籤隱藏切換
     function toggleLabels(){
-      const body = document.body;
-      const btn = document.getElementById('settingsBtn');
-      if (body.classList.contains('hide-labels')){
-        body.classList.remove('hide-labels');
-        btn.innerText = "設定: 隱藏標籤";
-      } else {
-        body.classList.add('hide-labels');
-        btn.innerText = "設定: 顯示標籤";
-      }
+      document.body.classList.toggle('hide-labels');
+      const btn = document.getElementById('labelsToggleBtn');
+      btn.innerText = document.body.classList.contains('hide-labels') ? "標籤顯示" : "標籤隱藏";
     }
 
+    // 全螢幕
     function toggleFullscreen(){
-      const stage = document.documentElement;
-      const body = document.body;
       const btn = document.getElementById('fullscreenBtn');
       if (!document.fullscreenElement){
-        stage.requestFullscreen().then(()=>{
-          body.classList.add('fullscreen-active');
+        document.documentElement.requestFullscreen().then(()=>{
+          document.body.classList.add('fullscreen-active');
           btn.innerText = "退出全螢幕";
         }).catch(err=>{
-          alert(`無法進入全螢幕: ${err.message}`);
+          alert("無法進入全螢幕: " + err.message);
         });
       } else {
         document.exitFullscreen();
@@ -403,30 +477,30 @@
       }
     });
 
+    // 靜音切換（針對目前選中格）
     function toggleMute(){
       if (!isApiReady || !players[currentIndex]) return;
       const player = players[currentIndex];
       const btn = document.getElementById('muteBtn');
-      if (player.isMuted()){
-        player.unMute();
-        btn.innerText = "靜音";
-      } else {
-        player.mute();
-        btn.innerText = "取消靜音";
-      }
+      try {
+        if (player.isMuted()){
+          player.unMute();
+          btn.innerText = "靜音";
+        } else {
+          player.mute();
+          btn.innerText = "取消靜音";
+        }
+      } catch(e){}
     }
     function updateMuteButtonLabel(){
       const btn = document.getElementById('muteBtn');
       const player = players[currentIndex];
-      if (!isApiReady || !player){
-        btn.innerText = "取消靜音";
-        return;
-      }
-      btn.innerText = player.isMuted() ? "取消靜音" : "靜音";
+      if (!isApiReady || !player){ btn.innerText = "取消靜音"; return; }
+      try { btn.innerText = player.isMuted() ? "取消靜音" : "靜音"; } catch(e){ btn.innerText = "取消靜音"; }
     }
 
+    // 預設選擇第一格
     selectCam(0);
-    // 已移除延遲顯示；不使用 visibilitychange，盡量維持播放
   </script>
 </body>
 </html>
