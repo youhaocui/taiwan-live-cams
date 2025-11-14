@@ -12,8 +12,8 @@
 
     /* 底部控制列 */
     .controls{
-      position:fixed; bottom:0; left:0; width:100%; height:70px;
-      background:rgba(12,12,12,0.95); color:#fff; padding:6px 12px;
+      position:fixed; bottom:0; left:0; width:100%; height:76px;
+      background:rgba(12,12,12,0.95); color:#fff; padding:8px 12px;
       box-sizing:border-box; display:flex; flex-direction:row; align-items:center;
       gap:10px; z-index:3000; overflow:hidden;
     }
@@ -32,13 +32,13 @@
 
     .controls button{
       background-color:#222; color:#fff; border:1px solid #444;
-      padding:6px 10px; font-size:13px; cursor:pointer; border-radius:6px;
+      padding:8px 12px; font-size:13px; cursor:pointer; border-radius:6px;
       height:40px; flex-shrink:0; white-space:nowrap; text-align:center;
     }
-    .controls button.active{ background-color:#0078d7; border-color:#0078d7; box-shadow:0 1px 0 rgba(0,0,0,0.3); }
+    .controls button.active{ background-color:#0078d7; border-color:#0078d7; }
     .controls button.back-button{ background-color:#444; border-color:#555; }
 
-    /* 區域純文字標示（白色） */
+    /* 區域純文字標示 */
     #regionButtons .region-label {
       color:#fff;
       margin:0 8px 0 4px;
@@ -47,7 +47,7 @@
       user-select:none;
     }
 
-    /* 統一框框樣式（縣市與景點按鈕一致） */
+    /* 城市/景點按鈕 */
     #regionButtons .city-btn{
       background-color:#111; color:#fff; border:1px solid #555;
       padding:6px 10px; margin:0 4px; border-radius:6px; cursor:pointer;
@@ -56,7 +56,7 @@
     #regionButtons .city-btn:hover{ background-color:#1a1a1a; border-color:#666; }
 
     .stage-wrap{
-      position:fixed; top:0; left:0; width:100vw; height:calc(100vh - 70px);
+      position:fixed; top:0; left:0; width:100vw; height:calc(100vh - 76px);
       display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
       gap:0; z-index:1;
     }
@@ -85,10 +85,10 @@
     .fullscreen-active .controls{ display:none; }
     .fullscreen-active .stage-wrap{ height:100vh; }
 
-    /* 設定介面：固定於畫面上層（不被 iframe 蓋過） */
+    /* 設定介面 */
     .settings-menu{ position:relative; }
     .settings-panel{
-      position:fixed; bottom:86px; right:20px;
+      position:fixed; bottom:90px; right:20px;
       background:rgba(20,20,20,0.98); border:1px solid #444; border-radius:8px;
       display:flex; flex-direction:column; gap:8px; padding:10px; min-width:200px;
       z-index:99999;
@@ -108,15 +108,19 @@
     #musicControls button{
       background:#222; color:#fff; border:1px solid #444;
       padding:8px 12px; font-size:14px; border-radius:6px; cursor:pointer;
-      width:120px; text-align:center;
+      width:140px; text-align:center;
+    }
+    #musicStatus{
+      font-size:12px; color:#bbb; margin-top:4px; width:140px; text-align:center;
     }
 
     @media (max-width:640px){
-      .controls{ padding:6px 8px; height:72px; }
+      .controls{ padding:6px 8px; height:78px; }
       .controls button{ padding:6px 8px; font-size:12px; height:36px; }
       #regionButtons .city-btn{ padding:6px 8px; font-size:12px; height:34px; }
-      .settings-panel{ right:10px; bottom:90px; min-width:160px; }
-      #musicControls button{ width:104px; font-size:13px; }
+      .settings-panel{ right:10px; bottom:92px; min-width:160px; }
+      #musicControls button{ width:120px; font-size:13px; }
+      #musicStatus{ width:120px; }
     }
   </style>
 </head>
@@ -138,14 +142,20 @@
 
     <div class="divider"></div>
 
-    <!-- 設定按鈕與面板（加入播放音樂，支援連結與關鍵字） -->
+    <!-- 設定按鈕與面板 -->
     <div class="settings-menu">
       <button id="settingsBtn" onclick="toggleSettingsMenu()">設定 ⚙️</button>
       <div id="settingsPanel" class="settings-panel hidden" role="dialog" aria-hidden="true">
         <button id="labelsToggleBtn" onclick="toggleLabels()">標籤隱藏</button>
-        <button id="musicBtn" onclick="askPlayMusic()">播放音樂（連結或關鍵字）</button>
       </div>
     </div>
+
+    <div class="divider"></div>
+
+    <!-- 播歌加在控制列 -->
+    <button id="musicBtn" onclick="askPlayMusic()">播歌</button>
+    <button id="repeatBtn" onclick="toggleRepeat()">重複播放：關</button>
+    <button id="shuffleBtn" onclick="toggleShuffle()">隨機播放：關</button>
 
     <div class="divider"></div>
     <button id="muteBtn" onclick="toggleMute()">取消靜音</button>
@@ -156,6 +166,7 @@
     <button onclick="prevTrack()">⏮ 上一首</button>
     <button onclick="toggleMusic()">⏯ 播放/停止</button>
     <button onclick="nextTrack()">⏭ 下一首</button>
+    <div id="musicStatus">尚未播放</div>
   </div>
 
   <div class="stage-wrap" id="stageWrap">
@@ -183,7 +194,7 @@
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    // 直播來源（僅保留你提供的）
+    // 直播來源（僅保留提供清單）
     const ALL_STREAMS = {
       "台北-象山看101": {"id": "z_fY1pj1VBw", "label": "台北象山", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-大稻埕": {"id": "Ndo_8RuefH4", "label": "大稻埕", "source": "Taipei Travel Live Cam 台北觀光即時影像"},
@@ -271,7 +282,7 @@
       "外島": ["金門縣","澎湖縣","連江縣"] // 連江縣 = 馬祖
     };
 
-    // 顯示用全名 → 來源用簡名 的映射（ALL_STREAMS 以簡名為準）
+    // 顯示全名 → 來源簡名映射
     const CITY_ALIAS_TO_BASE = {
       "台北市":"台北", "新北市":"新北", "基隆市":"基隆", "桃園市":"桃園", "宜蘭縣":"宜蘭",
       "新竹市":"新竹市", "新竹縣":"新竹縣", "台中市":"台中", "南投縣":"南投", "彰化縣":"彰化",
@@ -285,7 +296,7 @@
       "台北-象山看101", "桃園-國際機場", "新北-漁人碼頭", "台東-多良車站"
     ];
 
-    // 依簡名縣市分組（只用你提供的來源）
+    // 依簡名縣市分組
     const GROUPED_STREAMS = {};
     for (const key in ALL_STREAMS){
       const baseCity = key.split('-')[0] || '其他';
@@ -294,7 +305,6 @@
         key, id: ALL_STREAMS[key].id, label: ALL_STREAMS[key].label, source: ALL_STREAMS[key].source
       });
     }
-    // 確保每個顯示城市（全名）都有對應的簡名陣列（可能為空）
     for (const region in REGION_GROUPS){
       REGION_GROUPS[region].forEach(displayCity=>{
         const baseCity = CITY_ALIAS_TO_BASE[displayCity] || displayCity;
@@ -305,7 +315,7 @@
     let currentCamKeys = [...INITIAL_CAMS_KEYS];
     let players = [];
     let isApiReady = false;
-    let globalMuted = true; // 全域靜音
+    let globalMuted = true;
     const streamIds = {};
     for (const key in ALL_STREAMS) streamIds[key] = ALL_STREAMS[key].id;
 
@@ -323,10 +333,15 @@
     ];
     let currentIndex = 0;
 
-    // 音樂播放器與控制
+    // 音樂播放器與模式
     let musicPlayer = null;
-    let musicListId = null;
+    let musicListId = null;   // 若載入歌單，保存其 ID
     let musicIsPlaying = false;
+    let repeatMode = false;   // 重複播放（影片：單曲循環；歌單：整單循環）
+    let shuffleMode = false;  // 隨機播放（歌單/隊列）
+
+    // 你的 YouTube Data API v3 金鑰（用於關鍵字搜尋）
+    const YT_API_KEY = "AIzaSyCwW3oAnY8rqIgL-kK9yGCxb7pNsvbvIz4";
 
     document.addEventListener('DOMContentLoaded', ()=> renderRegionButtons());
 
@@ -533,15 +548,14 @@
       btn.innerText = globalMuted ? "取消靜音" : "靜音";
     }
 
-    // 設定：詢問並播放音樂（支援 YouTube 連結或「關鍵字」）
-    function askPlayMusic(){
+    // ===== 播歌（控制列） =====
+    async function askPlayMusic(){
       const input = prompt("請輸入 YouTube 音樂影片/歌單連結，或直接輸入關鍵字：");
       if (!input) return;
 
-      // 判斷是否為 URL（簡單檢查）
       const looksLikeUrl = /^https?:\/\//i.test(input);
 
-      // 先銷毀舊播放器
+      // 銷毀舊播放器
       try { if (musicPlayer && musicPlayer.destroy) musicPlayer.destroy(); } catch(e){}
       musicListId = null; musicIsPlaying = false;
 
@@ -554,25 +568,51 @@
         document.body.appendChild(container);
       }
 
-      const playerOptions = {
+      const baseOptions = {
         playerVars: {
           autoplay: 1,
           controls: 0,
           modestbranding: 1,
-          rel: 0,
-          loop: 0
+          rel: 0
         },
         events: {
           onReady: e => {
             try { e.target.setVolume(50); } catch(_){}
-            try { e.target.playVideo(); musicIsPlaying = true; } catch(_){}
+            try { e.target.playVideo(); } catch(_){}
+            musicIsPlaying = true;
             showMusicControls(true);
+            updateMusicStatus();
+          },
+          onStateChange: e => {
+            // 播放狀態更新
+            if (e.data === YT.PlayerState.PLAYING) { musicIsPlaying = true; showMusicControls(true); updateMusicStatus(); }
+            if (e.data === YT.PlayerState.PAUSED)  { musicIsPlaying = false; showMusicControls(false); updateMusicStatus(); }
+
+            if (e.data === YT.PlayerState.ENDED){
+              // 重複播放：影片單曲循環；歌單整單循環
+              if (repeatMode){
+                if (musicListId){
+                  // 歌單循環：讓 YouTube 內建處理（loop:1 + list）
+                  // 若遇到未自動回到第一首的情況，手動 nextVideo 補強
+                  try { e.target.nextVideo(); } catch(_){}
+                } else {
+                  // 單曲循環
+                  try { e.target.playVideo(); } catch(_){}
+                }
+              } else if (shuffleMode && musicListId){
+                try { e.target.setShuffle(true); } catch(_){}
+                try { e.target.nextVideo(); } catch(_){}
+              } else if (musicListId){
+                try { e.target.nextVideo(); } catch(_){}
+              }
+              updateMusicStatus();
+            }
           }
         }
       };
 
       if (looksLikeUrl){
-        // 解析影片或歌單 ID
+        // 解析影片或歌單
         const videoMatch = input.match(/[?&]v=([^&]+)/);
         const listMatch = input.match(/[?&]list=([^&]+)/);
         const videoId = videoMatch ? videoMatch[1] : null;
@@ -580,38 +620,64 @@
 
         if (musicListId){
           musicPlayer = new YT.Player("musicPlayerContainer", {
-            ...playerOptions,
-            playerVars: { ...playerOptions.playerVars, list: musicListId }
+            ...baseOptions,
+            playerVars: { ...baseOptions.playerVars, list: musicListId, loop: 1 } // 歌單循環
           });
         } else {
           musicPlayer = new YT.Player("musicPlayerContainer", {
-            ...playerOptions,
+            ...baseOptions,
             videoId: videoId
           });
         }
       } else {
-        // 使用關鍵字搜尋播放（listType=search）
-        const query = input.trim();
+        // 用關鍵字搜尋（YouTube Data API v3）
+        const videoId = await searchVideoByKeyword(input.trim());
+        if (!videoId){
+          alert("找不到相關影片");
+          return;
+        }
         musicPlayer = new YT.Player("musicPlayerContainer", {
-          ...playerOptions,
-          playerVars: { ...playerOptions.playerVars, listType: 'search', list: query }
+          ...baseOptions,
+          videoId
         });
       }
     }
 
-    // 音樂控制：播放時顯示，停止時隱藏
+    async function searchVideoByKeyword(keyword){
+      try{
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(keyword)}&key=${YT_API_KEY}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        return data.items?.[0]?.id?.videoId || null;
+      }catch(e){
+        alert("搜尋失敗：" + e.message);
+        return null;
+      }
+    }
+
+    // 左側控制顯示/狀態
     function showMusicControls(show){
       document.getElementById("musicControls").style.display = show ? "flex" : "none";
     }
+    function updateMusicStatus(){
+      const status = document.getElementById("musicStatus");
+      const modeA = repeatMode ? (musicListId ? "歌單循環" : "單曲循環") : "不重複";
+      const modeB = shuffleMode ? "隨機" : "不隨機";
+      const playing = musicIsPlaying ? "播放中" : "已暫停";
+      status.textContent = `${playing}｜${modeA}｜${modeB}`;
+      // 控制列按鈕文案同步
+      document.getElementById("repeatBtn").innerText = `重複播放：${repeatMode ? "開" : "關"}`;
+      document.getElementById("shuffleBtn").innerText = `隨機播放：${shuffleMode ? "開" : "關"}`;
+    }
+
+    // 音樂控制
     function prevTrack(){
-      if (musicPlayer){
-        try { musicPlayer.previousVideo(); } catch(_){}
-      }
+      if (!musicPlayer) return;
+      try { musicPlayer.previousVideo(); } catch(_){}
     }
     function nextTrack(){
-      if (musicPlayer){
-        try { musicPlayer.nextVideo(); } catch(_){}
-      }
+      if (!musicPlayer) return;
+      try { musicPlayer.nextVideo(); } catch(_){}
     }
     function toggleMusic(){
       if (!musicPlayer) return;
@@ -625,6 +691,19 @@
         musicIsPlaying = true;
         showMusicControls(true);
       }
+      updateMusicStatus();
+    }
+    function toggleRepeat(){
+      repeatMode = !repeatMode;
+      updateMusicStatus();
+    }
+    function toggleShuffle(){
+      shuffleMode = !shuffleMode;
+      // 若啟用隨機且為歌單，嘗試啟用播放器內建 shuffle
+      if (musicPlayer && musicListId){
+        try { musicPlayer.setShuffle(shuffleMode); } catch(_){}
+      }
+      updateMusicStatus();
     }
 
     // 預設選擇第一格
