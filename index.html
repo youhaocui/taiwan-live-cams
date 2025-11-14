@@ -142,7 +142,7 @@
     </div>
   </div>
 
-  <!-- 預先建立音樂容器，避免延遲與失敗 -->
+  <!-- 預先建立音樂容器，避免第一次延遲 -->
   <div id="musicPlayerContainer" style="display:none;"></div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -242,14 +242,11 @@
 
     let INITIAL_CAMS_KEYS = ["台北-象山看101","桃園-國際機場","新北-漁人碼頭","台東-多良車站"];
 
-    // 依縣市分組
     const GROUPED_STREAMS = {};
     for (const key in ALL_STREAMS){
       const baseCity = key.split('-')[0] || '其他';
       if (!GROUPED_STREAMS[baseCity]) GROUPED_STREAMS[baseCity] = [];
-      GROUPED_STREAMS[baseCity].push({
-        key, id: ALL_STREAMS[key].id, label: ALL_STREAMS[key].label, source: ALL_STREAMS[key].source
-      });
+      GROUPED_STREAMS[baseCity].push({ key, id: ALL_STREAMS[key].id, label: ALL_STREAMS[key].label, source: ALL_STREAMS[key].source });
     }
     for (const region in REGION_GROUPS){
       REGION_GROUPS[region].forEach(displayCity=>{
@@ -273,55 +270,8 @@
     let repeatMode = false;
     let shuffleMode = false;
 
-    // YouTube Data API v3 金鑰（用於關鍵字搜尋）
-    const YT_API_KEY = "AIzaSyCwW3oAnY8rqIgL-kK9yGCxb7pNsvbvIz4";
-
-    document.addEventListener('DOMContentLoaded', ()=> renderRegionButtons());
-
-    function renderRegionButtons(){
-      const c = document.getElementById('regionButtons'); c.innerHTML='';
-      for (const region in REGION_GROUPS){
-        const regionLabel = document.createElement('span');
-        regionLabel.className = 'region-label';
-        regionLabel.textContent = region + '：';
-        c.appendChild(regionLabel);
-        REGION_GROUPS[region].forEach(displayCity=>{
-          const btn = document.createElement('button');
-          btn.className = 'city-btn';
-          btn.innerText = displayCity;
-          btn.setAttribute('onclick', `renderLocationButtons('${displayCity}')`);
-          c.appendChild(btn);
-        });
-      }
-      c.scrollLeft = 0;
-    }
-
-    function renderLocationButtons(displayCity){
-      const baseCity = CITY_ALIAS_TO_BASE[displayCity] || displayCity;
-      const c = document.getElementById('regionButtons'); c.innerHTML='';
-      const back = document.createElement('button');
-      back.innerText='← 返回'; back.className='city-btn'; back.setAttribute('onclick','renderRegionButtons()'); c.appendChild(back);
-
-      const list = GROUPED_STREAMS[baseCity] || [];
-      if (list.length===0){
-        const empty = document.createElement('span');
-        empty.innerText='（目前沒有景點）';
-        empty.style.color='#bbb'; empty.style.marginLeft='10px';
-        c.appendChild(empty);
-      }else{
-        list.forEach(stream=>{
-          const b = document.createElement('button'); b.className='city-btn';
-          b.innerText=stream.label; b.setAttribute('onclick',`setStream('${stream.key}')`);
-          c.appendChild(b);
-        });
-      }
-      c.scrollLeft = 0;
-    }
-
-    // YouTube IFrame API
     function onYouTubeIframeAPIReady(){
       isApiReady = true;
-      // 建立四格
       for (let i=0;i<4;i++){
         const streamKey = INITIAL_CAMS_KEYS[i] || Object.keys(ALL_STREAMS)[i];
         const validKey = ALL_STREAMS[streamKey] ? streamKey : (Object.keys(ALL_STREAMS)[i] || Object.keys(ALL_STREAMS)[0]);
@@ -431,44 +381,42 @@
       panel.style.display = isHidden ? 'flex' : 'none';
     }
 
-    // ===== 播歌（強化：立即反應、API ready 檢查、解析更完整） =====
-    async function askPlayMusic(){
-      // 確保 IFrame API 已載入
+    // ===== 播歌（極簡快速：只支援影片連結或影片ID；不走關鍵字搜尋） =====
+    function askPlayMusic(){
       if (!window.YT || !YT.Player){
         alert("YouTube API 尚未載入完成，請稍候再試");
         return;
       }
 
-      const input = prompt("請輸入 YouTube 影片/歌單連結、影片 ID，或直接輸入關鍵字：");
+      const input = prompt("請輸入 YouTube 影片連結或影片 ID：");
       if (!input) return;
 
       const trimmed = input.trim();
-
-      // 解析輸入：優先處理連結與影片ID
       let videoId = null;
       let listId = null;
 
-      // 若是完整 URL，用 URL 解析
+      // 如果是 URL
       if (/^https?:\/\//i.test(trimmed)){
         try{
           const urlObj = new URL(trimmed);
+          // 影片 ID
           videoId = urlObj.searchParams.get("v");
-          listId  = urlObj.searchParams.get("list");
-
-          // 支援 youtu.be 短網址
+          // youtu.be 短網址
           if (!videoId && urlObj.hostname.includes("youtu.be")){
-            videoId = urlObj.pathname.slice(1);
+            const path = urlObj.pathname.replace(/^\/+/, "");
+            videoId = path ? path.split('/')[0] : null;
           }
+          // 歌單（若使用者貼的是歌單連結，可直接用 next/prev 控制）
+          listId  = urlObj.searchParams.get("list");
         }catch(_){}
       } else {
-        // 非 URL：可能是純 videoId 或關鍵字
-        // 先判斷是否像 YouTube 影片ID（11字母數字-_）
+        // 非 URL：如果像影片ID（11位）
         if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)){
           videoId = trimmed;
         }
       }
 
-      // 準備播放器
+      // 優先歌單，其次影片ID
       const baseOptions = {
         playerVars: { autoplay:1, controls:0, modestbranding:1, rel:0 },
         events: {
@@ -479,7 +427,7 @@
           onStateChange: e => {
             if (e.data===YT.PlayerState.ENDED){
               if (repeatMode){
-                if (musicListId){ try{ e.target.nextVideo(); }catch(_){}} // 歌單整單循環補強
+                if (musicListId){ try{ e.target.nextVideo(); }catch(_){}} // 整單循環補強
                 else { try{ e.target.playVideo(); }catch(_){} } // 單曲循環
               } else if (shuffleMode && musicListId){
                 try{ e.target.setShuffle(true); e.target.nextVideo(); }catch(_){}
@@ -491,43 +439,34 @@
         }
       };
 
-      // 建立或重用播放器（立即反應）
+      // 建立或重用播放器（立即載入）
       if (!musicPlayer){
-        musicPlayer = new YT.Player("musicPlayerContainer", { ...baseOptions });
+        // 若貼歌單連結，先建立空播放器，再 loadPlaylist
+        musicPlayer = new YT.Player("musicPlayerContainer", {
+          ...baseOptions,
+          videoId: videoId || undefined,
+          playerVars: { ...baseOptions.playerVars, list: listId || undefined, loop: listId ? 1 : 0 }
+        });
+        musicListId = listId || null;
+        if (!videoId && listId){
+          try { musicPlayer.loadPlaylist({ list: listId }); } catch(_){}
+        }
+      } else {
+        if (listId){
+          musicListId = listId;
+          try { musicPlayer.loadPlaylist({ list: listId }); } catch(e){ alert("歌單載入失敗：" + e.message); return; }
+        } else if (videoId){
+          musicListId = null;
+          try { musicPlayer.loadVideoById(videoId); } catch(e){ alert("影片載入失敗：" + e.message); return; }
+        } else {
+          alert("請輸入有效的影片連結或影片 ID");
+          return;
+        }
       }
 
-      // 有 playlist 直接載入歌單；有 videoId 直接載入影片；否則走關鍵字搜尋
-      if (listId){
-        musicListId = listId;
-        try { musicPlayer.loadPlaylist({ list: listId }); } catch(e){ alert("歌單載入失敗：" + e.message); return; }
-        musicLoaded = true; musicIsPlaying = true; updateMusicUI();
-        return;
-      }
-      if (videoId){
-        musicListId = null;
-        try { musicPlayer.loadVideoById(videoId); } catch(e){ alert("影片載入失敗：" + e.message); return; }
-        musicLoaded = true; musicIsPlaying = true; updateMusicUI();
-        return;
-      }
-
-      // 關鍵字搜尋（最後手段）
-      const resolvedVideoId = await searchVideoByKeyword(trimmed);
-      if (!resolvedVideoId){ alert("找不到相關影片"); return; }
-      musicListId = null;
-      try { musicPlayer.loadVideoById(resolvedVideoId); } catch(e){ alert("影片載入失敗：" + e.message); return; }
-      musicLoaded = true; musicIsPlaying = true; updateMusicUI();
-    }
-
-    async function searchVideoByKeyword(keyword){
-      try{
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(keyword)}&key=${YT_API_KEY}`;
-        const res = await fetch(url);
-        const data = await res.json();
-        return data.items?.[0]?.id?.videoId || null;
-      }catch(e){
-        alert("搜尋失敗：" + e.message);
-        return null;
-      }
+      musicLoaded = true;
+      musicIsPlaying = true;
+      updateMusicUI();
     }
 
     // 音樂控制
