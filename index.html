@@ -2,11 +2,11 @@
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8" />
-  <title>台灣即時直播四分割監看（歌曲背景播放版）</title>
+  <title>台灣即時直播四分割監看（極簡音樂控制最終版）</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     /* ---------------------------------------------------------------------- */
-    /* CSS 樣式完全還原自您提供的原始碼，確保排版一致 */
+    /* CSS 樣式 (沿用自用戶上傳檔案) */
     /* ---------------------------------------------------------------------- */
     html,body{
       height:100%; margin:0; padding:0; background:#000;
@@ -74,6 +74,41 @@
       .controls button{ padding:6px 8px; font-size:12px; height:36px; }
       #regionButtons .city-btn{ padding:6px 8px; font-size:12px; height:34px; }
     }
+    
+    /* ---------------------------------------------------------------------- */
+    /* 新增：音樂控制區塊樣式 */
+    /* ---------------------------------------------------------------------- */
+    .music-controls-container {
+        display: none; /* 預設隱藏，有歌曲時才顯示 */
+        align-items: center;
+        gap: 4px; 
+        flex-shrink: 0;
+    }
+    .music-controls {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+    .music-controls button {
+        /* 使用 emoji/symbol 時，可以調整 padding 讓圖示置中 */
+        padding: 8px 10px; 
+        font-size: 14px;
+        height: 40px;
+    }
+    /* 模式設定彈出窗按鈕樣式 */
+    #musicSettingsModal button {
+        background-color: #333;
+        color: #fff;
+        border: none;
+        padding: 10px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        flex-grow: 1;
+    }
+    #musicSettingsModal button:hover {
+        background-color: #555;
+    }
   </style>
 </head>
 <body>
@@ -97,7 +132,16 @@
     <button id="muteBtn" onclick="toggleMute()">取消靜音</button>
     
     <div class="divider"></div>
-    <button id="songRequestBtn" onclick="requestSong()">點歌</button>
+    <button id="requestBtn" onclick="requestSong()" title="點歌至播放列表">點歌</button>
+    
+    <div id="musicControlsContainer" class="music-controls-container">
+        <div class="music-controls">
+            <button id="prevSongBtn" onclick="skipToPreviousSong()" title="上一首">⏮️</button>
+            <button id="playPauseBtn" onclick="playPauseSong()" title="播放/暫停">▶️</button>
+            <button id="nextSongBtn" onclick="skipToNextSong()" title="下一首">⏭️</button>
+            <button id="modeBtn" onclick="openMusicSettingsModal()" title="模式設定">🔄</button>
+        </div>
+    </div>
     
   </div>
 
@@ -128,13 +172,33 @@
     <div id="player_music"></div>
   </div>
 
+  <div id="musicSettingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5); width:300px; max-width:90%; text-align:center;">
+      <h3 style="margin-top:0; color:#fff;">音樂播放模式</h3>
+      <p style="font-size:12px; color:#aaa;">點擊下方按鈕選擇播放模式：</p>
+      <div style="display:flex; justify-content:space-around; gap:10px; margin-top:15px;">
+        <button onclick="setPlaybackMode('listLoop')">
+            🔄 列表循環
+        </button>
+        <button onclick="setPlaybackMode('shuffle')">
+            🔀 隨機播放
+        </button>
+        <button onclick="setPlaybackMode('repeatOne')">
+            🔁 單曲循環
+        </button>
+      </div>
+      
+      <button onclick="stopAndCloseModal()" style="margin-top:15px; background:#8b0000; width:100%; border:none;">
+          ⏹️ 停止並結束播放
+      </button>
+
+      <button onclick="closeMusicSettingsModal()" style="margin-top:10px; background:#444; width:100%;">關閉</button>
+    </div>
+  </div>
+
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    // ----------------------------------------------------------------------
-    // JavaScript 邏輯和資料 (已修改點歌邏輯，使用背景播放器)
-    // ----------------------------------------------------------------------
-    
-    // 保持您的原始資料
+    // ===== 直播來源 (保持不變) =====
     const ALL_STREAMS = {
       "台北-象山看101": {"id":"z_fY1pj1VBw","label":"台北象山","source":"Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-大稻埕": {"id":"Ndo_8RuefH4","label":"大稻埕","source":"Taipei Travel Live Cam 台北觀光即時影像"},
@@ -248,17 +312,25 @@
       });
     }
 
-    // 四格播放器
+    // 四格播放器與全局狀態
     let players = []; 
-    let musicPlayer = null; // 新增：背景音樂播放器
     let isApiReady = false; 
     let globalMuted = true;
     const streamIds = {}; for (const key in ALL_STREAMS) streamIds[key] = ALL_STREAMS[key].id;
     const labels = [document.getElementById('label0'),document.getElementById('label1'),document.getElementById('label2'),document.getElementById('label3')];
     const camSelectButtons = [document.getElementById('select-cam-0'),document.getElementById('select-cam-1'),document.getElementById('select-cam-2'),document.getElementById('select-cam-3')];
-    let currentCamKeys = [...INITIAL_CAMS_KEYS]; let currentIndex = 0;
+    let currentCamKeys = [...INITIAL_CAMS_KEYS]; 
+    let currentIndex = 0;
 
-    // YouTube IFrame API 初始化函式
+    // ----------------------------------------------------------------------
+    // 新增：音樂播放器專屬狀態
+    // ----------------------------------------------------------------------
+    let musicPlayer = null; 
+    let musicQueue = []; // 儲存 { id: 'youtube_id', title: 'Song Title' }
+    let currentSongIndex = -1; // -1 表示沒有歌曲在播放
+    let playbackMode = 'listLoop'; // 'listLoop', 'shuffle', 'repeatOne'
+
+    // YouTube IFrame API 初始化
     window.onYouTubeIframeAPIReady = function(){
       isApiReady = true;
       for (let i=0;i<4;i++){
@@ -268,18 +340,17 @@
       }
       applyGlobalMute();
       updateMuteButtonLabel();
+      toggleMusicControlsVisibility(); // 確保一開始音樂控制是隱藏的
     }
-    
-    // 此函式現在專門用於載入四分割畫面的直播 (預設靜音)
+
+    // 直播播放器相關函式 (沿用)
     function createPlayer(index, streamKey){
       const videoId = streamIds[streamKey]; if (!videoId) return;
       if (players[index] && players[index].destroy) players[index].destroy();
-      
-      currentCamKeys[index]=streamKey; 
+      currentCamKeys[index]=streamKey;
 
       players[index]=new YT.Player('player'+index,{
         videoId,
-        // 直播畫面預設為靜音 (mute:1)
         playerVars:{ autoplay:1, mute:1, controls:0, rel:0, modestbranding:1, fs:0, iv_load_policy:3 },
         events:{ onReady:onPlayerReady, onError:onPlayerError, onStateChange:onPlayerStateChange }
       });
@@ -289,19 +360,12 @@
       labels[index].innerHTML = `${lbl}<span class="source-on-screen">來源: ${src}</span>`;
     }
 
-    function onPlayerReady(e){ 
-      try{ e.target.playVideo(); }catch(_){}
-      // 確保直播畫面遵循全局靜音設定
+    function onPlayerReady(e){ try{ e.target.playVideo(); }catch(_){}
       try{ globalMuted ? e.target.mute() : e.target.unMute(); }catch(_){}
     }
-
     function onPlayerError(e){
       const idx = players.findIndex(p=>p===e.target);
-      if (idx < 0) return; // 忽略音樂播放器的錯誤，由專門函式處理
-      
       const failingKey = currentCamKeys[idx]; const code = e.data;
-      
-      // 直播畫面錯誤處理
       labels[idx].innerHTML = `${ALL_STREAMS[failingKey]?.label || failingKey} [錯誤 ${code}]<span class="source-on-screen">嘗試自動切換中...</span>`;
       if ([5,100,101,150].includes(code)){
         const keys = Object.keys(ALL_STREAMS);
@@ -309,7 +373,6 @@
         if (next) createPlayer(idx,next);
       }
     }
-
     function refreshPlayer(p){ if (!p) return; try{ const id = p.getVideoData().video_id; if (id) p.loadVideoById({videoId:id,startSeconds:0}); }catch(_){}
     }
     function onPlayerStateChange(e){
@@ -327,63 +390,133 @@
     function setStream(streamKey){
       const id = streamIds[streamKey]; if (!id) return alert("來源不存在：" + streamKey);
       if (!isApiReady || !players[currentIndex]) return;
-      
       players[currentIndex].loadVideoById({ videoId:id, startSeconds:0 });
       currentCamKeys[currentIndex]=streamKey;
-      
       const lbl = ALL_STREAMS[streamKey].label || streamKey; const src = ALL_STREAMS[streamKey].source || '';
       labels[currentIndex].innerHTML = `${lbl}<span class="source-on-screen">來源: ${src}</span>`;
-      
       try{ globalMuted ? players[currentIndex].mute() : players[currentIndex].unMute(); }catch(_){}
     }
+    
+    // ----------------------------------------------------------------------
+    // 新增：音樂播放器控制邏輯
+    // ----------------------------------------------------------------------
 
-    // ----------------------------------------------------------------------
-    // 專門用於背景音樂播放的邏輯
-    // ----------------------------------------------------------------------
-    function createMusicPlayer(videoId) {
-        // 如果已經有音樂在播放，先停止並銷毀它
+    function createMusicPlayerInstance(videoId, startSeconds=0) {
         if (musicPlayer && musicPlayer.destroy) {
             musicPlayer.destroy();
             musicPlayer = null;
         }
         
-        // 在隱藏容器中建立新的 YT 播放器實例
         musicPlayer = new YT.Player('player_music', {
             videoId: videoId,
-            playerVars: { 
-                autoplay: 1, 
-                mute: 0, // 歌曲必須取消靜音 (mute:0)
-                controls: 0, 
-                rel: 0, 
-                modestbranding: 1, 
-                fs: 0, 
-                iv_load_policy: 3 
-            },
+            playerVars: { autoplay: 1, mute: 0, controls: 0, rel: 0, modestbranding: 1, fs: 0, iv_load_policy: 3, start: startSeconds },
             events: {
                 onReady: (e) => {
                     e.target.playVideo();
                     e.target.unMute();
-                    alert(`歌曲點播成功！歌曲將在背景播放，ID：${videoId}`);
+                    updateMusicControlsUI();
+                    toggleMusicControlsVisibility(); 
                 },
                 onError: (e) => {
-                    alert(`歌曲點播失敗 (錯誤碼: ${e.data})。ID 可能無效或影片限制播放。`);
-                    if (musicPlayer) musicPlayer.destroy();
+                    console.error(`歌曲點播失敗 (錯誤碼: ${e.data})。將跳過此歌曲。`);
                     musicPlayer = null;
+                    playNextSong(true); 
                 },
                 onStateChange: (e) => {
-                    // 歌曲播放結束時，銷毀播放器
                     if (e.data === YT.PlayerState.ENDED) {
-                        if (musicPlayer) musicPlayer.destroy();
-                        musicPlayer = null;
-                    }
-                    // 如果暫停或緩衝，嘗試播放
-                    if (e.data===YT.PlayerState.PAUSED || e.data===YT.PlayerState.BUFFERING){
-                        try{ e.target.playVideo(); }catch(_){}
+                        playNextSong(true); 
+                    } else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.PLAYING) {
+                        updateMusicControlsUI();
                     }
                 }
             }
         });
     }
+
+    function playSongFromQueue(index) {
+        if (musicQueue.length === 0 || index < 0 || index >= musicQueue.length) {
+            stopSong();
+            return;
+        }
+        currentSongIndex = index;
+        const song = musicQueue[currentSongIndex];
+        createMusicPlayerInstance(song.id);
+    }
+
+    function playNextSong(autoPlay = false) {
+        if (musicQueue.length === 0) {
+            stopSong();
+            return;
+        }
+
+        let nextIndex = currentSongIndex;
+
+        if (playbackMode === 'repeatOne' && autoPlay) {
+            playSongFromQueue(currentSongIndex); 
+            return;
+        } else if (playbackMode === 'shuffle' && autoPlay) {
+            nextIndex = Math.floor(Math.random() * musicQueue.length);
+        } else {
+            nextIndex = (currentSongIndex + 1);
+            
+            if (nextIndex >= musicQueue.length) {
+                 if (playbackMode === 'listLoop' && musicQueue.length > 0) {
+                    nextIndex = 0; 
+                 } else {
+                    stopSong(); // 列表結束，停止播放
+                    return;
+                 }
+            }
+        }
+        
+        playSongFromQueue(nextIndex);
+    }
+
+    function skipToPreviousSong() {
+        if (musicQueue.length === 0 || currentSongIndex === -1) return;
+        
+        if (musicPlayer && musicPlayer.getCurrentTime() > 3) {
+            musicPlayer.seekTo(0, true);
+            return;
+        }
+
+        let prevIndex = currentSongIndex - 1;
+        if (prevIndex < 0) {
+            prevIndex = musicQueue.length - 1; 
+        }
+        
+        playSongFromQueue(prevIndex);
+    }
+    
+    function skipToNextSong() {
+        playNextSong(false); // 手動跳過
+    }
+
+    function playPauseSong() {
+        if (!musicPlayer) return;
+        const state = musicPlayer.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+            musicPlayer.pauseVideo();
+        } else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.BUFFERING) {
+            musicPlayer.playVideo();
+        }
+        updateMusicControlsUI();
+    }
+
+    function stopSong() {
+        if (musicPlayer && musicPlayer.destroy) {
+            musicPlayer.destroy();
+        }
+        musicPlayer = null;
+        currentSongIndex = -1;
+        musicQueue = []; // 清空列表
+        updateMusicControlsUI();
+        toggleMusicControlsVisibility(); // 隱藏控制
+    }
+    
+    // ----------------------------------------------------------------------
+    // 新增：模式設定與 UI 顯示
+    // ----------------------------------------------------------------------
 
     function getYouTubeID(urlOrID) {
         if (!urlOrID) return null;
@@ -398,13 +531,78 @@
         return null;
     }
 
+    // 控制音樂控制區塊的顯示/隱藏
+    function toggleMusicControlsVisibility() {
+        const container = document.getElementById('musicControlsContainer');
+        if (musicQueue.length > 0) {
+            container.style.display = 'flex';
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    // 僅更新圖示
+    function updateMusicControlsUI() {
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const modeBtn = document.getElementById('modeBtn');
+        
+        if (currentSongIndex !== -1 && musicQueue.length > 0) {
+            // 更新播放/暫停按鈕圖示
+            if (musicPlayer && musicPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+                playPauseBtn.innerHTML = '⏸️';
+            } else {
+                playPauseBtn.innerHTML = '▶️';
+            }
+        } else {
+            playPauseBtn.innerHTML = '▶️';
+        }
+
+        // 更新模式按鈕圖示與提示文字
+        switch (playbackMode) {
+            case 'listLoop':
+                modeBtn.innerHTML = '🔄';
+                modeBtn.title = '模式設定：列表循環';
+                break;
+            case 'shuffle':
+                modeBtn.innerHTML = '🔀';
+                modeBtn.title = '模式設定：隨機播放';
+                break;
+            case 'repeatOne':
+                modeBtn.innerHTML = '🔁';
+                modeBtn.title = '模式設定：單曲循環';
+                break;
+        }
+    }
+
+    // 彈出視窗相關函式
+    function openMusicSettingsModal() {
+        document.getElementById('musicSettingsModal').style.display = 'flex';
+    }
+
+    function closeMusicSettingsModal() {
+        document.getElementById('musicSettingsModal').style.display = 'none';
+    }
+
+    function setPlaybackMode(newMode) {
+        playbackMode = newMode;
+        closeMusicSettingsModal();
+        updateMusicControlsUI();
+    }
+    
+    // 依要求新增：停止歌曲並關閉彈窗
+    function stopAndCloseModal() {
+        stopSong();
+        closeMusicSettingsModal();
+    }
+
+    // 點歌函式：加入佇列並播放
     function requestSong(){
         if (!isApiReady) {
             alert("播放器 API 尚未準備好，請稍候。");
             return;
         }
         
-        const input = prompt("請輸入 YouTube 影片網址或 ID：(歌曲將於背景播放)", "");
+        const input = prompt("請輸入 YouTube 影片網址或 ID：(歌曲將加入播放列表)", "");
 
         if (input === null || input.trim() === "") {
             return; 
@@ -416,22 +614,28 @@
             alert("無效的 YouTube 網址或 ID。請確保格式正確。");
             return;
         }
+        
+        // 影片標題不再顯示，只需記錄 ID
+        const newSong = { id: videoId, title: "用戶點播歌曲" }; 
+        musicQueue.push(newSong);
 
-        createMusicPlayer(videoId);
+        // 如果目前沒有歌曲播放，則立即播放新加入的歌曲
+        if (currentSongIndex === -1 || !musicPlayer) {
+            playSongFromQueue(musicQueue.length - 1);
+        } else {
+            // 否則，只需更新 UI 顯示 (圖示)
+            updateMusicControlsUI(); 
+            toggleMusicControlsVisibility(); // 確保加入佇列時顯示控制
+        }
     }
-    
-    // ----------------------------------------------------------------------
-    // 保持您的其他功能邏輯不變
-    // ----------------------------------------------------------------------
-    
-    // 顯示/隱藏標籤
+
+    // 核心控制功能 (沿用)
     function toggleLabels(){
       document.body.classList.toggle('hide-labels');
       document.getElementById('labelsToggleBtn').innerText =
         document.body.classList.contains('hide-labels') ? "標籤顯示" : "標籤隱藏";
     }
 
-    // 全螢幕
     function toggleFullscreen(){
       const btn = document.getElementById('fullscreenBtn');
       if (!document.fullscreenElement){
@@ -451,12 +655,11 @@
       }
     });
 
-    // 全域靜音切換 (僅針對四個直播畫面)
     function toggleMute(){ if (!isApiReady) return; globalMuted=!globalMuted; applyGlobalMute(); updateMuteButtonLabel(); }
     function applyGlobalMute(){ players.forEach(p=>{ if (!p) return; try{ globalMuted ? p.mute() : p.unMute(); }catch(_){} }); }
     function updateMuteButtonLabel(){ document.getElementById('muteBtn').innerText = globalMuted ? "取消靜音" : "靜音"; }
 
-    // 初始化 UI 列表 (保持不變)
+    // 初始化 UI 列表 (沿用)
     document.addEventListener('DOMContentLoaded', ()=> renderRegionButtons());
     function renderRegionButtons(){
       const c = document.getElementById('regionButtons'); c.innerHTML='';
