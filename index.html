@@ -94,8 +94,46 @@
       #regionButtons .city-btn{ padding:6px 8px; font-size:12px; height:34px;
       }
     }
+    
+    /* ---------------------------------------------------------------------- */
+    /* CSS 樣式：音樂控制區塊 (確保緊湊格式) */
+    /* ---------------------------------------------------------------------- */
 
-    /* 保險：避免 YouTube 覆蓋層在視覺上干擾 */
+    /* 音樂控制容器：預設隱藏，由 JS 在有歌單時切換為 display: flex */
+    .music-controls-container {
+        display: none; 
+        flex-shrink: 0;
+        height: 100%;
+        align-items: center;
+    }
+    .music-controls {
+        display: flex;
+        gap: 5px; /* 按鈕間的間隔 */
+    }
+
+    /* 專門為音樂控制按鈕調整的樣式：方形、居中、大字體 */
+    .music-controls button {
+        /* 繼承 .controls button 的基本背景/邊框樣式 */
+        background-color: #222; 
+        color: #fff; 
+        border: 1px solid #444;
+        border-radius: 6px;
+        cursor: pointer;
+        
+        /* 調整為緊湊的音樂控制按鈕格式 */
+        height: 40px; 
+        width: 40px; /* 設為方形 */
+        padding: 0;
+        font-size: 16px; /* 確保 Emoji 夠大 */
+        line-height: 1;
+        flex-shrink: 0;
+        
+        /* 確保內容居中 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
   </style>
 </head>
 <body>
@@ -314,7 +352,7 @@
     let isMusicReady = false;
     let currentPlaylistId = null;
     
-    // 【修正變數】單畫面延遲刷新保護狀態
+    // 單畫面延遲刷新保護狀態
     let lastReloadAt = [0, 0, 0, 0];
     let isReloading = [false, false, false, false]; 
     const RELOAD_COOLDOWN_MS = 60000; // 60 秒冷卻時間
@@ -383,17 +421,17 @@
       });
       renderRegionButtons();
       
-      // 【修正 3/4】延遲檢測頻率：20 秒。延後 60 秒開始執行，給予初始化時間，避免四畫面同時刷新。
+      // 【✅ 修正點 3】延遲檢測迴圈：延後 5 秒開始執行，作為持續監測機制。
       setTimeout(() => {
         setInterval(checkStreamDelayLoop, 20000); 
-        console.log("✅ 直播延遲檢測已啟動。");
-      }, 60000); // 延後 60 秒 (60000 毫秒)
+        console.log("✅ 直播延遲檢測 (持續監測) 已啟動。");
+      }, 5000); // 延後 5 秒 (5000 毫秒)
       
       // 確保瀏覽器可見性改變時，播放器能恢復
       document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
-    // 【修正 2/4】強化 onPlayerReady 確保畫面載入 (修復 TypeError)
+    // 【✅ 修正點 1】在載入完成時立即跳轉到 Live Edge
     function onPlayerReady(event) {
       const player = event.target;
       const index = players.indexOf(player);
@@ -404,12 +442,27 @@
       // 嘗試播放，繞過瀏覽器限制
       const playPromise = player.playVideo();
 
-      // 修正 TypeError：必須確保 playPromise 是一個擁有 catch 方法的 Promise
+      // 修正 TypeError
       if (playPromise && typeof playPromise.catch === 'function') {
         playPromise.catch(error => {
           console.warn(`畫面 ${index} 自動播放被阻止。`, error);
         });
       }
+
+      // 🚨 核心修正：立即強制跳轉到 Live Edge
+      // 使用 100ms 的極短延遲，確保 getDuration() 方法已完全可用。
+      setTimeout(() => {
+        try {
+          const liveDuration = player.getDuration();
+          if (liveDuration > 0) {
+            player.seekTo(liveDuration, true);
+            player.playVideo();
+            console.log(`畫面 ${index} 載入完成，立即跳轉到直播前緣 (${Math.floor(liveDuration)} 秒)。`);
+          }
+        } catch(e) {
+          console.error(`畫面 ${index} 載入時立即跳轉失敗:`, e);
+        }
+      }, 100); 
     }
 
     // 單播放器狀態處理：加入鎖定，避免連鎖反應
@@ -459,7 +512,7 @@
       }
     }
 
-    // 【最終修正】checkStreamDelayLoop 函數：確保直播永遠跳到 Live Edge
+    // 【✅ 修正點 2】checkStreamDelayLoop 函數：確保直播永遠跳到 Live Edge
     function checkStreamDelayLoop() {
       const now = Date.now();
       players.forEach((player, index) => {
