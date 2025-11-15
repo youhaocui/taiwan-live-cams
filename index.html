@@ -96,7 +96,7 @@
         height: 40px;
     }
     /* 模式設定彈出窗按鈕樣式 */
-    #musicSettingsModal button {
+    #musicSettingsModal button, #musicQueueModal button {
         background-color: #333;
         color: #fff;
         border: none;
@@ -106,7 +106,7 @@
         font-size: 14px;
         flex-grow: 1;
     }
-    #musicSettingsModal button:hover {
+    #musicSettingsModal button:hover, #musicQueueModal button:hover {
         background-color: #555;
     }
   </style>
@@ -132,7 +132,8 @@
     <button id="muteBtn" onclick="toggleMute()">取消靜音</button>
     
     <div class="divider"></div>
-    <button id="requestBtn" onclick="requestSong()" title="點歌至播放列表">點歌</button>
+    <button id="requestBtn" onclick="requestSong()" title="輸入網址/ID點歌或播放清單">🎶 點歌/清單</button>
+    <button id="playlistQueueBtn" onclick="showMusicQueueStatusModal()" title="查看播放列表狀態">🎵 列表狀態</button>
     
     <div id="musicControlsContainer" class="music-controls-container">
         <div class="music-controls">
@@ -196,6 +197,16 @@
     </div>
   </div>
 
+  <div id="musicQueueModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5); width:350px; max-width:90%;">
+      <h3 style="margin-top:0; color:#fff; text-align:center;">🎶 播放列表狀態</h3>
+      <div id="queueListContent" style="margin-bottom:15px; padding-right:5px;">
+        </div>
+      
+      <button onclick="closeMusicQueueModal()" style="margin-top:10px; background:#444; width:100%;">關閉</button>
+    </div>
+  </div>
+
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     // ===== 直播來源 (已依您的指示修正) =====
@@ -233,7 +244,7 @@
       "宜蘭-福隆海水浴場": {"id":"AxG-Jssz8fg","label":"宜蘭福隆","source":"necoast nsa"},
       "宜蘭-舊隧道南口": {"id":"X76Dkt_fPG0","label":"石城漁港","source":"necoast nsa"},
       "宜蘭-無尾港": {"id":"Bux0vT_5MBw","label":"無尾港","source":"GoOcean海洋遊憩風險資訊"},
-      "宜蘭-石城漁港": {"id":"D8VlB37WjB4","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"},
+      "宜蘭-石城漁港": {"id":"ozZVLl0h--A","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"}, /* <-- 已更新 */
       "台東-鯉魚山": {"id":"BUJJaW0vkJs","label":"台東鯉魚山","source":"Amazing Taitung 台東就醬玩"},
       "台東-金崙大橋": {"id":"9QqBz3kNHis","label":"台東金崙大橋","source":"Amazing Taitung 台東就醬玩"},
       "台東-金樽觀浪": {"id":"q3KJt-SZc2s","label":"台東金樽觀浪","source":"Amazing Taitung 台東就醬玩"},
@@ -326,7 +337,7 @@
     // 音樂播放器專屬狀態
     // ----------------------------------------------------------------------
     let musicPlayer = null; 
-    let musicQueue = []; // 儲存 { id: 'youtube_id' }
+    let musicQueue = []; // 儲存 { id: 'youtube_id', title: '歌曲標題' }
     let currentSongIndex = -1; // -1 表示沒有歌曲在播放
     let playbackMode = 'listLoop'; // 'listLoop', 'shuffle', 'repeatOne'
     let isNativePlaylistActive = false; // 新增：判斷是否正在播放原生播放清單
@@ -595,6 +606,15 @@
     // 模式設定與 UI 顯示
     // ----------------------------------------------------------------------
 
+    function getPlaybackModeText(mode) {
+        switch (mode) {
+            case 'listLoop': return '列表循環 (🔄)';
+            case 'shuffle': return '隨機播放 (🔀)';
+            case 'repeatOne': return '單曲循環 (🔁)';
+            default: return mode;
+        }
+    }
+
     function toggleMusicControlsVisibility() {
         const container = document.getElementById('musicControlsContainer');
         if (musicQueue.length > 0 || isNativePlaylistActive) {
@@ -638,9 +658,11 @@
         }
     }
 
+    // --- 模式設定 Modal 相關 ---
+
     function openMusicSettingsModal() {
         if (isNativePlaylistActive) {
-            alert("正在播放 YouTube 原生播放清單，請先停止播放以使用自訂模式設定。");
+            alert("正在播放 YouTube 原生播放清單，無法使用自訂模式設定。請先停止播放以使用自訂模式。");
             return;
         }
         document.getElementById('musicSettingsModal').style.display = 'flex';
@@ -659,8 +681,77 @@
     function stopAndCloseModal() {
         stopSong();
         closeMusicSettingsModal();
+        closeMusicQueueModal(); // 確保清單 Modal 也關閉
+    }
+    
+    // --- 播放列表狀態 Modal 相關 ---
+
+    function closeMusicQueueModal() {
+        document.getElementById('musicQueueModal').style.display = 'none';
     }
 
+    function renderQueueList() {
+        const listContainer = document.getElementById('queueListContent');
+        listContainer.innerHTML = '';
+        
+        // 1. 處理原生播放清單
+        if (isNativePlaylistActive) {
+            listContainer.innerHTML = `<p style="color:#FFD700; font-weight:bold;">✅ 正在播放 YouTube 原生播放清單。</p>
+                                       <p style="font-size:12px; color:#aaa;">（無法顯示原生清單的內容細節，播放順序由 YouTube 控制）</p>`;
+            return;
+        }
+
+        // 2. 處理自訂佇列
+        if (musicQueue.length === 0) {
+            listContainer.innerHTML = '<p style="color:#aaa; text-align:center; padding:20px 0;">❌ 自訂播放列表目前是空的。</p>';
+            return;
+        }
+
+        const ul = document.createElement('ul');
+        ul.style.listStyle = 'none';
+        ul.style.padding = '0';
+        ul.style.textAlign = 'left';
+        ul.style.maxHeight = '250px'; /* 限制高度 */
+        ul.style.overflowY = 'auto';
+        ul.style.border = '1px solid #333';
+        ul.style.borderRadius = '5px';
+
+        musicQueue.forEach((song, index) => {
+            const li = document.createElement('li');
+            const isCurrent = index === currentSongIndex;
+            
+            li.style.padding = '8px 12px';
+            li.style.borderBottom = '1px solid #333';
+            li.style.backgroundColor = isCurrent ? '#0078d7' : '#1a1a1a';
+            li.style.color = '#fff';
+            li.style.fontSize = '14px';
+            
+            const status = isCurrent ? '▶️ 播放中' : '待播';
+            // 標題預設為「用戶點播歌曲」，確保列表可讀
+            const songTitle = song.title === "用戶點播歌曲" ? `用戶點播歌曲 #${index + 1}` : song.title; 
+            li.innerHTML = `<strong>${index + 1}.</strong> ${songTitle} <span style="float:right; opacity:0.8;">${status}</span>`;
+            
+            ul.appendChild(li);
+        });
+        
+        // 移除最後一個底線
+        if (ul.lastChild) {
+            ul.lastChild.style.borderBottom = 'none';
+        }
+
+        listContainer.innerHTML = `
+            <p style="margin-top:0; color:#eee;">總共 ${musicQueue.length} 首歌曲</p>
+            <p style="font-size:12px; color:#999; margin-bottom:10px;">播放模式: ${getPlaybackModeText(playbackMode)}</p>
+        `;
+        listContainer.appendChild(ul);
+    }
+
+    function showMusicQueueStatusModal() {
+        renderQueueList();
+        document.getElementById('musicQueueModal').style.display = 'flex';
+    }
+
+    // 點歌主函數
     function requestSong(){
         if (!isApiReady) {
             alert("播放器 API 尚未準備好，請稍候。");
