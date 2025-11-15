@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8" />
-  <title>台灣即時直播四分割監看（極簡音樂控制最終版 - 地區分類修正 - 景點數量 100 個）</title>
+  <title>台灣即時直播四分割監看（最終穩定版 - 地區分類：北部/中部/南部/東部/離島）</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     /* ---------------------------------------------------------------------- */
@@ -53,7 +53,7 @@
     .player-container, .player-container iframe{
       position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
       object-fit:cover; object-position:center; background:black;
-      transform: scale(1.65) translateY(-6%);
+      transform: scale(1.65) translateY(-6%); /* 確保畫面放大並聚焦 */
     }
     .interaction-shield{ position:absolute; inset:0; z-index:5; background:transparent; cursor:default; }
     .label{
@@ -90,7 +90,6 @@
         flex-shrink: 0;
     }
     .music-controls button {
-        /* 使用 emoji/symbol 時，可以調整 padding 讓圖示置中 */
         padding: 8px 10px; 
         font-size: 14px;
         height: 40px;
@@ -266,8 +265,8 @@
       "宜蘭-舊隧道南口": {"id":"X76Dkt_fPG0","label":"石城漁港","source":"necoast nsa"}, 
       "宜蘭-無尾港": {"id":"Bux0vT_5MBw","label":"無尾港","source":"GoOcean海洋遊憩風險資訊"}, 
       "宜蘭-石城漁港": {"id":"ozZVLl0h--A","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"}, 
-      "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"}, // <<< 北部最終景點
-      // 新竹市/縣 (此清單中無新竹景點，但保留城市名稱以備擴充)
+      "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"}, 
+      // 新竹市/縣
       // 苗栗縣
       "苗栗-汶水遊客中心(雪霸)": {"id":"VgmWVBUsfGo","label":"汶水遊客中心","source":"雪霸國家公園 Shei-Pa National Park"},
       "苗栗-觀霧遊憩區(雪霸)": {"id":"Isp6RQiuxNo","label":"觀霧遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
@@ -279,7 +278,7 @@
       "彰化-王功漁港": {"id":"hUG2XK08W5Q","label":"彰化王功","source":"愛玩彰化 Changhua Travels"},
       // 南投縣
       "南投-合歡山武嶺亭": {"id":"2lVMTs_Fj0M","label":"武嶺亭","source":"台灣即時影像監視器"},
-      // 雲林縣 (此清單中無雲林景點，但保留城市名稱以備擴充)
+      // 雲林縣
       // 嘉義市/縣
       "嘉義-奮起湖": {"id":"B6eki-0-w0g","label":"嘉義奮起湖","source":"阿里山國家風景區管理處"},
       "嘉義-二延平步道": {"id":"j2L_559nCjc","label":"二延平步道","source":"阿里山國家風景區管理處"},
@@ -329,7 +328,7 @@
     };
 
     // ----------------------------------------------------------------------
-    // JavaScript 功能 (修正地區分組和自動播放)
+    // JavaScript 功能 
     // ----------------------------------------------------------------------
 
     const PLAYER_IDS = ['player0', 'player1', 'player2', 'player3'];
@@ -339,9 +338,9 @@
     let selectedCamIndex = 0; 
     let players = [];
     let streamState = Array(4).fill(null); 
-    let isMuted = true; // 頁面初始載入時，聲音按鈕應顯示 "解除靜音"
+    let isMuted = true; 
     
-    // 音樂播放器相關... (不變)
+    // 音樂播放器相關... 
     let musicPlayer = null;
     let musicQueue = [];
     let currentMusicIndex = -1;
@@ -359,53 +358,55 @@
         GROUPED_STREAMS[city].push({ key: key, ...ALL_STREAMS[key] });
     });
 
-    // ！！修正！！定義您要求的地區分組名稱和城市
+    // ！！最終修正！！定義您要求的地區分組名稱和城市 (澎湖已移至南部)
     const REGION_GROUPS = {
       '北部': ['台北', '新北', '基隆', '桃園', '宜蘭', '新竹'],
       '中部': ['苗栗', '台中', '彰化', '南投', '雲林'],
-      '南部': ['嘉義', '台南', '高雄', '屏東'],
+      '南部': ['嘉義', '台南', '高雄', '屏東', '澎湖'], // 嘉義和澎湖均歸在南部
       '東部': ['花蓮', '台東'],
-      '離島': ['金門', '馬祖', '澎湖']
+      '離島': ['金門', '馬祖'] // 僅剩金門和馬祖
     };
     
-    // 城市別名映射 (用於處理部分景點名稱)
+    // 城市別名映射
     const CITY_ALIAS_TO_BASE = {
       '新竹市': '新竹', '新竹縣': '新竹',
       '嘉義市': '嘉義', '嘉義縣': '嘉義'
-      // 之後可擴充
     };
 
     // 1. YouTube IFrame API 載入完成時調用
     function onYouTubeIframeAPIReady() {
         // 初始化四個影像播放器
         PLAYER_IDS.forEach((id, index) => {
-            const initialVideoId = (index === 0 && ALL_STREAMS["台北-貓空指南宮"]) ? ALL_STREAMS["台北-貓空指南宮"].id : 
-                                   (index === 1 && ALL_STREAMS["桃園-國際機場"]) ? ALL_STREAMS["桃園-國際機場"].id : 
-                                   (index === 2 && ALL_STREAMS["台中-高美濕地"]) ? ALL_STREAMS["台中-高美濕地"].id : 
-                                   (index === 3 && ALL_STREAMS["高雄-壽山觀景台"]) ? ALL_STREAMS["高雄-壽山觀景台"].id : DEFAULT_VIDEO_ID;
+            const defaultStreams = [
+                "台北-貓空指南宮", 
+                "桃園-國際機場", 
+                "台中-高美濕地", 
+                "高雄-壽山觀景台"
+            ];
+            const defaultKey = defaultStreams[index];
+            const initialVideoId = (defaultKey && ALL_STREAMS[defaultKey]) ? ALL_STREAMS[defaultKey].id : DEFAULT_VIDEO_ID;
 
             players[index] = new YT.Player(id, {
                 videoId: initialVideoId, 
                 playerVars: {
-                    'autoplay': 1, // ！！修正：啟用自動播放！！
+                    'autoplay': 1, 
                     'controls': 0,
                     'modestbranding': 1,
                     'rel': 0,
                     'showinfo': 0,
                     'fs': 0,
                     'disablekb': 1,
-                    'loop': 1,
-                    'mute': 1 // 預設靜音 (需手動解除)
+                    'loop': 1, // 持續播放參數
+                    'mute': 1 
                 },
                 events: {
                     'onReady': onPlayerReady
                 }
             });
             
-            // 初始化四個畫面的狀態 (用於標籤顯示)
-            const defaultStreamKey = (index === 0) ? "台北-貓空指南宮" : (index === 1) ? "桃園-國際機場" : (index === 2) ? "台中-高美濕地" : (index === 3) ? "高雄-壽山觀景台" : null;
-            if (defaultStreamKey && ALL_STREAMS[defaultStreamKey]) {
-                streamState[index] = { key: defaultStreamKey, ...ALL_STREAMS[defaultStreamKey] };
+            // 初始化四個畫面的狀態
+            if (defaultKey && ALL_STREAMS[defaultKey]) {
+                streamState[index] = { key: defaultKey, ...ALL_STREAMS[defaultKey] };
                 updateLabel(index);
             }
         });
@@ -437,7 +438,6 @@
     function onPlayerReady(event) {
         // 確保影片載入後自動循環播放
         event.target.setLoop(true);
-        // 由於我們在 playerVars 已經設置了 autoplay: 1 和 mute: 1，這裡不需要額外操作。
     }
 
     // 更新畫面標籤的輔助函數
@@ -459,7 +459,7 @@
         }
     }
     
-    // 2. 選擇攝影機畫面 (不變)
+    // 2. 選擇攝影機畫面
     function selectCam(index) {
         selectedCamIndex = index;
         document.querySelectorAll('.controls button').forEach((btn, i) => {
@@ -481,18 +481,18 @@
 
         // 1. 載入並播放影片 (預設靜音)
         player.loadVideoById(stream.id);
-        player.mute(); // 確保新載入的影片也是靜音的
+        player.mute(); 
         
         // 2. 更新標籤
         updateLabel(selectedCamIndex);
         
-        // 3. 如果取消靜音按鈕是「解除靜音」（isMuted=true），則保持靜音；如果是「取消靜音」（isMuted=false），則解除靜音
+        // 3. 如果取消靜音按鈕是「取消靜音」（isMuted=false），則解除靜音
         if (!isMuted) {
              player.unMute();
         }
     }
 
-    // 4. 切換全螢幕 (不變)
+    // 4. 切換全螢幕
     function toggleFullscreen() {
         const wrap = document.getElementById('stageWrap');
         if (!document.fullscreenElement) {
@@ -510,7 +510,7 @@
         }, { once: true });
     }
 
-    // 5. 切換標籤顯示 (不變)
+    // 5. 切換標籤顯示
     function toggleLabels() {
         const isHidden = document.body.classList.toggle('hide-labels');
         document.getElementById('labelsToggleBtn').innerText = isHidden ? '顯示標籤' : '標籤隱藏';
@@ -528,7 +528,7 @@
         });
     }
 
-    // 7. 渲染縣市/地區按鈕 (修正地區標示邏輯)
+    // 7. 渲染縣市/地區按鈕 
     function renderRegionButtons() {
       const c = document.getElementById('regionButtons'); 
       c.innerHTML = '';
@@ -539,7 +539,8 @@
         
         // 檢查該地區是否有任何城市包含在 ALL_STREAMS 中
         REGION_GROUPS[region].forEach(city => {
-             if (GROUPED_STREAMS[city] && GROUPED_STREAMS[city].length > 0) {
+             const baseCity = CITY_ALIAS_TO_BASE[city] || city;
+             if (GROUPED_STREAMS[baseCity] && GROUPED_STREAMS[baseCity].length > 0) {
                  regionHasCities = true;
              }
         });
@@ -547,7 +548,7 @@
         if (regionHasCities) {
             hasContent = true;
             
-            // ！！修正：顯示地區標籤！！
+            // 顯示地區標籤
             const regionLabel = document.createElement('span');
             regionLabel.className = 'region-label';
             regionLabel.textContent = region + '：';
@@ -575,7 +576,7 @@
       c.scrollLeft = 0;
     }
 
-    // 8. 渲染景點按鈕 (特定城市) - 不變
+    // 8. 渲染景點按鈕 (特定城市)
     function renderLocationButtons(displayCity) {
       const baseCity = CITY_ALIAS_TO_BASE[displayCity] || displayCity;
       const c = document.getElementById('regionButtons'); 
@@ -606,7 +607,7 @@
       c.scrollLeft = 0;
     }
 
-    // 9. 音樂播放控制 (保持不變)
+    // 9. 音樂播放控制
     
     function requestSong() {
         const input = prompt("請輸入YouTube影片網址或ID，或是一個播放清單網址/ID：");
@@ -795,9 +796,12 @@
         document.getElementById('musicSettingsModal').style.display = 'none';
     }
 
+    // 確保清除 YouTube 播放清單的狀態
     function stopAndCloseModal() {
         if (musicPlayer) {
-            musicPlayer.stopVideo();
+            musicPlayer.stopVideo(); // 停止當前播放
+            // 載入一個空白影片 ID，強制清除 YouTube 播放器內部的播放清單緩存
+            musicPlayer.loadVideoById(''); 
         }
         musicQueue = [];
         currentMusicIndex = -1;
@@ -863,7 +867,7 @@
 
     // 啟動時自動載入地區按鈕
     document.addEventListener('DOMContentLoaded', () => {
-        // renderRegionButtons(); // onYouTubeIframeAPIReady 會調用
+        // onYouTubeIframeAPIReady 會調用 renderRegionButtons
     });
   </script>
 </body>
