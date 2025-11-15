@@ -2,11 +2,11 @@
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8" />
-  <title>台灣即時直播四分割監看（極簡音樂控制最終版）</title>
+  <title>台灣即時直播四分割監看（極簡音樂控制最終版 - 總計100個地點）</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     /* ---------------------------------------------------------------------- */
-    /* CSS 樣式 (沿用自用戶上傳檔案) */
+    /* CSS 樣式 (已包含您新增的音樂控制區塊樣式) */
     /* ---------------------------------------------------------------------- */
     html,body{
       height:100%; margin:0; padding:0; background:#000;
@@ -75,11 +75,9 @@
       #regionButtons .city-btn{ padding:6px 8px; font-size:12px; height:34px; }
     }
     
-    /* ---------------------------------------------------------------------- */
     /* 新增：音樂控制區塊樣式 */
-    /* ---------------------------------------------------------------------- */
     .music-controls-container {
-        display: none; /* 預設隱藏，有歌曲時才顯示 */
+        display: none; 
         align-items: center;
         gap: 4px; 
         flex-shrink: 0;
@@ -90,12 +88,10 @@
         flex-shrink: 0;
     }
     .music-controls button {
-        /* 使用 emoji/symbol 時，可以調整 padding 讓圖示置中 */
         padding: 8px 10px; 
         font-size: 14px;
         height: 40px;
     }
-    /* 模式設定彈出窗按鈕樣式 */
     #musicSettingsModal button {
         background-color: #333;
         color: #fff;
@@ -198,8 +194,9 @@
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    // ===== 直播來源 (保持不變) =====
+    // ===== 直播來源 (總計100個地點 - 已還原先前新增的21個地點) =====
     const ALL_STREAMS = {
+      // 79個原始地點
       "台北-象山看101": {"id":"z_fY1pj1VBw","label":"台北象山","source":"Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-大稻埕": {"id":"Ndo_8RuefH4","label":"大稻埕","source":"Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-碧山巖": {"id":"uvwfYzwY8tg","label":"碧山巖","source":"Taipei Travel Live Cam 台北觀光即時影像"},
@@ -268,13 +265,36 @@
       "高雄-旗津海水浴場": {"id":"ka7FV0sCvxQ","label":"高雄旗津","source":"高雄旅遊網"},
       "屏東-墾丁南灣": {"id":"jUnFuJSj0OU","label":"墾丁南灣","source":"我愛墾丁旅遊票券中心"},
       "台南-七股賞鳥台": {"id":"5KJe2gCTngA","label":"台南七股","source":"台江國家公園管理處"},
-      "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家公園管理處"},
+      "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家風景區管理處"},
       "台南-曾文水庫": {"id":"EH4V8IwFIp4","label":"曾文水庫","source":"西拉雅國家風景區管理處"},
       "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"},
       "高雄-壽山觀景台": {"id":"C03Itx8iSC0","label":"壽山觀景","source":"高雄旅遊網"},
       "金門-麒麟山森林公園": {"id":"M4EJtf_iP8s","label":"金門麒麟山公園","source":"樂遊金門"},
       "金門-134高地": {"id":"-srNHTE-Nf0","label":"金門134高地","source":"樂遊金門"},
-      "金門-建功嶼": {"id":"uh_yNAE01w8","label":"金門建功嶼","source":"樂遊金門"}
+      "金門-建功嶼": {"id":"uh_yNAE01w8","label":"金門建功嶼","source":"樂遊金門"},
+      
+      // 21個先前新增的地點 (已還原)
+      "新北-中角灣": {"id":"mmM9NOZLLKY","label":"中角灣","source":"GoOcean海洋遊憩風險資訊"},
+      "新北-十分瀑布公園": {"id":"HirBQsQEUeA","label":"十分瀑布公園","source":"新北旅客 New Taipei Tour"},
+      "新北-九份": {"id":"XSD5ptYisw8","label":"新北九份","source":"新北旅客 New Taipei Tour"},
+      "南投-合歡山武嶺亭": {"id":"2lVMTs_Fj0M","label":"武嶺亭","source":"台灣即時影像監視器"},
+      "新北-內洞國家森林遊樂區": {"id":"lX2MYEFomK0","label":"內洞國家森林遊樂區","source":"國家森林遊樂區即時影像"},
+      "苗栗-汶水遊客中心(雪霸)": {"id":"VgmWVBUsfGo","label":"汶水遊客中心","source":"雪霸國家公園 Shei-Pa National Park"},
+      "苗栗-觀霧遊憩區(雪霸)": {"id":"Isp6RQiuxNo","label":"觀霧遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
+      "苗栗-雪見遊憩區(雪霸)": {"id":"2KDE860OW_A","label":"雪見遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
+      "台北-擎天岡草原": {"id":"yF2LAyOvq0Q","label":"擎天岡草原","source":"陽明山國家公園"},
+      "台北-陽明書屋": {"id":"RttyIGHbN_w","label":"陽明書屋","source":"陽明山國家公園"},
+      "台北-遠眺七星山": {"id":"PvJr2efA6n0","label":"遠眺七星山","source":"陽明山國家公園"},
+      "台北-二坪子停車場": {"id":"d9KuXrPCWYU","label":"二坪子停車場","source":"陽明山國家公園"},
+      "台北-大屯自然公園": {"id":"6ghffcNt3Nw","label":"大屯自然公園","source":"陽明山國家公園"},
+      "台北-小油坑停車場": {"id":"kKD-ZBLs8-4","label":"小油坑停車場","source":"陽明山國家公園"},
+      "台北-冷水坑停車場": {"id":"GB64WeZZQPQ","label":"冷水坑停車場","source":"陽明山國家公園"},
+      "新北-三峽老街北段": {"id":"M24SZJU-uoo","label":"三峽老街北段","source":"三峽民權老街商圈"},
+      "新北-三峽老街南段": {"id":"R_5jhoux3nY","label":"三峽老街南段","source":"三峽民權老街商圈"},
+      "新北-烏來吊橋": {"id":"jGoYvmTxLyU","label":"烏來吊橋","source":"水利署水利防災組"},
+      "新北-員山子": {"id":"JkGKqXOt9Ls","label":"員山子","source":"水利署水利防災組"},
+      "新北-文山農場大草皮": {"id":"_LRkfObNP_U","label":"文山農場大草皮","source":"新北市農會文山農場"},
+      "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"} 
     };
 
     const REGION_GROUPS = {
@@ -398,7 +418,7 @@
     }
     
     // ----------------------------------------------------------------------
-    // 新增：音樂播放器控制邏輯
+    // 音樂播放器控制邏輯 (已修正 ID 判斷和提示)
     // ----------------------------------------------------------------------
 
     function createMusicPlayerInstance(videoId, startSeconds=0) {
@@ -475,6 +495,7 @@
     function skipToPreviousSong() {
         if (musicQueue.length === 0 || currentSongIndex === -1) return;
         
+        // 如果目前播放超過 3 秒，則從頭播放
         if (musicPlayer && musicPlayer.getCurrentTime() > 3) {
             musicPlayer.seekTo(0, true);
             return;
@@ -509,25 +530,35 @@
         }
         musicPlayer = null;
         currentSongIndex = -1;
-        musicQueue = []; // 清空列表
+        // 不清空列表，讓用戶可以繼續點播，只清空當前播放狀態
         updateMusicControlsUI();
-        toggleMusicControlsVisibility(); // 隱藏控制
+        toggleMusicControlsVisibility(); 
     }
     
     // ----------------------------------------------------------------------
-    // 新增：模式設定與 UI 顯示
+    // 修正的 getYouTubeID 函式，用於更精確地判斷輸入 (解決歌單問題)
     // ----------------------------------------------------------------------
 
     function getYouTubeID(urlOrID) {
         if (!urlOrID) return null;
         urlOrID = urlOrID.trim();
-        const match = urlOrID.match(/(?:youtu\.be\/|v=|embed\/|watch\?v=)([^&?]*)/);
-        if (match && match[1]) {
-            return match[1];
+
+        // 1. 檢查是否包含 playlist 關鍵字，並返回特殊標誌
+        if (urlOrID.includes('playlist?list=') || urlOrID.includes('/playlist')) {
+            return 'IS_PLAYLIST';
         }
+
+        // 2. 檢查標準的影片 ID (v=, youtu.be/, embed/)
+        const videoMatch = urlOrID.match(/(?:youtu\.be\/|v=|embed\/|watch\?v=)([^&?]*)/);
+        if (videoMatch && videoMatch[1]) {
+            return videoMatch[1].substring(0, 11); // 確保只取 ID 的前 11 位
+        }
+
+        // 3. 檢查 raw 11-character video ID
         if (urlOrID.length === 11 && !urlOrID.includes('/')) {
             return urlOrID;
         }
+
         return null;
     }
 
@@ -589,7 +620,7 @@
         updateMusicControlsUI();
     }
     
-    // 依要求新增：停止歌曲並關閉彈窗
+    // 停止歌曲並關閉彈窗
     function stopAndCloseModal() {
         stopSong();
         closeMusicSettingsModal();
@@ -602,7 +633,7 @@
             return;
         }
         
-        const input = prompt("請輸入 YouTube 影片網址或 ID：(歌曲將加入播放列表)", "");
+        const input = prompt("請輸入 **單一** YouTube 影片網址或 ID：(歌曲將加入播放列表)", "");
 
         if (input === null || input.trim() === "") {
             return; 
@@ -610,12 +641,16 @@
         
         const videoId = getYouTubeID(input);
 
+        if (videoId === 'IS_PLAYLIST') {
+            alert("此功能目前僅支援單一 YouTube 影片網址或 ID，不支援整個播放清單連結。請輸入單曲連結。");
+            return;
+        }
+
         if (!videoId) {
-            alert("無效的 YouTube 網址或 ID。請確保格式正確。");
+            alert("無效的 YouTube 影片網址或 ID。請確保格式正確。");
             return;
         }
         
-        // 影片標題不再顯示，只需記錄 ID
         const newSong = { id: videoId, title: "用戶點播歌曲" }; 
         musicQueue.push(newSong);
 
@@ -625,7 +660,8 @@
         } else {
             // 否則，只需更新 UI 顯示 (圖示)
             updateMusicControlsUI(); 
-            toggleMusicControlsVisibility(); // 確保加入佇列時顯示控制
+            toggleMusicControlsVisibility(); 
+            alert(`歌曲已成功加入播放列表！目前佇列有 ${musicQueue.length} 首歌。`);
         }
     }
 
