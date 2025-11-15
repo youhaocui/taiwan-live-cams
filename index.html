@@ -55,12 +55,16 @@
       object-fit:cover; object-position:center; background:black;
       transform: scale(1.65) translateY(-6%); /* 確保畫面放大並聚焦 */
     }
-    .interaction-shield{ position:absolute; inset:0; z-index:5; background:transparent; cursor:default; }
+    /* 提高遮罩層級並阻擋互動，避免顯示 YouTube UI/Logo/推薦 */
+    .interaction-shield{
+      position:absolute; inset:0; z-index:9999; background:transparent;
+      pointer-events:auto; cursor:default;
+    }
     .label{
       position:absolute; left:8px; right:8px; bottom:8px; display:flex;
       flex-direction:column; align-items:flex-start; padding:6px 8px;
       font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:6px;
-      pointer-events:none; z-index:10;
+      pointer-events:none; z-index:10000;
     }
     .source-on-screen{ font-size:11px; color:#ccc; margin-top:4px; line-height:1.1; }
 
@@ -367,8 +371,15 @@
             players[index] = new YT.Player(id, {
                 videoId: initialVideoId, 
                 playerVars: {
-                    autoplay: 1, controls: 0, modestbranding: 1,
-                    rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 1, mute: 1
+                    autoplay: 1,
+                    controls: 0,
+                    modestbranding: 1,
+                    rel: 0,
+                    showinfo: 0,
+                    fs: 0,
+                    disablekb: 1,
+                    loop: 1,
+                    mute: 1
                 },
                 events: {
                     onReady: onPlayerReady,
@@ -383,7 +394,10 @@
 
         musicPlayer = new YT.Player('player_music', {
             videoId: '', 
-            playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 0, mute: 0 },
+            playerVars: {
+              autoplay: 0, controls: 0, modestbranding: 1,
+              rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 0, mute: 0
+            },
             events: { onReady: onMusicPlayerReady, onStateChange: onMusicPlayerStateChange }
         });
 
