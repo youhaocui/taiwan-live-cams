@@ -55,16 +55,22 @@
       object-fit:cover; object-position:center; background:black;
       transform: scale(1.65) translateY(-6%); /* 確保畫面放大並聚焦 */
     }
-    /* 提高遮罩層級並阻擋互動，避免顯示 YouTube UI/Logo/推薦 */
+
+    /* 永遠覆蓋於 iframe 上方以阻擋 YouTube UI / logo /推薦 */
     .interaction-shield{
       position:absolute; inset:0; z-index:9999; background:transparent;
       pointer-events:auto; cursor:default;
     }
+    /* 額外一層 UI 遮罩（避免某些情況下 youtube 元素跑到更高層） */
+    .yt-ui-block{
+      position:absolute; inset:0; z-index:10000; pointer-events:auto; background:transparent;
+    }
+
     .label{
       position:absolute; left:8px; right:8px; bottom:8px; display:flex;
       flex-direction:column; align-items:flex-start; padding:6px 8px;
       font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:6px;
-      pointer-events:none; z-index:10000;
+      pointer-events:none; z-index:10001;
     }
     .source-on-screen{ font-size:11px; color:#ccc; margin-top:4px; line-height:1.1; }
 
@@ -78,47 +84,11 @@
       .controls button{ padding:6px 8px; font-size:12px; height:36px; }
       #regionButtons .city-btn{ padding:6px 8px; font-size:12px; height:34px; }
     }
-    
-    /* ---------------------------------------------------------------------- */
-    /* 音樂控制區塊樣式 */
-    /* ---------------------------------------------------------------------- */
-    .music-controls-container {
-        display: none;
-        align-items: center;
-        gap: 4px; 
-        flex-shrink: 0;
-    }
-    .music-controls {
-        display: flex;
-        gap: 4px;
-        flex-shrink: 0;
-    }
-    .music-controls button {
-        padding: 8px 10px; 
-        font-size: 14px;
-        height: 40px;
-    }
-    #musicSettingsModal button.mode-btn {
-        background-color: #333;
-        color: #fff;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        flex-grow: 1;
-        transition: background-color 0.2s;
-    }
-    #musicSettingsModal button.mode-btn:hover { background-color: #555; }
-    #musicSettingsModal button.mode-btn.active-mode {
-        background-color: #0078d7 !important;
-        font-weight: bold;
-    }
-    #musicSettingsModal .stop-btn { margin-top: 15px; background: #8b0000; width: 100%; border: none; }
-    #musicSettingsModal .close-btn { margin-top: 10px; background: #444; width: 100%; }
-    #musicQueueModal button {
-        background-color: #444; color: #fff; border: none; padding: 10px 15px;
-        border-radius: 6px; cursor: pointer; font-size: 14px; width: 100%;
+
+    /* 強制隱藏 youtube 建議小縮圖 overlays（保險） */
+    .player-container iframe + .yt-ui-block .ytp-chrome-top,
+    .player-container iframe + .yt-ui-block .ytp-cued-thumbnail-overlay {
+      display:none !important;
     }
   </style>
 </head>
@@ -160,22 +130,26 @@
   <div class="stage-wrap" id="stageWrap">
     <div class="cell" data-index="0">
       <div id="player0" class="player-container"></div>
-      <div class="interaction-shield"></div>
+      <div class="yt-ui-block" aria-hidden="true"></div>
+      <div class="interaction-shield" aria-hidden="true"></div>
       <div class="label" id="label0">載入中...<span class="source-on-screen"></span></div>
     </div>
     <div class="cell" data-index="1">
       <div id="player1" class="player-container"></div>
-      <div class="interaction-shield"></div>
+      <div class="yt-ui-block" aria-hidden="true"></div>
+      <div class="interaction-shield" aria-hidden="true"></div>
       <div class="label" id="label1">載入中...<span class="source-on-screen"></span></div>
     </div>
     <div class="cell" data-index="2">
       <div id="player2" class="player-container"></div>
-      <div class="interaction-shield"></div>
+      <div class="yt-ui-block" aria-hidden="true"></div>
+      <div class="interaction-shield" aria-hidden="true"></div>
       <div class="label" id="label2">載入中...<span class="source-on-screen"></span></div>
     </div>
     <div class="cell" data-index="3">
       <div id="player3" class="player-container"></div>
-      <div class="interaction-shield"></div>
+      <div class="yt-ui-block" aria-hidden="true"></div>
+      <div class="interaction-shield" aria-hidden="true"></div>
       <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
     </div>
   </div>
@@ -255,11 +229,11 @@
       "桃園-小烏來寰宇平台": {"id":"PJWye36lEj4","label":"寰宇平台","source":"遊桃園 Taoyuan Travel"},
       "桃園-許厝港濕地": {"id":"44JArbF682k","label":"許厝港濕地","source":"遊桃園 Taoyuan Travel"},
       "宜蘭-外澳沙灘": {"id":"UgoT-QTbYvo","label":"宜蘭外澳","source":"necoast nsa"},
-      "宜蘭-福隆海水浴場": {"id":"mMG7v_fET5A","label":"宜蘭福隆","source":"necoast nsa"}, 
-      "宜蘭-舊隧道南口": {"id":"X76Dkt_fPG0","label":"石城漁港","source":"necoast nsa"}, 
-      "宜蘭-無尾港": {"id":"Bux0vT_5MBw","label":"無尾港","source":"GoOcean海洋遊憩風險資訊"}, 
-      "宜蘭-石城漁港": {"id":"ozZVLl0h--A","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"}, 
-      "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"}, 
+      "宜蘭-福隆海水浴場": {"id":"mMG7v_fET5A","label":"宜蘭福隆","source":"necoast nsa"},
+      "宜蘭-舊隧道南口": {"id":"X76Dkt_fPG0","label":"石城漁港","source":"necoast nsa"},
+      "宜蘭-無尾港": {"id":"Bux0vT_5MBw","label":"無尾港","source":"GoOcean海洋遊憩風險資訊"},
+      "宜蘭-石城漁港": {"id":"ozZVLl0h--A","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"},
+      "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"},
       "苗栗-汶水遊客中心(雪霸)": {"id":"VgmWVBUsfGo","label":"汶水遊客中心","source":"雪霸國家公園 Shei-Pa National Park"},
       "苗栗-觀霧遊憩區(雪霸)": {"id":"Isp6RQiuxNo","label":"觀霧遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
       "苗栗-雪見遊憩區(雪霸)": {"id":"2KDE860OW_A","label":"雪見遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
@@ -379,7 +353,8 @@
                     fs: 0,
                     disablekb: 1,
                     loop: 1,
-                    mute: 1
+                    mute: 1,
+                    playsinline: 1
                 },
                 events: {
                     onReady: onPlayerReady,
@@ -390,14 +365,14 @@
                 streamState[index] = { key: defaultKey, ...ALL_STREAMS[defaultKey] };
                 updateLabel(index);
             }
+
+            // 監聽 DOM 變化：當 iframe 插入時，確保遮罩在上方（在某些情況 iframe 會插入高 z 元素）
+            observePlayerContainer(id, index);
         });
 
         musicPlayer = new YT.Player('player_music', {
             videoId: '', 
-            playerVars: {
-              autoplay: 0, controls: 0, modestbranding: 1,
-              rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 0, mute: 0
-            },
+            playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 0, mute: 0, playsinline:1 },
             events: { onReady: onMusicPlayerReady, onStateChange: onMusicPlayerStateChange }
         });
 
@@ -406,20 +381,62 @@
     }
 
     function onPlayerReady(event) {
-        event.target.setLoop(true);
-        event.target.mute(); 
-        event.target.playVideo(); 
+        try {
+            event.target.setLoop(true);
+        } catch(e){}
+        try { event.target.mute(); } catch(e){}
+        try { event.target.playVideo(); } catch(e){}
+    }
+
+    // 確保遮罩存在並在 iframe 之上
+    function observePlayerContainer(playerId, index) {
+        const container = document.getElementById(playerId).parentElement;
+        if (!container) return;
+        const shield = container.querySelector('.interaction-shield');
+        const uiBlock = container.querySelector('.yt-ui-block');
+        const mo = new MutationObserver(() => {
+            // 再次把遮罩放到最上層
+            if (shield) container.appendChild(shield);
+            if (uiBlock) container.appendChild(uiBlock);
+        });
+        mo.observe(container, { childList: true, subtree: true });
     }
 
     // 單播放器狀態處理，只處理自己的 index
     function handleStateChange(event, index) {
-        if (event.data === YT.PlayerState.ENDED) {
+        const st = event.data;
+        // 若為 ENDED：避免跳推薦，立即重新載入或重新 play
+        if (st === YT.PlayerState.ENDED) {
             const currentState = streamState[index];
             if (currentState) {
-                // 只對這個 index 重新載入，避免推薦畫面與連鎖更新
-                players[index].loadVideoById(currentState.id, 0);
-                players[index].playVideo();
+                try {
+                    // 優先用 seekTo + play 避免推薦畫面
+                    if (players[index] && typeof players[index].seekTo === 'function') {
+                        players[index].seekTo(0, true);
+                        players[index].playVideo();
+                    } else {
+                        players[index].loadVideoById(currentState.id, 0);
+                        players[index].playVideo();
+                    }
+                } catch (e) {
+                    try { players[index].loadVideoById(currentState.id, 0); players[index].playVideo(); } catch(e){}
+                }
             }
+        }
+
+        // 若被暫停或 CUED（可能發生在可視切換回來），嘗試恢復播放
+        if (st === YT.PlayerState.PAUSED || st === YT.PlayerState.CUED || st === YT.PlayerState.UNSTARTED) {
+            // small debounce: only try to resume this specific player
+            setTimeout(() => {
+                try {
+                    const p = players[index];
+                    if (!p) return;
+                    const s = p.getPlayerState ? p.getPlayerState() : null;
+                    if (s !== YT.PlayerState.PLAYING && s !== YT.PlayerState.BUFFERING) {
+                        p.playVideo();
+                    }
+                } catch (e) {}
+            }, 400);
         }
     }
 
@@ -456,13 +473,16 @@
         if (!stream) return;
         const player = players[selectedCamIndex];
         streamState[selectedCamIndex] = { key: streamKey, ...stream };
-        player.loadVideoById(stream.id);
-        player.mute(); 
-        updateLabel(selectedCamIndex);
-        if (!isMuted) player.unMute();
-        if (player && player.isMuted) {
-            document.getElementById('muteBtn').innerText = player.isMuted() ? '解除靜音' : '靜音';
-        }
+        try {
+            // 優先使用 loadVideoById（使用者主動切換可載入）
+            player.loadVideoById(stream.id);
+            player.mute();
+            updateLabel(selectedCamIndex);
+            if (!isMuted) player.unMute();
+            if (player && player.isMuted) {
+                document.getElementById('muteBtn').innerText = player.isMuted() ? '解除靜音' : '靜音';
+            }
+        } catch(e){}
     }
 
     function toggleFullscreen() {
@@ -793,12 +813,13 @@
     /* ====================================================================== */
     function handleVisibilityChange() {
         if (document.visibilityState === 'visible') {
-            // 單畫面恢復播放，不 reload
+            // 單畫面恢復播放，不 reload 整體
             players.forEach((player, index) => {
                 if (!player || !streamState[index]) return;
                 try {
                     const state = player.getPlayerState();
                     if (state !== YT.PlayerState.PLAYING && state !== YT.PlayerState.BUFFERING) {
+                        // 優先用 playVideo 恢復
                         player.playVideo();
                     }
                 } catch (e) {}
@@ -812,6 +833,8 @@
                     }
                 } catch (e) {}
             }
+        } else {
+            // 頁面不可見時不要做任何重載（降低連鎖影響）
         }
     }
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -824,19 +847,34 @@
         players.forEach((player, index) => {
             if (!player || !streamState[index]) return;
             try {
-                const current = player.getCurrentTime ? player.getCurrentTime() : 0;
-                const duration = player.getDuration ? player.getDuration() : 0;
+                // 獲取時間；部分情況下 getCurrentTime 會 throw 或回傳 NaN
+                let current = 0, duration = 0;
+                try { current = player.getCurrentTime ? player.getCurrentTime() : 0; } catch(e){}
+                try { duration = player.getDuration ? player.getDuration() : 0; } catch(e){}
                 // 異常保護：避免 NaN/0 誤判
                 if (!isFinite(current) || !isFinite(duration) || current <= 0 || duration <= 0) return;
                 const delay = duration - current;
                 if (delay > 30 && !isReloading[index] && (now - lastReloadAt[index] > RELOAD_COOLDOWN_MS)) {
-                    const state = streamState[index];
+                    // 僅重新處理該 index
                     isReloading[index] = true;
                     lastReloadAt[index] = now;
+                    const state = streamState[index];
                     console.log(`畫面 ${index} 延遲 ${Math.floor(delay)} 秒，僅重新載入：${state.label}`);
-                    player.loadVideoById(state.id, 0);
-                    player.playVideo();
-                    // 短暫緩衝避免連鎖觸發
+
+                    // 優先用 seekTo(0)+play 去避免顯示推薦/截圖
+                    try {
+                        if (player && typeof player.seekTo === 'function') {
+                            player.seekTo(0, true);
+                            player.playVideo();
+                        } else {
+                            player.loadVideoById(state.id, 0);
+                            player.playVideo();
+                        }
+                    } catch (e) {
+                        try { player.loadVideoById(state.id, 0); player.playVideo(); } catch(e){}
+                    }
+
+                    // 小延遲避免連鎖觸發
                     setTimeout(() => { isReloading[index] = false; }, 3000);
                 }
             } catch (e) {}
