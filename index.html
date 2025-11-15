@@ -2,9 +2,12 @@
 <html lang="zh-TW">
 <head>
   <meta charset="utf-8" />
-  <title>台灣即時直播四分割監看（無音樂版）</title>
+  <title>台灣即時直播四分割監看（歌曲背景播放版）</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
+    /* ---------------------------------------------------------------------- */
+    /* CSS 樣式完全還原自您提供的原始碼，確保排版一致 */
+    /* ---------------------------------------------------------------------- */
     html,body{
       height:100%; margin:0; padding:0; background:#000;
       font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
@@ -92,6 +95,10 @@
 
     <div class="divider"></div>
     <button id="muteBtn" onclick="toggleMute()">取消靜音</button>
+    
+    <div class="divider"></div>
+    <button id="songRequestBtn" onclick="requestSong()">點歌</button>
+    
   </div>
 
   <div class="stage-wrap" id="stageWrap">
@@ -116,10 +123,18 @@
       <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
     </div>
   </div>
+  
+  <div id="player_music_container" style="position:fixed; top:-100px; left:-100px; width:1px; height:1px; overflow:hidden;">
+    <div id="player_music"></div>
+  </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    // ===== 直播來源 =====
+    // ----------------------------------------------------------------------
+    // JavaScript 邏輯和資料 (已修改點歌邏輯，使用背景播放器)
+    // ----------------------------------------------------------------------
+    
+    // 保持您的原始資料
     const ALL_STREAMS = {
       "台北-象山看101": {"id":"z_fY1pj1VBw","label":"台北象山","source":"Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-大稻埕": {"id":"Ndo_8RuefH4","label":"大稻埕","source":"Taipei Travel Live Cam 台北觀光即時影像"},
@@ -234,14 +249,17 @@
     }
 
     // 四格播放器
-    let players = []; let isApiReady = false; let globalMuted = true;
+    let players = []; 
+    let musicPlayer = null; // 新增：背景音樂播放器
+    let isApiReady = false; 
+    let globalMuted = true;
     const streamIds = {}; for (const key in ALL_STREAMS) streamIds[key] = ALL_STREAMS[key].id;
     const labels = [document.getElementById('label0'),document.getElementById('label1'),document.getElementById('label2'),document.getElementById('label3')];
     const camSelectButtons = [document.getElementById('select-cam-0'),document.getElementById('select-cam-1'),document.getElementById('select-cam-2'),document.getElementById('select-cam-3')];
     let currentCamKeys = [...INITIAL_CAMS_KEYS]; let currentIndex = 0;
 
-    // YouTube IFrame API 初始化
-    function onYouTubeIframeAPIReady(){
+    // YouTube IFrame API 初始化函式
+    window.onYouTubeIframeAPIReady = function(){
       isApiReady = true;
       for (let i=0;i<4;i++){
         const streamKey = INITIAL_CAMS_KEYS[i] || Object.keys(ALL_STREAMS)[i];
@@ -251,14 +269,17 @@
       applyGlobalMute();
       updateMuteButtonLabel();
     }
-
+    
+    // 此函式現在專門用於載入四分割畫面的直播 (預設靜音)
     function createPlayer(index, streamKey){
       const videoId = streamIds[streamKey]; if (!videoId) return;
       if (players[index] && players[index].destroy) players[index].destroy();
-      currentCamKeys[index]=streamKey;
+      
+      currentCamKeys[index]=streamKey; 
 
       players[index]=new YT.Player('player'+index,{
         videoId,
+        // 直播畫面預設為靜音 (mute:1)
         playerVars:{ autoplay:1, mute:1, controls:0, rel:0, modestbranding:1, fs:0, iv_load_policy:3 },
         events:{ onReady:onPlayerReady, onError:onPlayerError, onStateChange:onPlayerStateChange }
       });
@@ -268,12 +289,19 @@
       labels[index].innerHTML = `${lbl}<span class="source-on-screen">來源: ${src}</span>`;
     }
 
-    function onPlayerReady(e){ try{ e.target.playVideo(); }catch(_){}
+    function onPlayerReady(e){ 
+      try{ e.target.playVideo(); }catch(_){}
+      // 確保直播畫面遵循全局靜音設定
       try{ globalMuted ? e.target.mute() : e.target.unMute(); }catch(_){}
     }
+
     function onPlayerError(e){
       const idx = players.findIndex(p=>p===e.target);
+      if (idx < 0) return; // 忽略音樂播放器的錯誤，由專門函式處理
+      
       const failingKey = currentCamKeys[idx]; const code = e.data;
+      
+      // 直播畫面錯誤處理
       labels[idx].innerHTML = `${ALL_STREAMS[failingKey]?.label || failingKey} [錯誤 ${code}]<span class="source-on-screen">嘗試自動切換中...</span>`;
       if ([5,100,101,150].includes(code)){
         const keys = Object.keys(ALL_STREAMS);
@@ -281,6 +309,7 @@
         if (next) createPlayer(idx,next);
       }
     }
+
     function refreshPlayer(p){ if (!p) return; try{ const id = p.getVideoData().video_id; if (id) p.loadVideoById({videoId:id,startSeconds:0}); }catch(_){}
     }
     function onPlayerStateChange(e){
@@ -298,13 +327,103 @@
     function setStream(streamKey){
       const id = streamIds[streamKey]; if (!id) return alert("來源不存在：" + streamKey);
       if (!isApiReady || !players[currentIndex]) return;
+      
       players[currentIndex].loadVideoById({ videoId:id, startSeconds:0 });
       currentCamKeys[currentIndex]=streamKey;
+      
       const lbl = ALL_STREAMS[streamKey].label || streamKey; const src = ALL_STREAMS[streamKey].source || '';
       labels[currentIndex].innerHTML = `${lbl}<span class="source-on-screen">來源: ${src}</span>`;
+      
       try{ globalMuted ? players[currentIndex].mute() : players[currentIndex].unMute(); }catch(_){}
     }
 
+    // ----------------------------------------------------------------------
+    // 專門用於背景音樂播放的邏輯
+    // ----------------------------------------------------------------------
+    function createMusicPlayer(videoId) {
+        // 如果已經有音樂在播放，先停止並銷毀它
+        if (musicPlayer && musicPlayer.destroy) {
+            musicPlayer.destroy();
+            musicPlayer = null;
+        }
+        
+        // 在隱藏容器中建立新的 YT 播放器實例
+        musicPlayer = new YT.Player('player_music', {
+            videoId: videoId,
+            playerVars: { 
+                autoplay: 1, 
+                mute: 0, // 歌曲必須取消靜音 (mute:0)
+                controls: 0, 
+                rel: 0, 
+                modestbranding: 1, 
+                fs: 0, 
+                iv_load_policy: 3 
+            },
+            events: {
+                onReady: (e) => {
+                    e.target.playVideo();
+                    e.target.unMute();
+                    alert(`歌曲點播成功！歌曲將在背景播放，ID：${videoId}`);
+                },
+                onError: (e) => {
+                    alert(`歌曲點播失敗 (錯誤碼: ${e.data})。ID 可能無效或影片限制播放。`);
+                    if (musicPlayer) musicPlayer.destroy();
+                    musicPlayer = null;
+                },
+                onStateChange: (e) => {
+                    // 歌曲播放結束時，銷毀播放器
+                    if (e.data === YT.PlayerState.ENDED) {
+                        if (musicPlayer) musicPlayer.destroy();
+                        musicPlayer = null;
+                    }
+                    // 如果暫停或緩衝，嘗試播放
+                    if (e.data===YT.PlayerState.PAUSED || e.data===YT.PlayerState.BUFFERING){
+                        try{ e.target.playVideo(); }catch(_){}
+                    }
+                }
+            }
+        });
+    }
+
+    function getYouTubeID(urlOrID) {
+        if (!urlOrID) return null;
+        urlOrID = urlOrID.trim();
+        const match = urlOrID.match(/(?:youtu\.be\/|v=|embed\/|watch\?v=)([^&?]*)/);
+        if (match && match[1]) {
+            return match[1];
+        }
+        if (urlOrID.length === 11 && !urlOrID.includes('/')) {
+            return urlOrID;
+        }
+        return null;
+    }
+
+    function requestSong(){
+        if (!isApiReady) {
+            alert("播放器 API 尚未準備好，請稍候。");
+            return;
+        }
+        
+        const input = prompt("請輸入 YouTube 影片網址或 ID：(歌曲將於背景播放)", "");
+
+        if (input === null || input.trim() === "") {
+            return; 
+        }
+        
+        const videoId = getYouTubeID(input);
+
+        if (!videoId) {
+            alert("無效的 YouTube 網址或 ID。請確保格式正確。");
+            return;
+        }
+
+        createMusicPlayer(videoId);
+    }
+    
+    // ----------------------------------------------------------------------
+    // 保持您的其他功能邏輯不變
+    // ----------------------------------------------------------------------
+    
     // 顯示/隱藏標籤
     function toggleLabels(){
       document.body.classList.toggle('hide-labels');
@@ -332,12 +451,12 @@
       }
     });
 
-    // 全域靜音切換
+    // 全域靜音切換 (僅針對四個直播畫面)
     function toggleMute(){ if (!isApiReady) return; globalMuted=!globalMuted; applyGlobalMute(); updateMuteButtonLabel(); }
     function applyGlobalMute(){ players.forEach(p=>{ if (!p) return; try{ globalMuted ? p.mute() : p.unMute(); }catch(_){} }); }
     function updateMuteButtonLabel(){ document.getElementById('muteBtn').innerText = globalMuted ? "取消靜音" : "靜音"; }
 
-    // 初始化 UI 列表
+    // 初始化 UI 列表 (保持不變)
     document.addEventListener('DOMContentLoaded', ()=> renderRegionButtons());
     function renderRegionButtons(){
       const c = document.getElementById('regionButtons'); c.innerHTML='';
