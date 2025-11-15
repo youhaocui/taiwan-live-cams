@@ -79,7 +79,7 @@
     /* 音樂控制區塊樣式 */
     /* ---------------------------------------------------------------------- */
     .music-controls-container {
-        display: none; /* 預設隱藏，有歌曲時才顯示 */
+        display: none;
         align-items: center;
         gap: 4px; 
         flex-shrink: 0;
@@ -94,7 +94,6 @@
         font-size: 14px;
         height: 40px;
     }
-    /* 模式設定彈出窗按鈕樣式 */
     #musicSettingsModal button.mode-btn {
         background-color: #333;
         color: #fff;
@@ -106,34 +105,16 @@
         flex-grow: 1;
         transition: background-color 0.2s;
     }
-    #musicSettingsModal button.mode-btn:hover {
-        background-color: #555;
-    }
+    #musicSettingsModal button.mode-btn:hover { background-color: #555; }
     #musicSettingsModal button.mode-btn.active-mode {
         background-color: #0078d7 !important;
         font-weight: bold;
     }
-
-    #musicSettingsModal .stop-btn {
-        margin-top: 15px; 
-        background: #8b0000; 
-        width: 100%; 
-        border: none;
-    }
-    #musicSettingsModal .close-btn {
-        margin-top: 10px; 
-        background: #444; 
-        width: 100%;
-    }
+    #musicSettingsModal .stop-btn { margin-top: 15px; background: #8b0000; width: 100%; border: none; }
+    #musicSettingsModal .close-btn { margin-top: 10px; background: #444; width: 100%; }
     #musicQueueModal button {
-        background-color: #444;
-        color: #fff;
-        border: none;
-        padding: 10px 15px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        width: 100%;
+        background-color: #444; color: #fff; border: none; padding: 10px 15px;
+        border-radius: 6px; cursor: pointer; font-size: 14px; width: 100%;
     }
   </style>
 </head>
@@ -204,19 +185,10 @@
       <h3 style="margin-top:0; color:#fff;">音樂播放模式</h3>
       <p style="font-size:12px; color:#aaa;">點擊下方按鈕選擇播放模式：</p>
       <div style="display:flex; justify-content:space-around; gap:10px; margin-top:15px;">
-        <button id="modeListLoop" class="mode-btn" onclick="setPlaybackMode('listLoop')">
-            🔄 列表循環
-        </button>
-        <button id="modeShuffle" class="mode-btn" onclick="setPlaybackMode('shuffle')">
-            🔀 隨機播放
-        </button>
-        <!-- 單曲循環已移除 -->
+        <button id="modeListLoop" class="mode-btn" onclick="setPlaybackMode('listLoop')">🔄 列表循環</button>
+        <button id="modeShuffle" class="mode-btn" onclick="setPlaybackMode('shuffle')">🔀 隨機播放</button>
       </div>
-      
-      <button onclick="stopAndCloseModal()" class="stop-btn">
-          ⏹️ 停止並結束播放
-      </button>
-
+      <button onclick="stopAndCloseModal()" class="stop-btn">⏹️ 停止並結束播放</button>
       <button onclick="closeMusicSettingsModal()" class="close-btn">關閉</button>
     </div>
   </div>
@@ -224,16 +196,14 @@
   <div id="musicQueueModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
     <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5); width:350px; max-width:90%;">
       <h3 style="margin-top:0; color:#fff; text-align:center;">🎶 播放列表狀態</h3>
-      <div id="queueListContent" style="margin-bottom:15px; padding-right:5px;">
-        </div>
-      
+      <div id="queueListContent" style="margin-bottom:15px; padding-right:5px;"></div>
       <button onclick="closeMusicQueueModal()" style="margin-top:10px;">關閉</button>
     </div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    // ===== 直播來源 (總計 103 個地點) - 這是您確認無誤的清單 =====
+    /* ===== 直播來源（略，保持原樣） ===== */
     const ALL_STREAMS = {
       "台北-象山看101": {"id":"z_fY1pj1VBw","label":"台北象山","source":"Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-大稻埕": {"id":"Ndo_8RuefH4","label":"大稻埕","source":"Taipei Travel Live Cam 台北觀光即時影像"},
@@ -333,12 +303,12 @@
       "金門-麒麟山森林公園": {"id":"M4EJtf_iP8s","label":"金門麒麟山公園","source":"樂遊金門"},
       "金門-134高地": {"id":"-srNHTE-Nf0","label":"金門134高地","source":"樂遊金門"},
       "金門-建功嶼": {"id":"uh_yNAE01w8","label":"金門建功嶼","source":"樂遊金門"},
-      "澎湖-鎖港": {"id":"65Qk3X6fVbE","label":"澎湖鎖港","source":"GoOcean海洋遊憩風險資訊"}, 
+      "澎湖-鎖港": {"id":"65Qk3X6fVbE","label":"澎湖鎖港","source":"GoOcean海洋遊憩風險資訊"}
     };
 
-    // ----------------------------------------------------------------------
-    // JavaScript 功能 
-    // ----------------------------------------------------------------------
+    /* ---------------------------------------------------------------------- */
+    /* JavaScript 功能 */
+    /* ---------------------------------------------------------------------- */
 
     const PLAYER_IDS = ['player0', 'player1', 'player2', 'player3'];
     const LABEL_IDS = ['label0', 'label1', 'label2', 'label3'];
@@ -349,21 +319,21 @@
     let streamState = Array(4).fill(null); 
     let isMuted = true; 
     
-    // 音樂播放器相關...
+    // 音樂播放器
     let musicPlayer = null;
-    let musicQueue = []; // 單曲佇列
+    let musicQueue = [];
     let currentMusicIndex = -1;
-    let playbackMode = 'listLoop'; // listLoop, shuffle（repeatOne 已移除）
+    let playbackMode = 'listLoop'; // listLoop, shuffle
     let isPlaying = false;
     let isMusicReady = false;
     let currentPlaylistId = null;
 
-    // 單畫面刷新節流狀態
+    // 單畫面延遲刷新保護
     let lastReloadAt = [0, 0, 0, 0];
     let isReloading = [false, false, false, false];
     const RELOAD_COOLDOWN_MS = 60000;
 
-    // 將 streams 依城市分組
+    // 城市分組
     const GROUPED_STREAMS = {};
     Object.keys(ALL_STREAMS).forEach(key => {
         const city = key.split('-')[0];
@@ -397,19 +367,12 @@
             players[index] = new YT.Player(id, {
                 videoId: initialVideoId, 
                 playerVars: {
-                    'autoplay': 1, 
-                    'controls': 0,
-                    'modestbranding': 1,
-                    'rel': 0, // 隱藏推薦影片
-                    'showinfo': 0,
-                    'fs': 0,
-                    'disablekb': 1,
-                    'loop': 1, 
-                    'mute': 1 
+                    autoplay: 1, controls: 0, modestbranding: 1,
+                    rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 1, mute: 1
                 },
                 events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onLiveStreamStateChange
+                    onReady: onPlayerReady,
+                    onStateChange: (event) => handleStateChange(event, index)
                 }
             });
             if (defaultKey && ALL_STREAMS[defaultKey]) {
@@ -420,21 +383,8 @@
 
         musicPlayer = new YT.Player('player_music', {
             videoId: '', 
-            playerVars: {
-                'autoplay': 0,
-                'controls': 0,
-                'modestbranding': 1,
-                'rel': 0,
-                'showinfo': 0,
-                'fs': 0,
-                'disablekb': 1,
-                'loop': 0,
-                'mute': 0 
-            },
-            events: {
-                'onReady': onMusicPlayerReady,
-                'onStateChange': onMusicPlayerStateChange
-            }
+            playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 0, mute: 0 },
+            events: { onReady: onMusicPlayerReady, onStateChange: onMusicPlayerStateChange }
         });
 
         renderRegionButtons();
@@ -446,14 +396,15 @@
         event.target.mute(); 
         event.target.playVideo(); 
     }
-    function onLiveStreamStateChange(event) {
-        const playerIndex = players.indexOf(event.target);
+
+    // 單播放器狀態處理，只處理自己的 index
+    function handleStateChange(event, index) {
         if (event.data === YT.PlayerState.ENDED) {
-            const currentState = streamState[playerIndex];
+            const currentState = streamState[index];
             if (currentState) {
-                // 只針對該 index 重新載入，避免全刷新與推薦畫面
-                event.target.loadVideoById(currentState.id, 0);
-                event.target.playVideo();
+                // 只對這個 index 重新載入，避免推薦畫面與連鎖更新
+                players[index].loadVideoById(currentState.id, 0);
+                players[index].playVideo();
             }
         }
     }
@@ -603,6 +554,7 @@
       c.scrollLeft = 0;
     }
 
+    /* ===== 音樂播放控制（保持邏輯，移除單曲循環） ===== */
     function requestSong() {
         const input = prompt("請輸入YouTube影片網址或ID，或是一個播放清單網址/ID：");
         if (!input) return;
@@ -618,12 +570,7 @@
              if (id) {
                  clearMusicState();
                  currentPlaylistId = id;
-                 musicPlayer.loadPlaylist({
-                    list: id,
-                    listType: 'playlist',
-                    index: 0,
-                    suggestedQuality: 'small'
-                 });
+                 musicPlayer.loadPlaylist({ list: id, listType: 'playlist', index: 0, suggestedQuality: 'small' });
                  document.getElementById('musicControlsContainer').style.display = 'flex';
                  isPlaying = true;
                  alert("已載入播放清單並開始播放。");
@@ -825,16 +772,14 @@
         content.innerHTML = html;
         modal.style.display = 'flex';
     }
-    function closeMusicQueueModal() {
-        document.getElementById('musicQueueModal').style.display = 'none';
-    }
+    function closeMusicQueueModal() { document.getElementById('musicQueueModal').style.display = 'none'; }
     
-    // ======================================================================
-    // 背景播放處理（避免可視事件造成「像全刷新」）
-    // ======================================================================
+    /* ====================================================================== */
+    /* 背景播放處理（避免可視事件造成「像全刷新」） */
+    /* ====================================================================== */
     function handleVisibilityChange() {
         if (document.visibilityState === 'visible') {
-            // 只嘗試播放，不 reload，避免四格同時刷新
+            // 單畫面恢復播放，不 reload
             players.forEach((player, index) => {
                 if (!player || !streamState[index]) return;
                 try {
@@ -857,9 +802,9 @@
     }
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // ======================================================================
-    // 直播延遲檢測與單畫面刷新（超過 30 秒才刷新該畫面，含節流）
-    // ======================================================================
+    /* ====================================================================== */
+    /* 直播延遲檢測與單畫面刷新（超過 30 秒才刷新該畫面，含節流） */
+    /* ====================================================================== */
     function checkStreamDelayLoop() {
         const now = Date.now();
         players.forEach((player, index) => {
@@ -885,9 +830,8 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // ... (原有的初始化程式碼)
+        // 原有初始化（如需）
     });
-    
   </script>
 </body>
 </html>
