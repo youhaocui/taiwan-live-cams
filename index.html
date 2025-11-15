@@ -400,7 +400,7 @@
                     'autoplay': 1, 
                     'controls': 0,
                     'modestbranding': 1,
-                    'rel': 0,
+                    'rel': 0, // 隱藏推薦影片
                     'showinfo': 0,
                     'fs': 0,
                     'disablekb': 1,
@@ -447,10 +447,11 @@
         event.target.playVideo(); 
     }
     function onLiveStreamStateChange(event) {
+        const playerIndex = players.indexOf(event.target);
         if (event.data === YT.PlayerState.ENDED) {
-            const playerIndex = players.indexOf(event.target);
             const currentState = streamState[playerIndex];
             if (currentState) {
+                // 只針對該 index 重新載入，避免全刷新與推薦畫面
                 event.target.loadVideoById(currentState.id, 0);
                 event.target.playVideo();
             }
@@ -521,6 +522,7 @@
         document.getElementById('labelsToggleBtn').innerText = isHidden ? '顯示標籤' : '標籤隱藏';
     }
 
+    // 只影響選取的畫面
     function toggleMute() {
         const player = players[selectedCamIndex];
         if (!player || !player.isMuted) return;
@@ -832,22 +834,25 @@
     // ======================================================================
     function handleVisibilityChange() {
         if (document.visibilityState === 'visible') {
-            [...players, musicPlayer].forEach((player, index) => {
-                const isMusicPlayer = index === 4;
-                const shouldPlay = isMusicPlayer ? isPlaying : !!streamState[index];
-                if (!player || !shouldPlay) return;
+            // 只嘗試播放，不 reload，避免四格同時刷新
+            players.forEach((player, index) => {
+                if (!player || !streamState[index]) return;
                 try {
                     const state = player.getPlayerState();
                     if (state !== YT.PlayerState.PLAYING && state !== YT.PlayerState.BUFFERING) {
-                        if (isMusicPlayer && (currentPlaylistId || musicQueue.length > 0)) {
-                            player.playVideo();
-                        } else if (!isMusicPlayer) {
-                            // 只嘗試播放，不 reload，避免同時刷新
-                            player.playVideo();
-                        }
+                        player.playVideo();
                     }
                 } catch (e) {}
             });
+            // 音樂播放恢復
+            if (musicPlayer) {
+                try {
+                    const s = musicPlayer.getPlayerState();
+                    if (isPlaying && s !== YT.PlayerState.PLAYING) {
+                        musicPlayer.playVideo();
+                    }
+                } catch (e) {}
+            }
         }
     }
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -872,6 +877,7 @@
                     console.log(`畫面 ${index} 延遲 ${Math.floor(delay)} 秒，僅重新載入：${state.label}`);
                     player.loadVideoById(state.id, 0);
                     player.playVideo();
+                    // 短暫緩衝避免連鎖觸發
                     setTimeout(() => { isReloading[index] = false; }, 3000);
                 }
             } catch (e) {}
