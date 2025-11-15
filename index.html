@@ -431,7 +431,7 @@
       document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
-    // 【✅ 修正點 1】在載入完成時立即跳轉到 Live Edge
+    // 【✅ 修正點 1 & UX 優化】在載入完成時立即跳轉到 Live Edge
     function onPlayerReady(event) {
       const player = event.target;
       const index = players.indexOf(player);
@@ -457,7 +457,8 @@
           if (liveDuration > 0) {
             player.seekTo(liveDuration, true);
             player.playVideo();
-            console.log(`畫面 ${index} 載入完成，立即跳轉到直播前緣 (${Math.floor(liveDuration)} 秒)。`);
+            // 💡 UX 優化：輸出更清晰的訊息
+            console.log(`✅ 畫面 ${index} 載入完成，已執行【Live Edge 即時同步】。`);
           }
         } catch(e) {
           console.error(`畫面 ${index} 載入時立即跳轉失敗:`, e);
@@ -512,7 +513,7 @@
       }
     }
 
-    // 【✅ 修正點 2】checkStreamDelayLoop 函數：確保直播永遠跳到 Live Edge
+    // 【✅ 修正點 2 & UX 優化】checkStreamDelayLoop 函數：確保直播永遠跳到 Live Edge
     function checkStreamDelayLoop() {
       const now = Date.now();
       players.forEach((player, index) => {
@@ -543,10 +544,10 @@
             isReloading[index] = true;
             lastReloadAt[index] = now;
             
-            console.log(`畫面 ${index} 延遲 ${Math.floor(delay)} 秒，強制跳轉到直播前緣：${state.label}`);
+            // 💡 UX 優化：輸出更清晰的訊息，但保留秒數作為診斷依據
+            console.log(`⚠️ 畫面 ${index} 偵測到落後 ${Math.floor(delay)} 秒，已執行【Live Edge 強制同步】。`);
             
             // 🚨 核心直播修正：強制跳轉到 duration (直播前緣)
-            // 使用 liveDuration 確保是跳到直播流的最新時間點，而不是影片開頭 (0)。
             const liveDuration = player.getDuration();
 
             try {
@@ -853,8 +854,6 @@
             return;
         }
         
-        if (musicQueue.length === 0) return;
-
         if (playbackMode === 'shuffle') {
             // 隨機模式下，上一首等同於下一首的隨機播放
             skipToNextSong();
