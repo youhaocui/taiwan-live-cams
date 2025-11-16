@@ -41,14 +41,32 @@
       border-radius:3px; }
     .region-label{ color:#fff; margin:0 8px 0 4px; font-weight:600; flex-shrink:0; user-select:none;
     }
-    #regionButtons .city-btn{
+    /* 通用城市/景點按鈕樣式 */
+    #regionButtons .city-btn, #regionButtons .stream-btn, #regionButtons .back-btn{
       background-color:#111; color:#fff; border:1px solid #555;
-      padding:6px 10px; margin:0 4px;
+      padding:6px 10px; margin:0;
       border-radius:6px; cursor:pointer;
       height:36px; flex-shrink:0; font-size:13px;
     }
-    #regionButtons .city-btn:hover{ background-color:#1a1a1a; border-color:#666;
+    #regionButtons .city-btn:hover, #regionButtons .stream-btn:hover, #regionButtons .back-btn:hover{
+        background-color:#1a1a1a; border-color:#666;
     }
+    /* 景點按鈕微調樣式 */
+    #regionButtons .stream-btn{
+        background-color: #222;
+        border-color: #444;
+    }
+    /* 返回按鈕樣式 */
+    #regionButtons .back-btn{
+        background-color: #555;
+        border-color: #777;
+    }
+    /* 當前選中的城市按鈕，用於城市/景點切換狀態標記 */
+    #regionButtons .city-btn.active-city{
+        background-color: #0078d7;
+        border-color: #0078d7;
+    }
+
 
     /* 影片舞台四格 */
     .stage-wrap{
@@ -91,7 +109,8 @@
       height:80px; }
       .controls button{ padding:6px 8px; font-size:12px; height:36px;
       }
-      #regionButtons .city-btn{ padding:6px 8px; font-size:12px; height:34px;
+      #regionButtons .city-btn, #regionButtons .stream-btn, #regionButtons .back-btn{
+        padding:6px 8px; font-size:12px; height:34px;
       }
     }
     
@@ -284,7 +303,7 @@ padding-right:5px;"></div>
       "桃園-許厝港濕地": {"id":"44JArbF682k","label":"許厝港濕地","source":"遊桃園 Taoyuan Travel"},
       "宜蘭-外澳沙灘": {"id":"UgoT-QTbYvo","label":"宜蘭外澳","source":"necoast nsa"},
       "宜蘭-福隆海水浴場": {"id":"mMG7v_fET5A","label":"宜蘭福隆","source":"necoast nsa"}, 
-      "宜蘭-石城漁港": {"id":"X76Dkt_fPG0","label":"石城漁港","source":"necoast nsa"}, // <-- 已將「舊隧道南口」改為「石城漁港」
+      "宜蘭-石城漁港": {"id":"X76Dkt_fPG0","label":"石城漁港","source":"necoast nsa"}, 
       "宜蘭-無尾港": {"id":"Bux0vT_5MBw","label":"無尾港","source":"GoOcean海洋遊憩風險資訊"}, 
       "宜蘭-石城漁港": {"id":"ozZVLl0h--A","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"}, 
       "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"}, 
@@ -351,6 +370,7 @@ const LABEL_IDS = ['label0', 'label1', 'label2', 'label3'];
     let players = [];
 let streamState = Array(4).fill(null);
     let isMuted = true;
+    let currentCity = null; // 新增：追蹤當前顯示的城市列表
 
     // 音樂播放器相關變數
     let musicPlayer = null;
@@ -430,20 +450,28 @@ updateLabel(index);
         playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 0, mute: 0, playsinline: 1 },
         events: { onReady: onMusicPlayerReady, onStateChange: onMusicPlayerStateChange }
       });
-renderRegionButtons();
+      renderRegionButtons(); // 初始渲染地區/城市群組按鈕
       
-      // 【✅ 修正點 3】延遲檢測迴圈：延後 5 秒開始執行，作為持續監測機制。
+      // 延遲檢測迴圈
       setTimeout(() => {
         setInterval(checkStreamDelayLoop, 20000); 
         console.log("✅ 直播延遲檢測 (持續監測) 已啟動。");
       }, 5000);
-// 延後 5 秒 (5000 毫秒)
       
       // 確保瀏覽器可見性改變時，播放器能恢復
       document.addEventListener('visibilitychange', handleVisibilityChange);
-}
+    }
 
-    // 【✅ 修正點 1 & UX 優化】在載入完成時立即跳轉到 Live Edge
+    // 選擇鏡頭 (保持不變)
+    function selectCam(index) {
+        selectedCamIndex = index;
+        document.querySelectorAll('.controls button[id^="select-cam-"]').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById(`select-cam-${index}`).classList.add('active');
+    }
+
+    // ------------------- 播放器事件處理（保持不變） -------------------
     function onPlayerReady(event) {
       const player = event.target;
 const index = players.indexOf(player);
@@ -452,17 +480,13 @@ const index = players.indexOf(player);
       try { player.mute();
 } catch(e) {}
       
-      // 嘗試播放，繞過瀏覽器限制
       const playPromise = player.playVideo();
-// 修正 TypeError
       if (playPromise && typeof playPromise.catch === 'function') {
         playPromise.catch(error => {
           console.warn(`畫面 ${index} 自動播放被阻止。`, error);
         });
-}
+      }
 
-      // 🚨 核心修正：立即強制跳轉到 Live Edge
-      // 使用 100ms 的極短延遲，確保 getDuration() 方法已完全可用。
       setTimeout(() => {
         try {
           const liveDuration = player.getDuration();
@@ -470,85 +494,69 @@ const index = players.indexOf(player);
             player.seekTo(liveDuration, true);
             player.playVideo();
           
-            // 💡 UX 優化：輸出更清晰的訊息
             console.log(`✅ 畫面 ${index} 載入完成，已執行【Live Edge 即時同步】。`);
           }
         } catch(e) {
           console.error(`畫面 ${index} 載入時立即跳轉失敗:`, e);
         }
       }, 100);
-}
+    }
 
-    // 單播放器狀態處理：加入鎖定，避免連鎖反應
     function handleStateChange(event, index) {
       const st = event.data;
-const player = players[index];
+      const player = players[index];
       const currentState = streamState[index];
 
-      // 1. 處理 ENDED 狀態（防止進入推薦頁）
       if (st === YT.PlayerState.ENDED) {
         if (currentState) {
           try {
-            // 嘗試使用 seekTo 恢復到直播前緣 (liveDuration)
             const liveDuration = player.getDuration();
-if (player && typeof player.seekTo === 'function' && liveDuration > 0) {
+            if (player && typeof player.seekTo === 'function' && liveDuration > 0) {
               player.seekTo(liveDuration, true);
-player.playVideo();
+              player.playVideo();
             } else {
-              // 備用方案：重新載入影片
               player.loadVideoById(currentState.id, 0);
-player.playVideo();
+              player.playVideo();
             }
           } catch(e) {
-            try { player.loadVideoById(currentState.id, 0);
-player.playVideo(); } catch(e){}
+            try { player.loadVideoById(currentState.id, 0); player.playVideo(); } catch(e){}
           }
         }
         return;
-}
+      }
       
-      // 2. 處理暫停/未開始狀態
       if (st === YT.PlayerState.PAUSED || st === YT.PlayerState.CUED || st === YT.PlayerState.UNSTARTED) {
-        
-        // 關鍵鎖定：如果這個畫面正在被延遲刷新，則跳過此處的強制 playVideo 邏輯
         if (isReloading[index]) {
           return;
-}
+        }
 
         setTimeout(() => {
           try {
             const s = player.getPlayerState ? player.getPlayerState() : null;
-            // 只有當前狀態明確不是「正在播放」或「正在緩衝」時，才嘗試 playVideo()
             if (s !== YT.PlayerState.PLAYING && s !== YT.PlayerState.BUFFERING) {
               player.playVideo();
-            
-}
+            }
           } catch(e){}
         }, 300);
-}
+      }
     }
 
-    // 【✅ 修正點 2 & UX 優化】checkStreamDelayLoop 函數：確保直播永遠跳到 Live Edge
     function checkStreamDelayLoop() {
       const now = Date.now();
-players.forEach((player, index) => {
+      players.forEach((player, index) => {
         if (!player || !streamState[index]) return;
         
-        // 忽略音樂播放器（如果意外被包含）
         if (player === musicPlayer) return;
 
         try {
           let current = 0, duration = 0;
           try { current = player.getCurrentTime ? player.getCurrentTime() : 0; } catch(e){}
           try 
-{ duration = player.getDuration ? player.getDuration() : 0; } catch(e){}
+          { duration = player.getDuration ? player.getDuration() : 0; } catch(e){}
           
-          // 修正篩選邏輯：只排除無效或非數字時間。
           if (!isFinite(current) || !isFinite(duration) || current <= 0 || duration <= 0) {
-              // 如果 duration 不合理，我們仍然嘗試 playVideo() 來確保它保持活動狀態
               if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
-           
-player.playVideo();
+                player.playVideo();
               }
             return;
           }
@@ -556,53 +564,48 @@ player.playVideo();
           const delay = duration - current;
           const state = streamState[index];
 
-          // 延遲超過 30 秒，且不在重新載入中，且超過冷卻時間 (60 秒)
           if (delay > 30 && !isReloading[index] && 
-(now - lastReloadAt[index] > RELOAD_COOLDOWN_MS)) {
+          (now - lastReloadAt[index] > RELOAD_COOLDOWN_MS)) {
             isReloading[index] = true;
             lastReloadAt[index] = now;
             
-            // 💡 UX 優化：輸出更清晰的訊息，但保留秒數作為診斷依據
             console.log(`⚠️ 畫面 ${index} 偵測到落後 ${Math.floor(delay)} 秒，已執行【Live Edge 強制同步】。`);
 
-            // 🚨 核心直播修正：強制跳轉到 duration (直播前緣)
             const liveDuration = player.getDuration();
             
-try {
+            try {
               if (player && typeof player.seekTo === 'function' && liveDuration > 0) {
-                // 將播放點設定為影片總時長，強制跳到直播前緣 (Live Edge)
                 player.seekTo(liveDuration, true);
-player.playVideo();
+                player.playVideo();
               } else {
-                // 如果 seekTo 失敗，則重新載入影片，並從 liveDuration 開始
                 player.loadVideoById(state.id, liveDuration);
                 player.playVideo();
-}
+              }
             } catch(e) {
               try { player.loadVideoById(state.id, liveDuration);
-player.playVideo(); } catch(e){}
+              player.playVideo(); } catch(e){}
             }
 
-            // 3 秒後解除鎖定
             setTimeout(() => {
               isReloading[index] = false;
             }, 3000);
-}
+          }
         } catch(e) {
           console.error(`檢查延遲失敗 ${index}:`, e);
         }
       });
     }
 
-    // ------------------- 輔助功能（保持不變） -------------------
+    // ------------------- 核心互動功能（已修改） -------------------
+
     function updateLabel(index) {
       const state = streamState[index];
-const labelElement = document.getElementById(`label${index}`);
+      const labelElement = document.getElementById(`label${index}`);
       if (state) {
         labelElement.innerHTML = `${state.label}<span class="source-on-screen">來源: ${state.source}</span>`;
       } else {
         labelElement.innerHTML = `載入中...<span class="source-on-screen"></span>`;
-}
+      }
     }
 
     function handleVisibilityChange() {
@@ -614,16 +617,20 @@ const labelElement = document.getElementById(`label${index}`);
             }
           } catch(e) {}
         });
-}
+      }
     }
 
+    /**
+     * 設定當前選中鏡頭的直播串流。
+     * @param {string} streamKey - 完整的串流鍵 (例如: "台北-象山看101")。
+     */
     function setStream(streamKey) {
       const stream = ALL_STREAMS[streamKey];
       if (!stream) return;
 
       const player = players[selectedCamIndex];
       streamState[selectedCamIndex] 
-= { key: streamKey, ...stream };
+        = { key: streamKey, ...stream };
       try {
         // 使用 loadVideoById 確保重新載入
         player.loadVideoById(stream.id);
@@ -633,56 +640,59 @@ const labelElement = document.getElementById(`label${index}`);
         
         if (player && player.isMuted) {
           document.getElementById('muteBtn').innerText = player.isMuted() ? '解除靜音' : '靜音';
-}
+        }
       } catch(e){}
     }
 
-    function toggleFullscreen() {
+    function toggleFullscreen() { /* 保持不變 */
       const wrap = document.getElementById('stageWrap');
-      const controls = document.getElementById('controls');
       const isFullscreen = document.body.classList.toggle('fullscreen-active');
 
-      // 觸發瀏覽器原生的全螢幕API
       if (isFullscreen) {
         if (wrap.requestFullscreen) {
           wrap.requestFullscreen();
-        } else if (wrap.webkitRequestFullscreen) { /* Safari */
+        } else if (wrap.webkitRequestFullscreen) {
           wrap.webkitRequestFullscreen();
-        } else if (wrap.msRequestFullscreen) { /* IE11 */
+        } else if (wrap.msRequestFullscreen) {
           wrap.msRequestFullscreen();
         }
       } else {
         if (document.exitFullscreen) {
           document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { /* Safari */
+        } else if (document.webkitExitFullscreen) {
           document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) { /* IE11 */
+        } else if (document.msExitFullscreen) {
           document.msExitFullscreen();
-}
+        }
       }
     }
 
-    function toggleLabels() {
+    function toggleLabels() { /* 保持不變 */
       const body = document.body;
       const isHidden = body.classList.toggle('hide-labels');
       document.getElementById('labelsToggleBtn').innerText = isHidden ?
 '顯示標籤' : '標籤隱藏';
     }
 
-    function toggleMute() {
+    function toggleMute() { /* 保持不變 */
       isMuted = !isMuted;
-players.forEach(player => {
+      players.forEach(player => {
         try {
           isMuted ? player.mute() : player.unMute();
         } catch(e){}
       });
       document.getElementById('muteBtn').innerText = isMuted ? '解除靜音' : '靜音';
-}
+    }
 
+    /**
+     * 渲染頂層的地區/城市群組按鈕。
+     */
     function renderRegionButtons() {
       const container = document.getElementById('regionButtons');
       container.innerHTML = '';
-Object.keys(REGION_GROUPS).forEach(region => {
+      currentCity = null; // 重置當前城市狀態
+
+      Object.keys(REGION_GROUPS).forEach(region => {
         const cities = REGION_GROUPS[region].filter(city => GROUPED_STREAMS[city] && GROUPED_STREAMS[city].length > 0);
         if (cities.length === 0) return;
 
@@ -697,57 +707,75 @@ Object.keys(REGION_GROUPS).forEach(region => {
             const cityBtn = document.createElement('button');
             cityBtn.className = 'city-btn';
             cityBtn.textContent = city;
-            cityBtn.title = `切換到 ${city} 的直播`;
-            cityBtn.onclick = () => showCityStreams(city, cityBtn);
+            cityBtn.title = `切換顯示 ${city} 的直播列表`;
+            // 當前城市按鈕加上 active-city 樣式 (如果需要)
+            if (currentCity === city) {
+                cityBtn.classList.add('active-city');
+            }
+            cityBtn.onclick = () => showCityStreams(city);
             container.appendChild(cityBtn);
           }
         });
       });
-}
+    }
 
-    function showCityStreams(city, cityBtn) {
+    /**
+     * 顯示特定城市的景點直播按鈕列表 (取代城市按鈕)。
+     * @param {string} city - 城市名稱 (例如: "台北")。
+     */
+    function showCityStreams(city) {
       const streams = GROUPED_STREAMS[city];
       if (!streams || streams.length === 0) return;
-const buttonsHtml = streams.map(stream => `<button class="stream-option" onclick="setStream('${stream.key}')" title="${stream.key}">${stream.label}</button>` ).join('');
-      
-      // 使用 modal 或 alert 模擬選擇
-      const options = streams.map((stream, index) => `${index + 1}. ${stream.label} (${stream.key.split('-')[1]})` ).join('\n');
-      
-const promptText = `請選擇 ${city} 的直播畫面：\n\n${options}\n\n請輸入編號 (1-${streams.length}) 或點擊按鈕：`;
 
-      // 由於瀏覽器限制，我們使用更簡單的 prompt 方式進行選擇
-      let selection = prompt(promptText);
-if (selection) {
-        selection = parseInt(selection.trim());
-        if (selection >= 1 && selection <= streams.length) {
-          setStream(streams[selection - 1].key);
-        } else {
-          alert("輸入無效的編號。");
-        }
-      }
+      currentCity = city;
+      const container = document.getElementById('regionButtons');
+      container.innerHTML = '';
+
+      // 1. 顯示返回按鈕
+      const backBtn = document.createElement('button');
+      backBtn.className = 'back-btn';
+      backBtn.textContent = '🏠 返回地區列表';
+      backBtn.title = '返回地區/城市選擇頁面';
+      backBtn.onclick = renderRegionButtons;
+      container.appendChild(backBtn);
+
+      // 2. 顯示城市名稱標籤
+      const cityLabel = document.createElement('span');
+      cityLabel.className = 'region-label';
+      cityLabel.textContent = `${city}：`;
+      container.appendChild(cityLabel);
+
+      // 3. 顯示該城市所有景點按鈕 (一鍵切換)
+      streams.forEach(stream => {
+        const streamBtn = document.createElement('button');
+        streamBtn.className = 'stream-btn';
+        // 僅顯示地名部分，例如：台北-象山看101 -> 象山看101
+        streamBtn.textContent = stream.key.split('-').slice(1).join('-');
+        streamBtn.title = `切換至：${stream.label} (${stream.source})`;
+        // 點擊後直接設定串流，不需要 prompt
+        streamBtn.onclick = () => setStream(stream.key);
+        container.appendChild(streamBtn);
+      });
     }
 
     // ------------------- 音樂播放功能（保持不變） -------------------
     function onMusicPlayerReady(event) {
       isMusicReady = true;
-if (musicQueue.length > 0 && currentMusicIndex === -1 && !currentPlaylistId) {
+      if (musicQueue.length > 0 && currentMusicIndex === -1 && !currentPlaylistId) {
         currentMusicIndex = 0;
         loadAndPlayCurrentSong();
-}
+      }
     }
 
     function onMusicPlayerStateChange(event) {
       if (event.data === YT.PlayerState.ENDED) {
         if (currentPlaylistId) {
-          // 播放清單模式：會自動循環，無需處理
           return;
         }
 
-        // 單曲模式：切換到下一首
         if (musicQueue.length > 0) {
           skipToNextSong();
         } else {
-          // 清單播完
           document.getElementById('playPauseBtn').innerText = '▶️';
           isPlaying = false;
         }
@@ -764,7 +792,7 @@ if (musicQueue.length > 0 && currentMusicIndex === -1 && !currentPlaylistId) {
       if (urlOrId.includes('list=')) {
         const urlParams = new URLSearchParams(urlOrId.split('?')[1]);
         currentPlaylistId = urlParams.get('list');
-        return currentPlaylistId; // 回傳 playlist ID
+        return currentPlaylistId;
       }
       const match = urlOrId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
       return match ? match[1] : (urlOrId.length === 11 ? urlOrId : null);
@@ -786,15 +814,13 @@ if (musicQueue.length > 0 && currentMusicIndex === -1 && !currentPlaylistId) {
       }
 
       if (input.includes('list=')) {
-        // 播放清單模式
         currentPlaylistId = id;
-        musicQueue = []; // 清空單曲列表
+        musicQueue = [];
         currentMusicIndex = -1;
         musicPlayer.loadPlaylist({ list: id, listType: 'playlist', index: 0, startSeconds: 0 });
         document.getElementById('musicControlsContainer').style.display = 'flex';
         alert(`✅ 已載入播放清單 ID: ${id}`);
       } else {
-        // 單曲模式
         if (currentPlaylistId) {
           alert("請先停止播放清單，或將影片加入播放清單。");
           return;
@@ -876,7 +902,6 @@ if (musicQueue.length > 0 && currentMusicIndex === -1 && !currentPlaylistId) {
       loadAndPlayCurrentSong();
     }
 
-    // 播放模式與設定
     function openMusicSettingsModal() {
       document.getElementById('musicSettingsModal').style.display = 'flex';
       updateModeButtons();
