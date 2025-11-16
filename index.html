@@ -1,1164 +1,1018 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="utf-8" />
-  <title>台灣即時直播四分割監看（Live Edge 穩定版）</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <style>
-    /* ---------------------------------------------------------------------- */
-    /* CSS 樣式 */
-    /* ---------------------------------------------------------------------- */
-    html,body{
-      height:100%; margin:0; padding:0; background:#000;
-      font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
-    }
+  <meta charset="utf-8" />
+  <title>台灣即時直播四分割監看（Live Edge 穩定版）</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    /* ---------------------------------------------------------------------- */
+    /* CSS 樣式 - 保持不變 */
+    /* ---------------------------------------------------------------------- */
+    html,body{
+      height:100%; margin:0; padding:0; background:#000;
+      font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
+    }
 
-    /* 底部控制列 */
-    .controls{
-      position:fixed; bottom:0; left:0; width:100%; height:78px;
-      background:rgba(12,12,12,0.95); color:#fff; padding:8px 12px;
-      box-sizing:border-box; display:flex; flex-direction:row; align-items:center;
-      gap:10px; z-index:3000; overflow:hidden;
-    }
-    .controls button{
-      background-color:#222; color:#fff; border:1px solid #444;
-      padding:8px 12px; font-size:13px; cursor:pointer;
-      border-radius:6px;
-      height:40px; flex-shrink:0; white-space:nowrap; text-align:center;
-    }
-    .controls button.active{ background-color:#0078d7; border-color:#0078d7; }
-    .divider{ width:1px; height:60%;
-      background:#333; flex-shrink:0; margin:0;
-    }
+    /* 底部控制列 */
+    .controls{
+      position:fixed; bottom:0; left:0; width:100%; height:78px;
+      background:rgba(12,12,12,0.95); color:#fff; padding:8px 12px;
+      box-sizing:border-box; display:flex; flex-direction:row; align-items:center;
+      gap:10px; z-index:3000; overflow:hidden;
+    }
+    .controls button{
+      background-color:#222; color:#fff; border:1px solid #444;
+      padding:8px 12px; font-size:13px; cursor:pointer;
+      border-radius:6px;
+      height:40px; flex-shrink:0; white-space:nowrap; text-align:center;
+    }
+    .controls button.active{ background-color:#0078d7; border-color:#0078d7; }
+    .divider{ width:1px; height:60%;
+      background:#333; flex-shrink:0; margin:0;
+    }
 
-    /* 縣市 / 景點容器（可左右滾動） */
-    #regionButtons{
-      display:flex; flex-grow:1; min-width:0; gap:6px;
-      overflow-x:auto; padding-bottom:6px; height:100%; align-items:center;
-    }
-    #regionButtons::-webkit-scrollbar{ height:6px; background-color:rgba(255,255,255,0.06); }
-    #regionButtons::-webkit-scrollbar-thumb{ background-color:#444;
-      border-radius:3px;
-    }
-    .region-label{ color:#fff; margin:0 8px 0 4px; font-weight:600; flex-shrink:0; user-select:none;
-    }
-    /* 通用城市/景點按鈕樣式 */
-    #regionButtons .city-btn, #regionButtons .stream-btn, #regionButtons .back-btn{
-      background-color:#111; color:#fff; border:1px solid #555;
-      padding:6px 10px; margin:0;
-      border-radius:6px; cursor:pointer;
-      height:36px; flex-shrink:0; font-size:13px;
-    }
-    #regionButtons .city-btn:hover, #regionButtons .stream-btn:hover, #regionButtons .back-btn:hover{
-        background-color:#1a1a1a; border-color:#666;
-    }
-    /* 景點按鈕微調樣式 */
-    #regionButtons .stream-btn{
-        background-color: #222;
-        border-color: #444;
-    }
-    /* 返回按鈕樣式 */
-    #regionButtons .back-btn{
-        background-color: #555;
-        border-color: #777;
-    }
-    /* 當前選中的城市按鈕，用於城市/景點切換狀態標記 */
-    #regionButtons .city-btn.active-city{
-        background-color: #0078d7;
-        border-color: #0078d7;
-    }
-    
-    /* 【超侵略性修正】: 隱藏所有 YouTube 推薦/卡片/資訊/連結 */
-    .ytp-ce-element,              /* End screen elements (片尾推薦) */
-    .ytp-ce-covering-overlay,     /* End screen overlay (片尾遮罩) */
-    .ytp-pause-overlay,           /* Overlay shown when paused (暫停時的推薦覆蓋) */
-    .ytp-cards-module,            /* Information cards (資訊卡片 i) */
-    .ytp-gradient-bottom,         /* The dark gradient at the bottom */
-    .ytp-contextmenu,             /* Right-click menu (右鍵選單) */
-    .ytp-button[title*="分享"],   /* Share button (分享按鈕) */
-    .ytp-button[title*="在 YouTube 上觀看"], /* Watch on YouTube button */
-    .ytp-chrome-top,              /* 隱藏頂部標題和圖示 */
-    .ytp-title-channel,           /* 隱藏頻道名稱 */
-    .ytp-live-badge {             /* YouTube 直播標誌 */
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-        z-index: 1 !important; 
-    }
-    /* 【CSS 修正結束】 */
+    /* 縣市 / 景點容器（可左右滾動） */
+    #regionButtons{
+      display:flex; flex-grow:1; min-width:0; gap:6px;
+      overflow-x:auto; padding-bottom:6px; height:100%; align-items:center;
+    }
+    #regionButtons::-webkit-scrollbar{ height:6px; background-color:rgba(255,255,255,0.06); }
+    #regionButtons::-webkit-scrollbar-thumb{ background-color:#444;
+      border-radius:3px;
+    }
+    .region-label{ color:#fff; margin:0 8px 0 4px; font-weight:600; flex-shrink:0; user-select:none;
+    }
+    /* 通用城市/景點按鈕樣式 */
+    #regionButtons .city-btn, #regionButtons .stream-btn, #regionButtons .back-btn{
+      background-color:#111; color:#fff; border:1px solid #555;
+      padding:6px 10px; margin:0;
+      border-radius:6px; cursor:pointer;
+      height:36px; flex-shrink:0; font-size:13px;
+    }
+    #regionButtons .city-btn:hover, #regionButtons .stream-btn:hover, #regionButtons .back-btn:hover{
+        background-color:#1a1a1a; border-color:#666;
+    }
+    /* 景點按鈕微調樣式 */
+    #regionButtons .stream-btn{
+        background-color: #222;
+        border-color: #444;
+    }
+    /* 返回按鈕樣式 */
+    #regionButtons .back-btn{
+        background-color: #555;
+        border-color: #777;
+    }
+    /* 當前選中的城市按鈕，用於城市/景點切換狀態標記 */
+    #regionButtons .city-btn.active-city{
+        background-color: #0078d7;
+        border-color: #0078d7;
+    }
 
 
-    /* 影片舞台四格 */
-    .stage-wrap{
-      position:fixed; top:0; left:0; width:100vw;
-      height:calc(100vh - 78px);
-      display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
-      gap:0; z-index:1;
-    }
-    .cell{ position:relative; width:100%; height:100%;
-      overflow:hidden; background:#000;
-    }
-    .player-container, .player-container iframe{
-      position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
-      object-fit:cover; object-position:center;
-      background:black;
-      /* 關鍵：放大並微調位置以隱藏 YouTube Logo 和控制列的邊緣 */
-      transform: scale(1.65) translateY(-6%);
-    }
-    /* 關鍵：強化遮罩以阻擋 YouTube UI/Logo/推薦點擊 (Interaction Shield) */
-    .interaction-shield{
-      position:absolute; inset:0; z-index:9999; background:transparent;
-      pointer-events:auto; cursor:default;
-    }
-    .label{
-      position:absolute; left:8px; right:8px; bottom:8px; display:flex;
-      flex-direction:column; align-items:flex-start; padding:6px 8px;
-      font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:6px;
-      pointer-events:none; z-index:10000;
-    }
-    .source-on-screen{ font-size:11px; color:#ccc; margin-top:4px; line-height:1.1;
-    }
+    /* 影片舞台四格 */
+    .stage-wrap{
+      position:fixed; top:0; left:0; width:100vw;
+      height:calc(100vh - 78px);
+      display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr;
+      gap:0; z-index:1;
+    }
+    .cell{ position:relative; width:100%; height:100%;
+      overflow:hidden; background:#000;
+    }
+    .player-container, .player-container iframe{
+      position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+      object-fit:cover; object-position:center;
+      background:black;
+      transform: scale(1.65) translateY(-6%);
+    }
+    /* 強化遮罩以阻擋 YouTube UI/Logo/推薦 */
+    .interaction-shield{
+      position:absolute; inset:0; z-index:9999; background:transparent;
+      pointer-events:auto; cursor:default;
+    }
+    .label{
+      position:absolute; left:8px; right:8px; bottom:8px; display:flex;
+      flex-direction:column; align-items:flex-start; padding:6px 8px;
+      font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:6px;
+      pointer-events:none; z-index:10000;
+    }
+    .source-on-screen{ font-size:11px; color:#ccc; margin-top:4px; line-height:1.1;
+    }
 
-    /* 顯示控制 */
-    .hide-labels .label{ display:none;
-    }
-    /* 僅在有 .fullscreen-active 時才隱藏 controls */
-    .fullscreen-active .controls{ display:none;
-    }
-    .fullscreen-active .stage-wrap{ height:100vh; }
+    /* 顯示控制 */
+    .hide-labels .label{ display:none;
+    }
+    /* 【關鍵修正】: 僅在有 .fullscreen-active 時才隱藏 controls */
+    .fullscreen-active .controls{ display:none;
+    }
+    .fullscreen-active .stage-wrap{ height:100vh; }
 
-    @media (max-width:640px){
-      .controls{ padding:6px 8px;
-        height:80px;
-      }
-      .controls button{ padding:6px 8px; font-size:12px; height:36px;
-      }
-      #regionButtons .city-btn, #regionButtons .stream-btn, #regionButtons .back-btn{
-        padding:6px 8px;
-        font-size:12px; height:34px;
-      }
-    }
-    
-    /* ---------------------------------------------------------------------- */
-    /* CSS 樣式：音樂控制區塊 (確保緊湊格式) */
-    /* ---------------------------------------------------------------------- */
+    @media (max-width:640px){
+      .controls{ padding:6px 8px;
+        height:80px;
+      }
+      .controls button{ padding:6px 8px; font-size:12px; height:36px;
+      }
+      #regionButtons .city-btn, #regionButtons .stream-btn, #regionButtons .back-btn{
+        padding:6px 8px;
+        font-size:12px; height:34px;
+      }
+    }
+    
+    /* ---------------------------------------------------------------------- */
+    /* CSS 樣式：音樂控制區塊 (確保緊湊格式) */
+    /* ---------------------------------------------------------------------- */
 
-    /* 音樂控制容器：預設隱藏，由 JS 在有歌單時切換為 display: flex */
-    .music-controls-container {
-        display: none; flex-shrink: 0;
-        height: 100%;
-        align-items: center;
-    }
-    .music-controls {
-        display: flex; gap: 5px; /* 按鈕間的間隔 */
-    }
+    /* 音樂控制容器：預設隱藏，由 JS 在有歌單時切換為 display: flex */
+    .music-controls-container {
+        display: none; flex-shrink: 0;
+        height: 100%;
+        align-items: center;
+    }
+    .music-controls {
+        display: flex; gap: 5px; /* 按鈕間的間隔 */
+    }
 
-    /* 專門為音樂控制按鈕調整的樣式：方形、居中、大字體 */
-    .music-controls button {
-        /* 繼承 .controls button 的基本背景/邊框樣式 */
-        background-color: #222; color: #fff; 
-        border: 1px solid #444;
-        border-radius: 6px;
-        cursor: pointer;
-        /* 調整為緊湊的音樂控制按鈕格式 */
-        height: 40px; 
-        width: 40px;
-        /* 設為方形 */
-        padding: 0;
-        font-size: 16px;
-        /* 確保 Emoji 夠大 */
-        line-height: 1;
-        flex-shrink: 0;
-        /* 確保內容居中 */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    /* 播放列表 Modal 內的樣式 */
-    #queueListContent ul {
-      list-style-type: none; 
-      padding-left: 0; 
-      max-height: 250px; /* 增加高度 */
-      overflow-y: auto;
-    }
-
-    .song-title {
-      color: #fff;
-      display: block;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-right: 5px;
-    }
-
-    .song-channel {
-      color: #aaa;
-      font-size: 11px;
-      display: block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      margin-top: 2px;
-    }
-    
-  </style>
+    /* 專門為音樂控制按鈕調整的樣式：方形、居中、大字體 */
+    .music-controls button {
+        /* 繼承 .controls button 的基本背景/邊框樣式 */
+        background-color: #222; color: #fff; 
+        border: 1px solid #444;
+        border-radius: 6px;
+        cursor: pointer;
+        /* 調整為緊湊的音樂控制按鈕格式 */
+        height: 40px; 
+        width: 40px;
+        /* 設為方形 */
+        padding: 0;
+        font-size: 16px;
+        /* 確保 Emoji 夠大 */
+        line-height: 1;
+        flex-shrink: 0;
+        /* 確保內容居中 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+  </style>
 </head>
 <body>
-  <div class="controls" id="controls">
-    <button id="select-cam-0" class="active" onclick="selectCam(0)">左上</button>
-    <button id="select-cam-1" onclick="selectCam(1)">右上</button>
-    <button id="select-cam-2" onclick="selectCam(2)">左下</button>
-    <button id="select-cam-3" onclick="selectCam(3)">右下</button>
+  <div class="controls" id="controls">
+    <button id="select-cam-0" class="active" onclick="selectCam(0)">左上</button>
+    <button id="select-cam-1" onclick="selectCam(1)">右上</button>
+    <button id="select-cam-2" onclick="selectCam(2)">左下</button>
+    <button id="select-cam-3" onclick="selectCam(3)">右下</button>
 
-    <div class="divider"></div>
+    <div class="divider"></div>
 
-    <div id="regionButtons" aria-label="縣市與景點選單" role="toolbar"></div>
+    <div id="regionButtons" aria-label="縣市與景點選單" role="toolbar"></div>
 
-    <div class="divider"></div>
-    <button id="fullscreenBtn" onclick="toggleFullscreen()">全螢幕</button>
+    <div class="divider"></div>
+    <button id="fullscreenBtn" onclick="toggleFullscreen()">全螢幕</button>
 
-    <div class="divider"></div>
-    <button id="labelsToggleBtn" onclick="toggleLabels()">標籤隱藏</button>
+    <div class="divider"></div>
+    <button id="labelsToggleBtn" onclick="toggleLabels()">標籤隱藏</button>
 
-    <div class="divider"></div>
-    <button id="muteBtn" onclick="toggleMute()">解除靜音</button>
+    <div class="divider"></div>
+    <button id="muteBtn" onclick="toggleMute()">解除靜音</button>
 
-    <div class="divider"></div>
-    <button id="requestBtn" onclick="requestSong()" title="輸入網址/ID點歌或播放清單，或 search: 關鍵字">🎶 點歌/清單</button>
+    <div class="divider"></div>
+    <button id="requestBtn" onclick="requestSong()" title="輸入網址/ID點歌或播放清單">🎶 點歌/清單</button>
 
-    <div id="musicControlsContainer" class="music-controls-container">
- 
-     <div class="music-controls">
-        <button id="prevSongBtn" onclick="skipToPreviousSong()" title="上一首">⏮️</button>
-        <button id="playPauseBtn" onclick="playPauseSong()" title="播放/暫停">⏸️</button>
-        <button id="nextSongBtn" onclick="skipToNextSong()" title="下一首">⏭️</button>
-        <button id="modeBtn" onclick="openMusicSettingsModal()" title="模式設定">🔄</button>
-        <button id="playlistQueueBtn" onclick="showMusicQueueStatusModal()" title="查看播放列表狀態">🎵</button>
-      </div>
-    </div>
-  </div>
+    <div id="musicControlsContainer" class="music-controls-container">
+ 
+     <div class="music-controls">
+        <button id="prevSongBtn" onclick="skipToPreviousSong()" title="上一首">⏮️</button>
+        <button id="playPauseBtn" onclick="playPauseSong()" title="播放/暫停">⏸️</button>
+        <button id="nextSongBtn" onclick="skipToNextSong()" title="下一首">⏭️</button>
+        <button id="modeBtn" onclick="openMusicSettingsModal()" title="模式設定">🔄</button>
+        <button id="playlistQueueBtn" onclick="showMusicQueueStatusModal()" title="查看播放列表狀態">🎵</button>
+      </div>
+    </div>
+  </div>
 
-  <div class="stage-wrap" id="stageWrap">
-    <div class="cell" data-index="0">
-      <div id="player0" class="player-container"></div>
-      <div class="interaction-shield"></div> <div class="label" id="label0">載入中...<span class="source-on-screen"></span></div>
-      
-    </div>
-    <div class="cell" data-index="1">
-      <div id="player1" class="player-container"></div>
-      <div class="interaction-shield"></div> <div class="label" id="label1">載入中...<span class="source-on-screen"></span></div>
-    </div>
-    <div class="cell" data-index="2">
-      <div id="player2" class="player-container"></div>
-      <div class="interaction-shield"></div> <div class="label" id="label2">載入中...<span class="source-on-screen"></span></div>
-    </div>
-    <div class="cell" data-index="3">
-      <div id="player3" class="player-container"></div>
-      
-      <div class="interaction-shield"></div> <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
-    </div>
-  </div>
+  <div class="stage-wrap" id="stageWrap">
+    <div class="cell" data-index="0">
+      <div id="player0" class="player-container"></div>
+      <div class="interaction-shield"></div>
+  
+     <div class="label" id="label0">載入中...<span class="source-on-screen"></span></div>
+    </div>
+    <div class="cell" data-index="1">
+      <div id="player1" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label1">載入中...<span class="source-on-screen"></span></div>
+    </div>
+    <div class="cell" data-index="2">
+      <div id="player2" class="player-container"></div>
+      <div class="interaction-shield"></div>
+      <div class="label" id="label2">載入中...<span class="source-on-screen"></span></div>
+    </div>
+    <div class="cell" data-index="3">
+      <div id="player3" class="player-container"></div>
+      
+<div 
+class="interaction-shield"></div>
+      <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
+    </div>
+  </div>
 
-  <div id="player_music_container" style="position:fixed;
+  <div id="player_music_container" style="position:fixed;
 top:-100px; left:-100px; width:1px; height:1px; overflow:hidden;">
-    <div id="player_music"></div>
-  </div>
+    <div id="player_music"></div>
+  </div>
 
-  <div id="musicSettingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999;
+  <div id="musicSettingsModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999;
 justify-content:center; align-items:center;">
-    <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5); width:300px; max-width:90%;
+    <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5); width:300px; max-width:90%;
 text-align:center;">
-      <h3 style="margin-top:0; color:#fff;">音樂播放模式</h3>
-      <p style="font-size:12px;
+      <h3 style="margin-top:0; color:#fff;">音樂播放模式</h3>
+      <p style="font-size:12px;
 color:#aaa;">點擊下方按鈕選擇播放模式：</p>
-      <div style="display:flex; justify-content:space-around; gap:10px;
+      <div style="display:flex; justify-content:space-around; gap:10px;
 margin-top:15px;">
-        <button id="modeListLoop" class="mode-btn" onclick="setPlaybackMode('listLoop')">🔄 列表循環</button>
-        <button id="modeShuffle" class="mode-btn" onclick="setPlaybackMode('shuffle')">🔀 隨機播放</button>
-      </div>
-      <button onclick="stopAndCloseModal()" class="stop-btn" style="margin-top:15px;">⏹️ 停止並結束播放</button>
-      <button onclick="closeMusicSettingsModal()" class="close-btn" style="margin-top:10px;">關閉</button>
-    </div>
-  </div>
+        <button id="modeListLoop" class="mode-btn" onclick="setPlaybackMode('listLoop')">🔄 列表循環</button>
+        <button id="modeShuffle" class="mode-btn" onclick="setPlaybackMode('shuffle')">🔀 隨機播放</button>
+      </div>
+      <button onclick="stopAndCloseModal()" class="stop-btn">⏹️ 停止並結束播放</button>
+      <button onclick="closeMusicSettingsModal()" class="close-btn">關閉</button>
+    </div>
+  </div>
 
-  <div id="musicQueueModal" style="display:none;
+  <div id="musicQueueModal" style="display:none;
 position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5); width:350px;
+    <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5); width:350px;
 max-width:90%;">
-      <h3 style="margin-top:0; color:#fff; text-align:center;">🎵 播放列表狀態</h3>
-      <div id="queueListContent" style="margin-bottom:15px;
+      <h3 style="margin-top:0; color:#fff; text-align:center;">🎶 播放列表狀態</h3>
+      <div id="queueListContent" style="margin-bottom:15px;
 padding-right:5px;"></div>
-      <button onclick="closeMusicQueueModal()" style="margin-top:10px;">關閉</button>
-    </div>
-  </div>
+      <button onclick="closeMusicQueueModal()" style="margin-top:10px;">關閉</button>
+    </div>
+  </div>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script>
-    /* ===== 直播來源（保持不變） ===== */
-    const ALL_STREAMS = {
-      "台北-象山看101": {"id":"z_fY1pj1VBw","label":"台北象山","source":"Taipei Travel Live Cam 台北觀光即時影像"},
-      "台北-大稻埕": {"id":"Ndo_8RuefH4","label":"大稻埕","source":"Taipei Travel Live Cam 台北觀光即時影像"},
-      "台北-碧山巖": {"id":"uvwfYzwY8tg","label":"碧山巖","source":"Taipei Travel Live Cam 台北觀光即時影像"},
-      "台北-微風平台": {"id":"34h_Cy_n0Ok","label":"微風平台","source":"Taipei Travel Live Cam 台北觀光即時影像"},
-      "台北-貓空指南宮": {"id":"215ahZ_0rTg","label":"貓空指南宮","source":"Taipei Travel Live Cam 台北觀光即時影像"},
-      "台北-擎天岡草原": {"id":"yF2LAyOvq0Q","label":"擎天岡草原","source":"陽明山國家公園"},
-    
-      "台北-陽明書屋": {"id":"RttyIGHbN_w","label":"陽明書屋","source":"陽明山國家公園"},
-      "台北-遠眺七星山": {"id":"PvJr2efA6n0","label":"遠眺七星山","source":"陽明山國家公園"},
-      "台北-二坪子停車場": {"id":"d9KuXrPCWYU","label":"二坪子停車場","source":"陽明山國家公園"},
-      "台北-大屯自然公園": {"id":"6ghffcNt3Nw","label":"大屯自然公園","source":"陽明山國家公園"},
-      "台北-小油坑停車場": {"id":"kKD-ZBLs8-4","label":"小油坑停車場","source":"陽明山國家公園"},
-      "台北-冷水坑停車場": {"id":"GB64WeZZQPQ","label":"冷水坑停車場","source":"陽明山國家公園"},
-      "新北-漁人碼頭": {"id":"xwAWSh35uuw","label":"新北淡水","source":"新北旅客 New Taipei Tour"},
-      "新北-鼻頭服務區": {"id":"4Bm3IKcGkQY","label":"新北鼻頭","source":"necoast nsa"},
-      "新北-中角灣": {"id":"mmM9NOZLLKY","label":"中角灣","source":"GoOcean海洋遊憩風險資訊"},
-      "新北-十分瀑布公園": {"id":"HirBQsQEUeA","label":"十分瀑布公園","source":"新北旅客 New Taipei Tour"},
-      "新北-九份": {"id":"XSD5ptYisw8","label":"新北九份","source":"新北旅客 New Taipei Tour"},
-      "新北-內洞國家森林遊樂區": {"id":"lX2MYEFomK0","label":"內洞國家森林遊樂區","source":"國家森林遊樂區即時影像"},
-      "新北-三峽老街北段": {"id":"M24SZJU-uoo","label":"三峽老街北段","source":"三峽民權老街商圈"},
-    
-      "新北-三峽老街南段": {"id":"R_5jhoux3nY","label":"三峽老街南段","source":"三峽民權老街商圈"},
-      "新北-烏來吊橋": {"id":"jGoYvmTxLyU","label":"烏來吊橋","source":"水利署水利防災組"},
-      "新北-員山子": {"id":"JkGKqXOt9Ls","label":"員山子","source":"水利署水利防災組"},
-      "新北-文山農場大草皮": {"id":"_LRkfObNP_U","label":"文山農場大草皮","source":"新北市農會文山農場"},
-      "基隆-外木山": {"id":"LInNQYAbAwQ","label":"外木山","source":"GoOcean海洋遊憩風險資訊"},
-      "桃園-國際機場": {"id":"91PfFoqvuUk","label":"桃園機場","source":"遊桃園 Taoyuan Travel"},
-      "桃園-桃園機場南跑道": {"id":"y3_x8el5ZJY","label":"TPE 南跑道","source":"Taoyuan Airport"},
-      "桃園-桃園機場北跑道": {"id":"wWEnxWA7nnY","label":"TPE 北跑道","source":"Taoyuan Airport"},
-      "桃園-永安漁港": {"id":"tD_a03trUvE","label":"永安漁港","source":"遊桃園 Taoyuan Travel"},
-      "桃園-拉拉山遊客中心": {"id":"YkIUZjVlhv4","label":"拉拉山遊客中心","source":"遊桃園 Taoyuan Travel"},
-      "桃園-虎頭山環保公園": {"id":"tu_gsIkNt-w","label":"虎頭山環保公園","source":"遊桃園 Taoyuan Travel"},
-      "桃園-小烏來天空步道": {"id":"neaiCec1kec","label":"小烏來天空步道","source":"遊桃園 Taoyuan Travel"},
-    
-    "桃園-角板山思親亭": {"id":"3Za9y4z_Lzc","label":"角板山思親亭","source":"遊桃園 Taoyuan Travel"},
-      "桃園-三龜戲水觀景平台": {"id":"5YDXZ1aiR5Y","label":"三龜戲水觀景平台","source":"遊桃園 Taoyuan Travel"},
-      "桃園-大溪橋": {"id":"oFJ6gCaBb_Q","label":"大溪橋","source":"遊桃園 Taoyuan Travel"},
-      "桃園-虎頭山奧爾森林學堂": {"id":"yQSmajHyMhU","label":"奧爾森林學堂","source":"遊桃園 Taoyuan Travel"},
-      "桃園-角板山梅園": {"id":"-xT1bZhWLuU","label":"角板山梅園","source":"遊桃園 Taoyuan Travel"},
-      "桃園-角板山生態池": {"id":"XEbo8NzMTbQ","label":"角板山生態池","source":"遊桃園 Taoyuan Travel"},
-      "桃園-大溪老街": {"id":"XUWjAsajKXg","label":"大溪老街","source":"遊桃園 Taoyuan Travel"},
-      "桃園-石門水庫": {"id":"GUCaVR88ZFU","label":"石門水庫","source":"遊桃園 Taoyuan Travel"},
-      "桃園-慈湖水岸廣場": {"id":"pSQ0e-ZTZ5g","label":"慈湖水岸廣場","source":"遊桃園 Taoyuan Travel"},
-      "桃園-阿姆坪薑母島": {"id":"EUOp2LchPQM","label":"薑母島","source":"遊桃園 Taoyuan Travel"},
-      "桃園-上巴陵": {"id":"nV-DKquUjFs","label":"上巴陵","source":"遊桃園 Taoyuan Travel"},
-    
-      "桃園-桃園國際機場凱悅酒店": {"id":"68GFgzQxrXs","label":"機場凱悅","source":"遊桃園 Taoyuan Travel"},
-      "桃園-小烏來寰宇平台": {"id":"PJWye36lEj4","label":"寰宇平台","source":"遊桃園 Taoyuan Travel"},
-      "桃園-許厝港濕地": {"id":"44JArbF682k","label":"許厝港濕地","source":"遊桃園 Taoyuan Travel"},
-      "宜蘭-外澳沙灘": {"id":"UgoT-QTbYvo","label":"宜蘭外澳","source":"necoast nsa"},
-      "宜蘭-福隆海水浴場": {"id":"mMG7v_fET5A","label":"宜蘭福隆","source":"necoast nsa"}, 
-      "宜蘭-石城漁港": {"id":"X76Dkt_fPG0","label":"石城漁港","source":"necoast nsa"}, 
-      "宜蘭-無尾港": {"id":"Bux0vT_5MBw","label":"無尾港","source":"GoOcean海洋遊憩風險資訊"}, 
-      "宜蘭-石城漁港": {"id":"ozZVLl0h--A","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"}, 
-      "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"}, 
-      "苗栗-汶水遊客中心(雪霸)": {"id":"VgmWVBUsfGo","label":"汶水遊客中心","source":"雪霸國家公園 Shei-Pa National Park"},
-      "苗栗-觀霧遊憩區(雪霸)": {"id":"Isp6RQiuxNo","label":"觀霧遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
-    
-      "苗栗-雪見遊憩區(雪霸)": {"id":"2KDE860OW_A","label":"雪見遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
-      "台中-高美濕地": {"id":"fjhg3gAnMFg","label":"台中高美","source":"大玩台中-臺中觀光旅遊局"},
-      "台中-望高寮": {"id":"lhXXhDyjFtI","label":"望高寮","source":"大玩台中-臺中觀光旅遊局"},
-      "彰化-王功漁港": {"id":"hUG2XK08W5Q","label":"彰化王功","source":"愛玩彰化 Changhua Travels"},
-      "南投-合歡山武嶺亭": {"id":"2lVMTs_Fj0M","label":"武嶺亭","source":"台灣即時影像監視器"},
-      "嘉義-奮起湖": {"id":"B6eki-0-w0g","label":"嘉義奮起湖","source":"阿里山國家風景區管理處"},
-      "嘉義-二延平步道": {"id":"j2L_559nCjc","label":"二延平步道","source":"阿里山國家風景區管理處"},
-      "嘉義-太平雲梯": {"id":"dY2cRNr5Buw","label":"太平雲梯","source":"阿里山國家風景區管理處"},
-      "嘉義-觸口遊客中心": {"id":"8KnqJBf_dow","label":"觸口遊客中心","source":"阿里山國家風景區管理處"},
-      "嘉義-愛情大草原": {"id":"hMYs60qtkK8","label":"愛情大草原","source":"阿里山國家風景區管理處"},
-      "嘉義-生力農場": {"id":"agEzlv9n9Eg","label":"生力農場","source":"阿里山國家風景區管理處"},
-      "嘉義-里佳資訊站": {"id":"zDt8FBPozZQ","label":"里佳資訊站","source":"阿里山國家風景區管理處"},
-      "台南-七股賞鳥台": {"id":"5KJe2gCTngA","label":"台南七股","source":"台江國家公園管理處"},
-      "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家風景區管理處"},
-    
-      "台南-曾文水庫": {"id":"EH4V8IwFIp4","label":"曾文水庫","source":"西拉雅國家風景區管理處"},
-      "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"},
-      "高雄-旗津海水浴場": {"id":"ka7FV0sCvxQ","label":"高雄旗津","source":"高雄旅遊網"},
-      "高雄-壽山觀景台": {"id":"C03Itx8iSC0","label":"壽山觀景","source":"高雄旅遊網"},
-      "屏東-墾丁南灣": {"id":"jUnFuJSj0OU","label":"墾丁南灣","source":"我愛墾丁旅遊票券中心"},
-      "花蓮-石梯坪": {"id":"mXnigLvIL0Q","label":"花蓮石梯坪","source":"東部海岸國家風景區管理處"},
-      "花蓮-大石鼻山": {"id":"JkoXcXI04Qk","label":"大石鼻山","source":"東部海岸國家風景區管理處"},
-      "花蓮-長虹橋": {"id":"JnD8Rk3o0BM","label":"長虹橋","source":"東部海岸國家風景區管理處"},
-      "台東-鯉魚山": {"id":"BUJJaW0vkJs","label":"台東鯉魚山","source":"Amazing Taitung 台東就醬玩"},
-      "台東-金崙大橋": {"id":"9QqBz3kNHis","label":"台東金崙大橋","source":"Amazing Taitung 台東就醬玩"},
-      "台東-金樽觀浪": {"id":"q3KJt-SZc2s","label":"台東金樽觀浪","source":"Amazing Taitung 台東就醬玩"},
-      "台東-富山": {"id":"Rsq95SQ26bY","label":"台東富山","source":"Amazing Taitung 台東就醬玩"},
-      "台東-杉原灣": {"id":"VqS_Y8ZCj6M","label":"台東杉原灣","source":"Amazing Taitung 台東就醬玩"},
-    
-      "台東-富岡漁港": {"id":"D945F_dauls","label":"台東富岡漁港","source":"Amazing Taitung 台東就醬玩"},
-      "台東-華源曙光觀景台": {"id":"TY4qQElcUrA","label":"台東華源曙光觀景台","source":"Amazing Taitung 台東就醬玩"},
-      "台東-南橫埡口": {"id":"LSkq-wHMxQY","label":"台東南橫口","source":"Amazing Taitung 台東就醬玩"},
-      "台東-池上天堂路": {"id":"6kUEK3LVrro","label":"台東池上天堂路","source":"Amazing Taitung 台東就醬玩"},
-      "台東-多良車站": {"id":"UCG1aXVO8H8","label":"台東多良","source":"Amazing Taitung 台東就醬玩"},
-      "台東-鹿野高台": {"id":"rvc1klNIgQc","label":"鹿野高台","source":"ervnsa"},
-      "台東-成功三仙台": {"id":"dQ7Sd6PGLdA","label":"三仙台","source":"東部海岸國家風景區管理處"},
-      "台東-金樽遊憩區": {"id":"ZdqHgQwvZOw","label":"金樽遊憩區","source":"東部海岸國家風景區管理處"},
-      "台東-都歷遊客中心": {"id":"JhQuR77AR7U","label":"都歷遊客中心","source":"東部海岸國家風景區管理處"},
-      "台東-加路蘭遊憩區": {"id":"AKl3F6cAY2Q","label":"加路蘭遊憩區","source":"東部海岸國家風景區管理處"},
-      "台東-綠島南寮": {"id":"wTHhv7M0vCI","label":"綠島南寮","source":"東部海岸國家風景區管理處"},
-      "台東-綠島帆船鼻": {"id":"pLdBc8PvZko","label":"綠島帆船鼻","source":"東部海岸國家風景區管理處"},
-      "台東-綠島柴口浮潛區": {"id":"a8nJQr5rBGs","label":"綠島柴口浮潛區","source":"東部海岸國家風景區管理處"},
-    
-      "金門-麒麟山森林公園": {"id":"M4EJtf_iP8s","label":"金門麒麟山公園","source":"樂遊金門"},
-      "金門-134高地": {"id":"-srNHTE-Nf0","label":"金門134高地","source":"樂遊金門"},
-      "金門-建功嶼": {"id":"uh_yNAE01w8","label":"金門建功嶼","source":"樂遊金門"}
-    };
-    /* ---------------------------------------------------------------------- */
-    /* JavaScript 功能 */
-    /* ---------------------------------------------------------------------- */
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    /* ===== 直播來源（保持不變） ===== */
+    const ALL_STREAMS = {
+      "台北-象山看101": {"id":"z_fY1pj1VBw","label":"台北象山","source":"Taipei Travel Live Cam 台北觀光即時影像"},
+      "台北-大稻埕": {"id":"Ndo_8RuefH4","label":"大稻埕","source":"Taipei Travel Live Cam 台北觀光即時影像"},
+      "台北-碧山巖": {"id":"uvwfYzwY8tg","label":"碧山巖","source":"Taipei Travel Live Cam 台北觀光即時影像"},
+      "台北-微風平台": {"id":"34h_Cy_n0Ok","label":"微風平台","source":"Taipei Travel Live Cam 台北觀光即時影像"},
+      "台北-貓空指南宮": {"id":"215ahZ_0rTg","label":"貓空指南宮","source":"Taipei Travel Live Cam 台北觀光即時影像"},
+      "台北-擎天岡草原": {"id":"yF2LAyOvq0Q","label":"擎天岡草原","source":"陽明山國家公園"},
+    
+    "台北-陽明書屋": {"id":"RttyIGHbN_w","label":"陽明書屋","source":"陽明山國家公園"},
+      "台北-遠眺七星山": {"id":"PvJr2efA6n0","label":"遠眺七星山","source":"陽明山國家公園"},
+      "台北-二坪子停車場": {"id":"d9KuXrPCWYU","label":"二坪子停車場","source":"陽明山國家公園"},
+      "台北-大屯自然公園": {"id":"6ghffcNt3Nw","label":"大屯自然公園","source":"陽明山國家公園"},
+      "台北-小油坑停車場": {"id":"kKD-ZBLs8-4","label":"小油坑停車場","source":"陽明山國家公園"},
+      "台北-冷水坑停車場": {"id":"GB64WeZZQPQ","label":"冷水坑停車場","source":"陽明山國家公園"},
+      "新北-漁人碼頭": {"id":"xwAWSh35uuw","label":"新北淡水","source":"新北旅客 New Taipei Tour"},
+      "新北-鼻頭服務區": {"id":"4Bm3IKcGkQY","label":"新北鼻頭","source":"necoast nsa"},
+      "新北-中角灣": {"id":"mmM9NOZLLKY","label":"中角灣","source":"GoOcean海洋遊憩風險資訊"},
+      "新北-十分瀑布公園": {"id":"HirBQsQEUeA","label":"十分瀑布公園","source":"新北旅客 New Taipei Tour"},
+      "新北-九份": {"id":"XSD5ptYisw8","label":"新北九份","source":"新北旅客 New Taipei Tour"},
+      "新北-內洞國家森林遊樂區": {"id":"lX2MYEFomK0","label":"內洞國家森林遊樂區","source":"國家森林遊樂區即時影像"},
+      "新北-三峽老街北段": {"id":"M24SZJU-uoo","label":"三峽老街北段","source":"三峽民權老街商圈"},
+   
+   "新北-三峽老街南段": {"id":"R_5jhoux3nY","label":"三峽老街南段","source":"三峽民權老街商圈"},
+      "新北-烏來吊橋": {"id":"jGoYvmTxLyU","label":"烏來吊橋","source":"水利署水利防災組"},
+      "新北-員山子": {"id":"JkGKqXOt9Ls","label":"員山子","source":"水利署水利防災組"},
+      "新北-文山農場大草皮": {"id":"_LRkfObNP_U","label":"文山農場大草皮","source":"新北市農會文山農場"},
+      "基隆-外木山": {"id":"LInNQYAbAwQ","label":"外木山","source":"GoOcean海洋遊憩風險資訊"},
+      "桃園-國際機場": {"id":"91PfFoqvuUk","label":"桃園機場","source":"遊桃園 Taoyuan Travel"},
+      "桃園-桃園機場南跑道": {"id":"y3_x8el5ZJY","label":"TPE 南跑道","source":"Taoyuan Airport"},
+      "桃園-桃園機場北跑道": {"id":"wWEnxWA7nnY","label":"TPE 北跑道","source":"Taoyuan Airport"},
+      "桃園-永安漁港": {"id":"tD_a03trUvE","label":"永安漁港","source":"遊桃園 Taoyuan Travel"},
+      "桃園-拉拉山遊客中心": {"id":"YkIUZjVlhv4","label":"拉拉山遊客中心","source":"遊桃園 Taoyuan Travel"},
+      "桃園-虎頭山環保公園": {"id":"tu_gsIkNt-w","label":"虎頭山環保公園","source":"遊桃園 Taoyuan Travel"},
+      "桃園-小烏來天空步道": {"id":"neaiCec1kec","label":"小烏來天空步道","source":"遊桃園 Taoyuan Travel"},
+     
+  "桃園-角板山思親亭": {"id":"3Za9y4z_Lzc","label":"角板山思親亭","source":"遊桃園 Taoyuan Travel"},
+      "桃園-三龜戲水觀景平台": {"id":"5YDXZ1aiR5Y","label":"三龜戲水觀景平台","source":"遊桃園 Taoyuan Travel"},
+      "桃園-大溪橋": {"id":"oFJ6gCaBb_Q","label":"大溪橋","source":"遊桃園 Taoyuan Travel"},
+      "桃園-虎頭山奧爾森林學堂": {"id":"yQSmajHyMhU","label":"奧爾森林學堂","source":"遊桃園 Taoyuan Travel"},
+      "桃園-角板山梅園": {"id":"-xT1bZhWLuU","label":"角板山梅園","source":"遊桃園 Taoyuan Travel"},
+      "桃園-角板山生態池": {"id":"XEbo8NzMTbQ","label":"角板山生態池","source":"遊桃園 Taoyuan Travel"},
+      "桃園-大溪老街": {"id":"XUWjAsajKXg","label":"大溪老街","source":"遊桃園 Taoyuan Travel"},
+      "桃園-石門水庫": {"id":"GUCaVR88ZFU","label":"石門水庫","source":"遊桃園 Taoyuan Travel"},
+      "桃園-慈湖水岸廣場": {"id":"pSQ0e-ZTZ5g","label":"慈湖水岸廣場","source":"遊桃園 Taoyuan Travel"},
+      "桃園-阿姆坪薑母島": {"id":"EUOp2LchPQM","label":"薑母島","source":"遊桃園 Taoyuan Travel"},
+      "桃園-上巴陵": {"id":"nV-DKquUjFs","label":"上巴陵","source":"遊桃園 Taoyuan Travel"},
+      
+  "桃園-桃園國際機場凱悅酒店": {"id":"68GFgzQxrXs","label":"機場凱悅","source":"遊桃園 Taoyuan Travel"},
+      "桃園-小烏來寰宇平台": {"id":"PJWye36lEj4","label":"寰宇平台","source":"遊桃園 Taoyuan Travel"},
+      "桃園-許厝港濕地": {"id":"44JArbF682k","label":"許厝港濕地","source":"遊桃園 Taoyuan Travel"},
+      "宜蘭-外澳沙灘": {"id":"UgoT-QTbYvo","label":"宜蘭外澳","source":"necoast nsa"},
+      "宜蘭-福隆海水浴場": {"id":"mMG7v_fET5A","label":"宜蘭福隆","source":"necoast nsa"}, 
+      "宜蘭-石城漁港": {"id":"X76Dkt_fPG0","label":"石城漁港","source":"necoast nsa"}, 
+      "宜蘭-無尾港": {"id":"Bux0vT_5MBw","label":"無尾港","source":"GoOcean海洋遊憩風險資訊"}, 
+      "宜蘭-石城漁港": {"id":"ozZVLl0h--A","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"}, 
+      "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"}, 
+      "苗栗-汶水遊客中心(雪霸)": {"id":"VgmWVBUsfGo","label":"汶水遊客中心","source":"雪霸國家公園 Shei-Pa National Park"},
+      "苗栗-觀霧遊憩區(雪霸)": {"id":"Isp6RQiuxNo","label":"觀霧遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
+      
+  "苗栗-雪見遊憩區(雪霸)": {"id":"2KDE860OW_A","label":"雪見遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
+      "台中-高美濕地": {"id":"fjhg3gAnMFg","label":"台中高美","source":"大玩台中-臺中觀光旅遊局"},
+      "台中-望高寮": {"id":"lhXXhDyjFtI","label":"望高寮","source":"大玩台中-臺中觀光旅遊局"},
+      "彰化-王功漁港": {"id":"hUG2XK08W5Q","label":"彰化王功","source":"愛玩彰化 Changhua Travels"},
+      "南投-合歡山武嶺亭": {"id":"2lVMTs_Fj0M","label":"武嶺亭","source":"台灣即時影像監視器"},
+      "嘉義-奮起湖": {"id":"B6eki-0-w0g","label":"嘉義奮起湖","source":"阿里山國家風景區管理處"},
+      "嘉義-二延平步道": {"id":"j2L_559nCjc","label":"二延平步道","source":"阿里山國家風景區管理處"},
+      "嘉義-太平雲梯": {"id":"dY2cRNr5Buw","label":"太平雲梯","source":"阿里山國家風景區管理處"},
+      "嘉義-觸口遊客中心": {"id":"8KnqJBf_dow","label":"觸口遊客中心","source":"阿里山國家風景區管理處"},
+      "嘉義-愛情大草原": {"id":"hMYs60qtkK8","label":"愛情大草原","source":"阿里山國家風景區管理處"},
+      "嘉義-生力農場": {"id":"agEzlv9n9Eg","label":"生力農場","source":"阿里山國家風景區管理處"},
+      "嘉義-里佳資訊站": {"id":"zDt8FBPozZQ","label":"里佳資訊站","source":"阿里山國家風景區管理處"},
+      "台南-七股賞鳥台": {"id":"5KJe2gCTngA","label":"台南七股","source":"台江國家公園管理處"},
+      "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家公園管理處"},
+   
+    "台南-曾文水庫": {"id":"EH4V8IwFIp4","label":"曾文水庫","source":"西拉雅國家風景區管理處"},
+      "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"},
+      "高雄-旗津海水浴場": {"id":"ka7FV0sCvxQ","label":"高雄旗津","source":"高雄旅遊網"},
+      "高雄-壽山觀景台": {"id":"C03Itx8iSC0","label":"壽山觀景","source":"高雄旅遊網"},
+      "屏東-墾丁南灣": {"id":"jUnFuJSj0OU","label":"墾丁南灣","source":"我愛墾丁旅遊票券中心"},
+      "花蓮-石梯坪": {"id":"mXnigLvIL0Q","label":"花蓮石梯坪","source":"東部海岸國家風景區管理處"},
+      "花蓮-大石鼻山": {"id":"JkoXcXI04Qk","label":"大石鼻山","source":"東部海岸國家風景區管理處"},
+      "花蓮-長虹橋": {"id":"JnD8Rk3o0BM","label":"長虹橋","source":"東部海岸國家風景區管理處"},
+      "台東-鯉魚山": {"id":"BUJJaW0vkJs","label":"台東鯉魚山","source":"Amazing Taitung 台東就醬玩"},
+      "台東-金崙大橋": {"id":"9QqBz3kNHis","label":"台東金崙大橋","source":"Amazing Taitung 台東就醬玩"},
+      "台東-金樽觀浪": {"id":"q3KJt-SZc2s","label":"台東金樽觀浪","source":"Amazing Taitung 台東就醬玩"},
+      "台東-富山": {"id":"Rsq95SQ26bY","label":"台東富山","source":"Amazing Taitung 台東就醬玩"},
+      "台東-杉原灣": {"id":"VqS_Y8ZCj6M","label":"台東杉原灣","source":"Amazing Taitung 台東就醬玩"},
+  
+     "台東-富岡漁港": {"id":"D945F_dauls","label":"台東富岡漁港","source":"Amazing Taitung 台東就醬玩"},
+      "台東-華源曙光觀景台": {"id":"TY4qQElcUrA","label":"台東華源曙光觀景台","source":"Amazing Taitung 台東就醬玩"},
+      "台東-南橫埡口": {"id":"LSkq-wHMxQY","label":"台東南橫口","source":"Amazing Taitung 台東就醬玩"},
+      "台東-池上天堂路": {"id":"6kUEK3LVrro","label":"台東池上天堂路","source":"Amazing Taitung 台東就醬玩"},
+      "台東-多良車站": {"id":"UCG1aXVO8H8","label":"台東多良","source":"Amazing Taitung 台東就醬玩"},
+      "台東-鹿野高台": {"id":"rvc1klNIgQc","label":"鹿野高台","source":"ervnsa"},
+      "台東-成功三仙台": {"id":"dQ7Sd6PGLdA","label":"三仙台","source":"東部海岸國家風景區管理處"},
+      "台東-金樽遊憩區": {"id":"ZdqHgQwvZOw","label":"金樽遊憩區","source":"東部海岸國家風景區管理處"},
+      "台東-都歷遊客中心": {"id":"JhQuR77AR7U","label":"都歷遊客中心","source":"東部海岸國家風景區管理處"},
+      "台東-加路蘭遊憩區": {"id":"AKl3F6cAY2Q","label":"加路蘭遊憩區","source":"東部海岸國家風景區管理處"},
+      "台東-綠島南寮": {"id":"wTHhv7M0vCI","label":"綠島南寮","source":"東部海岸國家風景區管理處"},
+      "台東-綠島帆船鼻": {"id":"pLdBc8PvZko","label":"綠島帆船鼻","source":"東部海岸國家風景區管理處"},
+      "台東-綠島柴口浮潛區": {"id":"a8nJQr5rBGs","label":"綠島柴口浮潛區","source":"東部海岸國家風景區管理處"},
+ 
+     "金門-麒麟山森林公園": {"id":"M4EJtf_iP8s","label":"金門麒麟山公園","source":"樂遊金門"},
+      "金門-134高地": {"id":"-srNHTE-Nf0","label":"金門134高地","source":"樂遊金門"},
+      "金門-建功嶼": {"id":"uh_yNAE01w8","label":"金門建功嶼","source":"樂遊金門"}
+    };
+    /* ---------------------------------------------------------------------- */
+    /* JavaScript 功能 */
+    /* ---------------------------------------------------------------------- */
 
-    // 您的 YouTube Data API Key - 已嵌入
-    const YOUTUBE_API_KEY = "AIzaSyCwW3oAnY8rqIgL-kK9yGCxb7pNsvbvIz4";
+    const PLAYER_IDS = ['player0', 'player1', 'player2', 'player3'];
+    const LABEL_IDS = ['label0', 'label1', 'label2', 'label3'];
+    const DEFAULT_VIDEO_ID = "215ahZ_0rTg";
 
-    const PLAYER_IDS = ['player0', 'player1', 'player2', 'player3'];
-    const LABEL_IDS = ['label0', 'label1', 'label2', 'label3'];
-    const DEFAULT_VIDEO_ID = "215ahZ_0rTg";
+    let selectedCamIndex = 0;
+    let players = [];
+    let streamState = Array(4).fill(null);
+    let isMuted = true;
+    let currentCity = null;
+    // 音樂播放器相關變數
+    let musicPlayer = null;
+    let musicQueue = [];
+    let currentMusicIndex = -1;
+    let playbackMode = 'listLoop';
+    let isPlaying = false;
+    let isMusicReady = false;
+    let currentPlaylistId = null;
+    // 單畫面延遲刷新保護狀態
+    let lastReloadAt = [0, 0, 0, 0];
+    let isReloading = [false, false, false, false];
+    const RELOAD_COOLDOWN_MS = 60000; // 60 秒冷卻時間
 
-    let selectedCamIndex = 0;
-    let players = [];
-    let streamState = Array(4).fill(null);
-    let isMuted = true;
-    let currentCity = null;
-    
-    // 音樂播放器相關變數 (musicQueue 現在儲存的是物件)
-    let musicPlayer = null;
-    let musicQueue = []; // 儲存 {id: videoId, title: string, channel: string}
-    let currentMusicIndex = -1;
-    let playbackMode = 'listLoop'; // 'listLoop' 或 'shuffle'
-    let isPlaying = false;
-    let isMusicReady = false;
-    let currentPlaylistId = null;
-    
-    // 單畫面延遲刷新保護狀態
-    let lastReloadAt = [0, 0, 0, 0];
-    let isReloading = [false, false, false, false];
-    const RELOAD_COOLDOWN_MS = 60000; // 60 秒冷卻時間
-
-    // 城市分組（保持不變）
-    const GROUPED_STREAMS = {};
-    Object.keys(ALL_STREAMS).forEach(key => {
-      const city = key.split('-')[0];
-      if (!GROUPED_STREAMS[city]) GROUPED_STREAMS[city] = [];
-      GROUPED_STREAMS[city].push({ key: key, ...ALL_STREAMS[key] });
-    });
-    const REGION_GROUPS = {
-      '北部': ['台北', '新北', '基隆', '桃園', '宜蘭', '新竹'],
-      '中部': ['苗栗', '台中', '彰化', '南投', '雲林'],
-      '南部': ['嘉義', '台南', '高雄', '屏東', '澎湖'],
-      '東部': ['花蓮', '台東'],
-      '離島': ['金門', '馬祖']
-    };
-    
-    // =======================================================
-    // ============= 【播放器初始化與事件處理】 =============
-    // =======================================================
-
-    function onYouTubeIframeAPIReady() {
-      PLAYER_IDS.forEach((id, index) => {
-        const defaultStreams = [
-          "台北-貓空指南宮",
-          "桃園-國際機場",
-          "台中-高美濕地",
-          "高雄-壽山觀景台"
-        ];
-        const defaultKey = defaultStreams[index];
-        const initialVideoId = (defaultKey && ALL_STREAMS[defaultKey]) 
+    // 城市分組（保持不變）
+    const GROUPED_STREAMS = {};
+    Object.keys(ALL_STREAMS).forEach(key => {
+      const city = key.split('-')[0];
+      if (!GROUPED_STREAMS[city]) GROUPED_STREAMS[city] = [];
+      GROUPED_STREAMS[city].push({ key: key, ...ALL_STREAMS[key] });
+    });
+    const REGION_GROUPS = {
+      '北部': ['台北', '新北', '基隆', '桃園', '宜蘭', '新竹'],
+      '中部': ['苗栗', '台中', '彰化', '南投', '雲林'],
+      '南部': ['嘉義', '台南', '高雄', '屏東', '澎湖'],
+      '東部': ['花蓮', '台東'],
+      '離島': ['金門', '馬祖']
+    };
+    function onYouTubeIframeAPIReady() {
+      PLAYER_IDS.forEach((id, index) => {
+        const defaultStreams = [
+          "台北-貓空指南宮",
+          "桃園-國際機場",
+          "台中-高美濕地",
+          "高雄-壽山觀景台"
+        ];
+        const defaultKey = defaultStreams[index];
+        const initialVideoId = (defaultKey && ALL_STREAMS[defaultKey]) 
 ? ALL_STREAMS[defaultKey].id : DEFAULT_VIDEO_ID;
 
-  
-        players[index] = new YT.Player(id, {
-          videoId: initialVideoId,
-          playerVars: {
-            autoplay: 1, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0,
-            disablekb: 1, loop: 1, mute: 1, playsinline: 1
-          },
-          events: {
-     
-            onReady: onPlayerReady,
-            onStateChange: (event) => handleStateChange(event, index)
-          }
-        });
-        if (defaultKey && ALL_STREAMS[defaultKey]) {
-          streamState[index] = { key: defaultKey, ...ALL_STREAMS[defaultKey] };
-          updateLabel(index);
-        }
-      });
-      
-      // 【音樂播放器初始化】
-      musicPlayer = new YT.Player('player_music', {
-        videoId: '',
-        playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 0, mute: 0, playsinline: 1 },
-        events: { onReady: onMusicPlayerReady, onStateChange: onMusicPlayerStateChange }
-      });
-      
-      renderRegionButtons(); 
-      setTimeout(() => {
-        setInterval(checkStreamDelayLoop, 20000); 
-        console.log("✅ 直播延遲檢測 (持續監測) 已啟動。");
-      }, 5000);
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      
-      // 監聽全螢幕狀態變化
-      document.addEventListener('fullscreenchange', handleFullscreenChange);
-      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-      document.addEventListener('msfullscreenchange', handleFullscreenChange); document.addEventListener('mozfullscreenchange', handleFullscreenChange); 
-    
-        // 【音樂模式按鈕初始化】
-        updateMusicModeButton();
-    }
+  
+        players[index] = new YT.Player(id, {
+          videoId: initialVideoId,
+          playerVars: {
+            autoplay: 1, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0,
+            disablekb: 1, loop: 1, mute: 1, playsinline: 1
+          },
+          events: {
+     
+            onReady: onPlayerReady,
+            onStateChange: (event) => handleStateChange(event, index)
+          }
+        });
+        if (defaultKey && ALL_STREAMS[defaultKey]) {
+          streamState[index] = { key: defaultKey, ...ALL_STREAMS[defaultKey] };
+          updateLabel(index);
+        }
+      });
+      musicPlayer = new YT.Player('player_music', {
+        videoId: '',
+        playerVars: { autoplay: 0, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 0, mute: 0, playsinline: 1 },
+        events: { onReady: onMusicPlayerReady, onStateChange: onMusicPlayerStateChange }
+      });
+      renderRegionButtons(); 
+      setTimeout(() => {
+        setInterval(checkStreamDelayLoop, 20000); 
+        console.log("✅ 直播延遲檢測 (持續監測) 已啟動。");
+      }, 5000);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      
+      // 【新增】監聽全螢幕狀態變化，確保控制列正確顯示/隱藏
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.addEventListener('msfullscreenchange', handleFullscreenChange); document.addEventListener('mozfullscreenchange', handleFullscreenChange); 
+    }
 
-    // (直播畫面) 處理全螢幕狀態變化的函式 (保持不變)
-    function handleFullscreenChange() {
-      const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    // 【新增】處理全螢幕狀態變化的函式
+    function handleFullscreenChange() {
+      const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
 
-      if (fullscreenElement) {
-        document.body.classList.add('fullscreen-active');
-      } else {
-        document.body.classList.remove('fullscreen-active');
-      }
-    }
+      if (fullscreenElement) {
+        document.body.classList.add('fullscreen-active');
+      } else {
+        document.body.classList.remove('fullscreen-active');
+      }
+    }
 
-    // (直播畫面) 選擇鏡頭 (保持不變)
-    function selectCam(index) {
-      selectedCamIndex = index;
+    // 選擇鏡頭 (保持不變)
+    function selectCam(index) {
+      selectedCamIndex = index;
 
-      document.querySelectorAll('.controls button[id^="select-cam-"]').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      document.getElementById(`select-cam-${index}`).classList.add('active');
-    }
+      document.querySelectorAll('.controls button[id^="select-cam-"]').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(`select-cam-${index}`).classList.add('active');
+    }
 
-    // (直播畫面) 播放器事件處理（保持不變）
-    function onPlayerReady(event) {
-      const player = event.target;
-      const index = players.indexOf(player);
-      try { player.setLoop(true); } catch(e) {}
-      try { player.mute(); } catch(e) {}
-      const playPromise = player.playVideo();
+    // ------------------- 播放器事件處理（保持不變） -------------------
 
-      if (playPromise && typeof playPromise.catch === 'function') {
-        playPromise.catch(error => {
-          // 處理自動播放失敗 (例如瀏覽器阻止)
-        });
-      }
-    }
+    function onPlayerReady(event) {
+      const player = event.target;
+      const index = players.indexOf(player);
+      try { player.setLoop(true); } catch(e) {}
+      try { player.mute(); } catch(e) {}
+      const playPromise = player.playVideo();
 
-    // (直播畫面) 狀態變更處理（保持不變）
-    function handleStateChange(event, index) {
-      const st = event.data;
-      const player = event.target;
-      if (st === YT.PlayerState.ENDED) {
-        // 直播結束或遇到錯誤，重新載入
-        const state = streamState[index];
-        if (state) {
-          player.loadVideoById(state.id);
-          player.playVideo();
-        }
-      } else if (st === YT.PlayerState.PAUSED || st === YT.PlayerState.CUED || st === YT.PlayerState.UNSTARTED) {
-        if (isReloading[index]) {
-          return;
-        }
-        // 嘗試恢復播放 (防暫停)
-        setTimeout(() => {
-          try {
-            const s = player.getPlayerState ? player.getPlayerState() : null;
-            if (s !== YT.PlayerState.PLAYING && s !== YT.PlayerState.BUFFERING) {
-              player.playVideo();
-            }
-          } catch(e){}
-        }, 300);
-      }
-    }
+      if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch(error => {
+          // 處理自動播放失敗 (例如瀏覽器阻止)
+          // console.warn(`畫面 ${index} 自動播放失敗:`, error);
+          // 在這裡可以嘗試顯示一個按鈕讓用戶點擊播放
+        });
+      }
+    }
 
-    // (直播畫面) 延遲檢測與強制同步（保持不變）
-    function checkStreamDelayLoop() {
-      const now = Date.now();
-      players.forEach((player, index) => {
-        if (!player || !streamState[index]) return;
-        if (player === musicPlayer) return;
-        try {
-          let current = 0, duration = 0;
-          try { current = player.getCurrentTime ? player.getCurrentTime() : 0; } catch(e){}
-          try { duration = player.getDuration ? player.getDuration() : 0; } catch(e){}
+    function handleStateChange(event, index) {
+      const st = event.data;
+      const player = event.target;
+      if (st === YT.PlayerState.ENDED) {
+        // 直播結束或遇到錯誤，重新載入
+        const state = streamState[index];
+        if (state) {
+          player.loadVideoById(state.id);
+          player.playVideo();
+        }
+      } else if (st === YT.PlayerState.PAUSED || st === YT.PlayerState.CUED || st === YT.PlayerState.UNSTARTED) {
+        if (isReloading[index]) {
+          return;
+        }
+        // 嘗試恢復播放 (防暫停)
+        setTimeout(() => {
+          try {
+            const s = player.getPlayerState ? player.getPlayerState() : null;
+            if (s !== YT.PlayerState.PLAYING && s !== YT.PlayerState.BUFFERING) {
+              player.playVideo();
+            }
+          } catch(e){}
+        }, 300);
+      }
+    }
 
-          if (!isFinite(current) || !isFinite(duration) || current <= 0 || duration <= 0) {
-            if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
-              player.playVideo();
-            }
-            return;
-          }
+    function checkStreamDelayLoop() {
+      const now = Date.now();
+      players.forEach((player, index) => {
+        if (!player || !streamState[index]) return;
+        if (player === musicPlayer) return;
+        try {
+          let current = 0, duration = 0;
+          try { current = player.getCurrentTime ? player.getCurrentTime() : 0; } catch(e){}
+          try { duration = player.getDuration ? player.getDuration() : 0; } catch(e){}
 
-          const delay = duration - current;
-          const state = streamState[index];
+          if (!isFinite(current) || !isFinite(duration) || current <= 0 || duration <= 0) {
+            if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+              player.playVideo();
+            }
+            return;
+          }
 
-          if (delay > 30 && !isReloading[index] && (now - lastReloadAt[index] > RELOAD_COOLDOWN_MS)) {
-            isReloading[index] 
+          const delay = duration - current;
+          const state = streamState[index];
+
+          if (delay > 30 && !isReloading[index] && (now - lastReloadAt[index] > RELOAD_COOLDOWN_MS)) {
+            isReloading[index] 
 = true;
-            lastReloadAt[index] = now;
-            console.log(`⚠️ 畫面 ${index} 偵測到落後 ${Math.floor(delay)} 秒，已執行【Live Edge 強制同步】。`);
-            const liveDuration = player.getDuration();
-            try {
-              if (player && typeof player.seekTo === 'function' && liveDuration > 0) {
-                player.seekTo(liveDuration, true);
-                player.playVideo();
-              } else {
-                player.loadVideoById(state.id, liveDuration);
-                player.playVideo();
-              }
-            } catch(e) {
-              try { player.loadVideoById(state.id, liveDuration); player.playVideo();
-              } catch(e){}
-            }
-            setTimeout(() => { isReloading[index] = false; }, 3000);
-          }
-        } catch(e) { console.error(`檢查延遲失敗 ${index}:`, e); }
-      });
-    }
+            lastReloadAt[index] = now;
+            console.log(`⚠️ 畫面 ${index} 偵測到落後 ${Math.floor(delay)} 秒，已執行【Live Edge 強制同步】。`);
+            const liveDuration = player.getDuration();
+            try {
+              if (player && typeof player.seekTo === 'function' && liveDuration > 0) {
+                player.seekTo(liveDuration, true);
+                player.playVideo();
+              } else {
+                player.loadVideoById(state.id, liveDuration);
+                player.playVideo();
+              }
+            } catch(e) {
+              try { player.loadVideoById(state.id, liveDuration); player.playVideo();
+              } catch(e){}
+            }
+            setTimeout(() => { isReloading[index] = false; }, 3000);
+          }
+        } catch(e) { console.error(`檢查延遲失敗 ${index}:`, e); }
+      });
+    }
 
-    // ------------------- 核心互動功能（直播畫面） -------------------
+    // ------------------- 核心互動功能 -------------------
 
-    function updateLabel(index) {
-      const state = streamState[index];
-      const labelElement = document.getElementById(`label${index}`);
+    function updateLabel(index) {
+      const state = streamState[index];
+      const labelElement = document.getElementById(`label${index}`);
 
-      if (state) {
-        labelElement.innerHTML = `${state.label}<span class="source-on-screen">來源: ${state.source}</span>`;
-      } else {
-        labelElement.innerHTML = `載入中...<span class="source-on-screen"></span>`;
-      }
-    }
+      if (state) {
+        labelElement.innerHTML = `${state.label}<span class="source-on-screen">來源: ${state.source}</span>`;
+      } else {
+        labelElement.innerHTML = `載入中...<span class="source-on-screen"></span>`;
+      }
+    }
 
-    // handleVisibilityChange 函式 (保持不變)
-    function handleVisibilityChange() {
-        if (!document.hidden) {
-            players.forEach(player => {
-                try {
-                    if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
-                        player.playVideo();
-                    }
-                } catch(e) {}
-            });
+    // **【修改區塊 1】: handleVisibilityChange 函式 (已修正)**
+    function handleVisibilityChange() {
+        // 檢查文件是否從隱藏狀態變為可見
+        if (!document.hidden) {
+            // 1. 恢復四個直播畫面
+            players.forEach(player => {
+                try {
+                    // 如果狀態不是播放中，則強制播放
+                    if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
+                        player.playVideo();
+                    }
+                } catch(e) {}
+            });
 
-            if (typeof musicPlayer !== 'undefined' && typeof isPlaying !== 'undefined' && isPlaying) {
-                try {
-                    if (musicPlayer.getPlayerState() !== YT.PlayerState.PLAYING) {
-                        musicPlayer.playVideo();
-                    }
-                } catch(e) {}
-            }
-        }
-    }
-    
+            // 2. 恢復背景音樂播放器 (檢查 isPlaying 是否為 true，表示用戶期望它在播放)
+            if (typeof musicPlayer !== 'undefined' && typeof isPlaying !== 'undefined' && isPlaying) {
+                try {
+                    if (musicPlayer.getPlayerState() !== YT.PlayerState.PLAYING) {
+                        musicPlayer.playVideo();
+                    }
+                } catch(e) {}
+            }
+        }
+    }
+    // **【修改區塊 1 結束】**
+    
 
-    /**
-     * 設定當前選中鏡頭的直播串流。（保持不變）
-     */
-    function setStream(streamKey) {
-      const stream = ALL_STREAMS[streamKey];
-      if (!stream) return;
+    /**
+     * 設定當前選中鏡頭的直播串流。
+     * @param {string} streamKey - 完整的串流鍵 (例如: "台北-象山看101")。
+     */
+    function setStream(streamKey) {
+      const stream = ALL_STREAMS[streamKey];
+      if (!stream) return;
 
-      const player = players[selectedCamIndex];
-      streamState[selectedCamIndex] = { key: streamKey, ...stream };
-      try {
-        player.loadVideoById(stream.id);
-        player.mute();
-        updateLabel(selectedCamIndex);
-      } catch(e) {
-        console.error("設定串流失敗:", e);
-      }
-    }
+      const player = players[selectedCamIndex];
+      streamState[selectedCamIndex] = { key: streamKey, ...stream };
+      try {
+        player.loadVideoById(stream.id);
+        player.mute();
+        updateLabel(selectedCamIndex);
+      } catch(e) {
+        console.error("設定串流失敗:", e);
+      }
+    }
 
-    function toggleFullscreen() {
-      const wrap = document.getElementById('stageWrap');
-      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+    function toggleFullscreen() {
+      const wrap = document.getElementById('stageWrap');
+      const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
 
-      if (!isFullscreen) {
-        // 進入全螢幕
-        document.body.classList.add('fullscreen-active');
-        if (wrap.requestFullscreen) {
-          wrap.requestFullscreen();
-        } else if (wrap.webkitRequestFullscreen) {
-          wrap.webkitRequestFullscreen();
-        } else if (wrap.msRequestFullscreen) {
-          wrap.msRequestFullscreen();
-        } else if (wrap.mozRequestFullScreen) {
-          wrap.mozRequestFullScreen();
-        }
-      } else {
-        // 退出全螢幕
-        document.body.classList.remove('fullscreen-active');
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-          document.mozCancelFullScreen();
-        }
-      }
-    }
+      if (!isFullscreen) {
+        // 進入全螢幕
+        document.body.classList.add('fullscreen-active');
+        if (wrap.requestFullscreen) {
+          wrap.requestFullscreen();
+        } else if (wrap.webkitRequestFullscreen) {
+          wrap.webkitRequestFullscreen();
+        } else if (wrap.msRequestFullscreen) {
+          wrap.msRequestFullscreen();
+        } else if (wrap.mozRequestFullScreen) {
+          wrap.mozRequestFullScreen();
+        }
+      } else {
+        // 退出全螢幕
+        document.body.classList.remove('fullscreen-active');
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        }
+      }
+    }
 
-    function toggleLabels() {
-      const body = document.body;
-      const isHidden = body.classList.toggle('hide-labels');
-      document.getElementById('labelsToggleBtn').innerText = isHidden ?
+    function toggleLabels() {
+      const body = document.body;
+      const isHidden = body.classList.toggle('hide-labels');
+      document.getElementById('labelsToggleBtn').innerText = isHidden ?
 '顯示標籤' : '標籤隱藏';
-    }
+    }
 
-    function toggleMute() {
-      isMuted = !isMuted;
-      players.forEach(player => {
-        try { isMuted ? player.mute() : player.unMute(); } catch(e){}
-      });
-      document.getElementById('muteBtn').innerText = isMuted ? '解除靜音' : '靜音';
-    }
+    function toggleMute() {
+      isMuted = !isMuted;
+      players.forEach(player => {
+        try { isMuted ? player.mute() : player.unMute(); } catch(e){}
+      });
+      document.getElementById('muteBtn').innerText = isMuted ? '解除靜音' : '靜音';
+    }
 
-    /**
-     * 渲染頂層的地區/城市群組按鈕。（保持不變）
-     */
-    function renderRegionButtons() {
-      const container = document.getElementById('regionButtons');
-      container.innerHTML = '';
-      currentCity = null;
+    /**
+     * 渲染頂層的地區/城市群組按鈕。
+     */
+    function renderRegionButtons() {
+      const container = document.getElementById('regionButtons');
+      container.innerHTML = '';
+      currentCity = null;
 
-      Object.keys(REGION_GROUPS).forEach(region => {
-        const cities = REGION_GROUPS[region].filter(city => GROUPED_STREAMS[city] && GROUPED_STREAMS[city].length > 0);
-        if (cities.length === 0) return;
+      Object.keys(REGION_GROUPS).forEach(region => {
+        const cities = REGION_GROUPS[region].filter(city => GROUPED_STREAMS[city] && GROUPED_STREAMS[city].length > 0);
+        if (cities.length === 0) return;
 
-        const regionLabel = document.createElement('span');
-        regionLabel.className = 'region-label';
-        regionLabel.textContent = region + '：';
-        container.appendChild(regionLabel);
+        const regionLabel = document.createElement('span');
+        regionLabel.className = 'region-label';
+        regionLabel.textContent = region + '：';
+        container.appendChild(regionLabel);
 
-        cities.forEach(city => {
-          const streams = GROUPED_STREAMS[city];
-          if (streams.length > 0) {
-            const cityBtn = document.createElement('button');
-            cityBtn.className = 'city-btn';
-            cityBtn.textContent = city;
-            cityBtn.title = `切換顯示 ${city} 的直播列表`;
-            if (currentCity === city) {
-              cityBtn.classList.add('active-city');
-            }
-            cityBtn.onclick = () => showCityStreams(city);
-            container.appendChild(cityBtn);
-          }
-        });
-      });
-    }
+        cities.forEach(city => {
+          const streams = GROUPED_STREAMS[city];
+          if (streams.length > 0) {
+            const cityBtn = document.createElement('button');
+            cityBtn.className = 'city-btn';
+            cityBtn.textContent = city;
+            cityBtn.title = `切換顯示 ${city} 的直播列表`;
+            if (currentCity === city) {
+              cityBtn.classList.add('active-city');
+            }
+            cityBtn.onclick = () => showCityStreams(city);
+            container.appendChild(cityBtn);
+          }
+        });
+      });
+    }
 
-    /**
-     * 顯示特定城市的景點直播按鈕列表 (取代城市按鈕)。（保持不變）
-     */
-    function showCityStreams(city) {
-      const streams = GROUPED_STREAMS[city];
-      if (!streams || streams.length === 0) return;
+    /**
+     * 顯示特定城市的景點直播按鈕列表 (取代城市按鈕)。
+     * @param {string} city - 城市名稱 (例如: "台北")。
+     */
+    function showCityStreams(city) {
+      const streams = GROUPED_STREAMS[city];
+      if (!streams || streams.length === 0) return;
 
-      currentCity = city;
-      const container = document.getElementById('regionButtons');
-      container.innerHTML = '';
+      currentCity = city;
+      const container = document.getElementById('regionButtons');
+      container.innerHTML = '';
 
-      // 1. 顯示返回按鈕
-      const backBtn = document.createElement('button');
-      backBtn.className = 'back-btn';
-      backBtn.textContent = '🏠 返回地區列表';
-      backBtn.title = '返回地區/城市選擇頁面';
-      backBtn.onclick = renderRegionButtons;
-      container.appendChild(backBtn);
+      // 1. 顯示返回按鈕
+      const backBtn = document.createElement('button');
+      backBtn.className = 'back-btn';
+      backBtn.textContent = '🏠 返回地區列表';
+      backBtn.title = '返回地區/城市選擇頁面';
+      backBtn.onclick = renderRegionButtons;
+      container.appendChild(backBtn);
 
-      // 2. 顯示城市名稱標籤
-      const cityLabel = document.createElement('span');
-      cityLabel.className = 'region-label';
-      cityLabel.textContent = `${city}：`;
-      container.appendChild(cityLabel);
+      // 2. 顯示城市名稱標籤
+      const cityLabel = document.createElement('span');
+      cityLabel.className = 'region-label';
+      cityLabel.textContent = `${city}：`;
+      container.appendChild(cityLabel);
 
-      // 3. 顯示該城市所有景點按鈕 (一鍵切換)
-      streams.forEach(stream => {
-        const streamBtn = document.createElement('button');
-        streamBtn.className = 'stream-btn';
-        // 僅顯示地名部分，例如：台北-象山看101 -> 象山看101
-        streamBtn.textContent = stream.key.split('-').slice(1).join('-');
-        streamBtn.title = `切換至：${stream.label} (${stream.source})`;
-        
-        // 使用閉包捕捉 stream.key
-        streamBtn.onclick = (() => {
-          const key = stream.key;
-          return () => setStream(key);
-        })();
-        container.appendChild(streamBtn);
-      });
-    }
+      // 3. 顯示該城市所有景點按鈕 (一鍵切換)
+      streams.forEach(stream => {
+        const streamBtn = document.createElement('button');
+        streamBtn.className = 'stream-btn';
+        // 僅顯示地名部分，例如：台北-象山看101 -> 象山看101
+        streamBtn.textContent = stream.key.split('-').slice(1).join('-');
+        streamBtn.title = `切換至：${stream.label} (${stream.source})`;
+        // 點擊後直接設定串流，不需要 prompt
+        streamBtn.onclick = () => setStream(stream.key);
+        container.appendChild(streamBtn);
+      });
+    }
 
-    
-    // =======================================================
-    // ============= 【音樂播放器專屬功能】實作開始 =============
-    // =======================================================
-    
-    // --- 音樂播放器事件處理 ---
-    
-    function onMusicPlayerReady(event) {
-      isMusicReady = true;
-      console.log("✅ 音樂播放器已準備就緒。");
-      updateMusicControlsVisibility(); // 初始化控制列顯示
-      // 嘗試在就緒時播放隊列中的第一首歌 (如果有的話)
-      if (musicQueue.length > 0 && currentMusicIndex === 0) {
-        playPauseSong();
-      }
-    }
-    
-    function onMusicPlayerStateChange(event) {
-      const st = event.data;
-      const playPauseBtn = document.getElementById('playPauseBtn');
-      
-      if (st === YT.PlayerState.PLAYING) {
-        isPlaying = true;
-        playPauseBtn.innerText = '⏸️';
-      } else if (st === YT.PlayerState.PAUSED || st === YT.PlayerState.UNSTARTED || st === YT.PlayerState.CUED) {
-        isPlaying = false;
-        playPauseBtn.innerText = '▶️';
-      } else if (st === YT.PlayerState.ENDED) {
-        isPlaying = false;
-        playPauseBtn.innerText = '▶️';
-        // 自動跳到下一首歌
-        skipToNextSong(true);
-      }
-    }
-    
-    // --- 播放/控制功能 ---
+    // ------------------- 音樂播放功能 -------------------
 
-    /**
-     * 載入並播放指定索引的歌曲
-     */
-    function loadAndPlaySong(index) {
-      if (!isMusicReady || musicQueue.length === 0) return;
-      
-      const song = musicQueue[index];
-      if (!song) {
-        console.error("嘗試播放無效索引的歌曲:", index);
-        return;
-      }
-      
-      currentMusicIndex = index;
-      try {
-        musicPlayer.loadVideoById(song.id);
-        musicPlayer.playVideo();
-        isPlaying = true;
-        console.log(`🎶 播放: ${song.title} - ${song.channel}`);
-        updateMusicControlsVisibility(); // 確保控制列可見
-      } catch (e) {
-        console.error("播放歌曲失敗:", e);
-      }
-    }
-    
-    function playPauseSong() {
-      if (!isMusicReady || musicQueue.length === 0) return;
-      
-      try {
-        if (musicPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
-          musicPlayer.pauseVideo();
-        } else {
-          musicPlayer.playVideo();
-        }
-      } catch (e) {
-        // 如果播放器未載入歌曲，則載入當前索引的歌曲
-        if (currentMusicIndex !== -1 && musicQueue[currentMusicIndex]) {
-          loadAndPlaySong(currentMusicIndex);
-        }
-      }
-    }
+    function onMusicPlayerReady() {
+      isMusicReady = true;
+      console.log("✅ 音樂播放器已就緒。");
+    }
 
-    function skipToPreviousSong() {
-      if (musicQueue.length === 0) return;
-      
-      let newIndex = currentMusicIndex - 1;
-      
-      if (newIndex < 0) {
-        // 循環到列表末尾
-        newIndex = musicQueue.length - 1;
-      }
-      
-      loadAndPlaySong(newIndex);
-    }
+    // **【修改區塊 3】: onMusicPlayerStateChange 函式 (已修正)**
+    function onMusicPlayerStateChange(event) {
+      if (event.data == YT.PlayerState.PLAYING) {
+        musicBtn.textContent = '⏸ 暫停背景音樂';
+        isMusicPlaying = true;
+        isPlaying = true; 
+        updateMediaSession(); // <-- 新增：註冊 Media Session API
+      } else if (event.data == YT.PlayerState.PAUSED) {
+        musicBtn.textContent = '▶️ 播放背景音樂';
+        isMusicPlaying = false;
+        isPlaying = true; // 即使暫停，也表示用戶期望音樂保持在播放狀態，以便後續恢復
+      } else if (event.data == YT.PlayerState.ENDED) {
+        if (currentPlaylistId) {
+          // 清單模式，YouTube API 會自動處理下一首
+        } else {
+          // 單曲模式
+          currentMusicIndex++;
+          if (playbackMode === 'shuffle') {
+            // 隨機模式，確保下一次是新的隨機歌曲
+            if (musicQueue.length > 0) {
+              let nextIndex;
+              do {
+                nextIndex = Math.floor(Math.random() * musicQueue.length);
+              } while (nextIndex === currentMusicIndex && musicQueue.length > 1);
+              currentMusicIndex = nextIndex;
+            } else {
+              currentMusicIndex = -1; // 沒有歌曲了
+            }
+          } else if (playbackMode === 'listLoop' && currentMusicIndex >= musicQueue.length) {
+            // 列表循環模式
+            currentMusicIndex = 0;
+          }
 
-    /**
-     * 跳到下一首歌曲，支援循環和隨機播放
-     * @param {boolean} [auto=false] 是否為自動播放結束觸發
-     */
-    function skipToNextSong(auto = false) {
-      if (musicQueue.length === 0) {
-        stopMusic();
-        return;
-      }
+          if (currentMusicIndex !== -1 && currentMusicIndex < musicQueue.length) {
+            loadAndPlayCurrentSong();
+          } else {
+            // 列表播放完畢
+            currentMusicIndex = -1;
+            isPlaying = false;
+          }
+        }
+      } else if (event.data == YT.PlayerState.BUFFERING) {
+        // Buffering
+      }
+    }
+    // **【修改區塊 3 結束】**
 
-      let newIndex = currentMusicIndex;
+    function extractVideoId(urlOrId) {
+      if (urlOrId.includes('list=')) {
+        const urlParams = new URLSearchParams(urlOrId.split('?')[1]);
+        const listId = urlParams.get('list');
+        if (listId) return listId;
+      }
+      const match = urlOrId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+      return match ?
+match[1] : (urlOrId.length === 11 ? urlOrId : null);
+    }
 
-      if (playbackMode === 'shuffle') {
-        // 隨機播放
-        while (newIndex === currentMusicIndex) {
-          newIndex = Math.floor(Math.random() * musicQueue.length);
-        }
-      } else {
-        // 列表循環
-        newIndex = currentMusicIndex + 1;
-        if (newIndex >= musicQueue.length) {
-          newIndex = 0;
-        }
-      }
+    function requestSong() {
+      const input = prompt("🎶 輸入 YouTube 影片/清單網址或 ID：\n（例如：影片ID: dQw4w9WgXcQ，或播放清單網址）");
+      if (!input) return;
 
-      // 如果只剩一首歌，且是自動結束觸發，則停止（避免單曲無限循環，除非 mode 是 shuffle 且只有一首）
-      if (musicQueue.length === 1 && auto) {
-        stopMusic();
-        return;
-      }
-      
-      loadAndPlaySong(newIndex);
-    }
-    
-    /**
-     * 停止播放並重設播放狀態
-     */
-    function stopMusic() {
-      if (!isMusicReady) return;
-      try { musicPlayer.stopVideo(); } catch (e) {}
-      isPlaying = false;
-      currentMusicIndex = -1;
-      musicQueue = [];
-      currentPlaylistId = null;
-      document.getElementById('musicControlsContainer').style.display = 'none';
-      console.log("⏹️ 音樂播放已停止並清除列表。");
-    }
-    
-    // --- 模式設定與 Modal 處理 ---
-    
-    function updateMusicModeButton() {
-      const btn = document.getElementById('modeBtn');
-      if (playbackMode === 'shuffle') {
-        btn.innerText = '🔀';
-        btn.title = '模式: 隨機播放';
-      } else {
-        btn.innerText = '🔄';
-        btn.title = '模式: 列表循環';
-      }
-    }
+      const id = extractVideoId(input);
+      if (!id) {
+        alert("無效的 YouTube 網址或 ID。");
+        return;
+      }
 
-    function setPlaybackMode(mode) {
-      playbackMode = mode;
-      updateMusicModeButton();
-      console.log(`音樂模式設定為: ${mode}`);
-      closeMusicSettingsModal();
-    }
-    
-    function openMusicSettingsModal() {
-      const modal = document.getElementById('musicSettingsModal');
-      modal.style.display = 'flex';
-    }
-    
-    function closeMusicSettingsModal() {
-      document.getElementById('musicSettingsModal').style.display = 'none';
-    }
-    
-    function stopAndCloseModal() {
-      stopMusic();
-      closeMusicSettingsModal();
-    }
-    
-    function updateMusicControlsVisibility() {
-      const container = document.getElementById('musicControlsContainer');
-      container.style.display = musicQueue.length > 0 ? 'flex' : 'none';
-    }
+      const isPlaylist = input.includes('list=');
+      if (isPlaylist) {
+        if (currentPlaylistId === id) {
+          alert("該播放清單已在播放中。");
+          return;
+        }
+        currentPlaylistId = id;
+        musicQueue = [];
+        currentMusicIndex = -1;
+        musicPlayer.loadPlaylist({ list: id, listType: 'playlist', index: 0, startSeconds: 0 });
+        document.getElementById('musicControlsContainer').style.display = 'flex';
+        alert(`✅ 已載入播放清單 ID: ${id}`);
+      } else {
+        if (currentPlaylistId) {
+          alert("當前正在播放清單，請先停止清單播放 (設定 -> 停止)，再點播單曲。");
+          return;
+        }
 
-    // --- 播放列表 Modal 處理 ---
+        musicQueue.push(id);
+        alert(`✅ 已將影片 ID: ${id} 加入播放列表。`);
+        
+        if (currentMusicIndex === -1 || musicPlayer.getPlayerState() === YT.PlayerState.ENDED) {
+          currentMusicIndex = currentMusicIndex === -1 ? 0 : musicQueue.length - 1;
+          loadAndPlayCurrentSong();
+        }
+        document.getElementById('musicControlsContainer').style.display = 'flex';
+      }
+    }
+    
+    // **【修改區塊 2】: 新增 updateMediaSession 函式 (Media Session API 註冊)**
+    function updateMediaSession() {
+        // 檢查瀏覽器是否支援 Media Session API
+        if ('mediaSession' in navigator) {
+            // 1. 設定媒體資訊 (顯示在系統通知/鎖定畫面)
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: '背景音樂播放中', 
+                artist: '台灣即時直播四分割監看',
+                album: '背景播放列表',
+                // artwork: [{ src: '您的圖片URL', sizes: '96x96', type: 'image/png' }] // 您可以自行增加圖片URL
+            });
 
-    function showMusicQueueStatusModal() {
-      const content = document.getElementById('queueListContent');
-      const modal = document.getElementById('musicQueueModal');
-      
-      if (musicQueue.length === 0) {
-        content.innerHTML = '<p style="color:#aaa; text-align:center;">播放列表是空的。請點歌！</p>';
-      } else {
-        let listHTML = '<ul>';
-        musicQueue.forEach((song, index) => {
-          const isActive = index === currentMusicIndex;
-          listHTML += `
-            <li style="padding: 8px; border-bottom: 1px solid #333; margin-bottom: 5px; cursor: pointer; background: ${isActive ? '#0078d7' : 'transparent'}; border-radius: 4px;"
-              title="點擊播放" onclick="loadAndPlaySong(${index})">
-              <span class="song-title">${isActive ? '▶️ ' : ''}${index + 1}. ${song.title}</span>
-              <span class="song-channel">${song.channel}</span>
-            </li>
-          `;
-        });
-        listHTML += '</ul>';
-        content.innerHTML = listHTML;
-      }
-      
-      modal.style.display = 'flex';
-    }
+            // 2. 設置控制項處理 (讓系統控制鍵可以操作播放/暫停)
 
-    function closeMusicQueueModal() {
-      document.getElementById('musicQueueModal').style.display = 'none';
-    }
+            // 設置「播放」按鈕的行為
+            navigator.mediaSession.setActionHandler('play', () => {
+                if (typeof musicPlayer !== 'undefined') musicPlayer.playVideo();
+                // 假設您有更新 UI 按鈕的函式
+                if (typeof updatePlayPauseButton === 'function') updatePlayPauseButton(true);
+            });
 
-    // --- YouTube API 整合函式 (核心點歌邏輯) ---
-    
-    /**
-     * 使用 YouTube Data API 搜尋影片
-     * @param {string} query 搜尋關鍵字
-     * @returns {Promise<object|null>} 包含影片 ID 和資訊的物件，或 null
-     */
-    async function searchYoutube(query) {
-      if (!query) return null;
-      // 搜尋 type=video 且只取一個結果
-      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&maxResults=1&key=${YOUTUBE_API_KEY}`;
+            // 設置「暫停」按鈕的行為
+            navigator.mediaSession.setActionHandler('pause', () => {
+                if (typeof musicPlayer !== 'undefined') musicPlayer.pauseVideo();
+                if (typeof updatePlayPauseButton === 'function') updatePlayPauseButton(false);
+            });
 
-      try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`API response status: ${response.status}`);
-        }
-        const data = await response.json();
+            // 設置「下一首」和「上一首」的行為 (前提是您的程式中有定義 nextMusic/prevMusic 函式)
+            if (typeof nextMusic === 'function') {
+                navigator.mediaSession.setActionHandler('nexttrack', nextMusic);
+            }
+            if (typeof prevMusic === 'function') {
+                navigator.mediaSession.setActionHandler('previoustrack', prevMusic);
+            }
+        }
+    }
+    // **【修改區塊 2 結束】**
 
-        if (data.items && data.items.length > 0) {
-          const result = data.items[0];
-          const videoId = result.id.videoId;
-          const title = result.snippet.title;
-          const channelTitle = result.snippet.channelTitle;
 
-          console.log(`✅ YouTube 搜尋結果: 找到影片 "${title}" (${videoId})`);
-          return {
-            id: videoId,
-            title: title,
-            channel: channelTitle,
-            isPlaylist: false
-          };
-        } else {
-          alert("搜尋不到相關影片，請嘗試更精確的關鍵字。");
-          return null;
-        }
-      } catch (error) {
-        console.error("YouTube Search API 呼叫失敗:", error);
-        alert("搜尋功能執行失敗，請檢查 API Key 或網路連線。");
-        return null;
-      }
-    }
+    function loadAndPlayCurrentSong() {
+      if (!isMusicReady || musicQueue.length === 0 || currentMusicIndex < 0) return;
 
-    /**
-     * 請求點歌或播放清單
-     */
-    async function requestSong() {
-      let input = prompt("🎶 請輸入 YouTube 網址/ID，播放清單 ID，或 'search: 關鍵字' 來點歌：");
+      const songId = musicQueue[currentMusicIndex];
+      musicPlayer.loadVideoById(songId, 0);
+      musicPlayer.unMute();
+      musicPlayer.playVideo();
+      isPlaying = true;
+      document.getElementById('playPauseBtn').innerText = '⏸️';
+    }
 
-      if (!input) return;
-      input = input.trim();
+    function playPauseSong() {
+      if (!musicPlayer || musicQueue.length === 0) return;
 
-      let result = null;
+      try {
+        if (musicPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+          musicPlayer.pauseVideo();
+          document.getElementById('playPauseBtn').innerText = '▶️';
+        } else {
+          musicPlayer.playVideo();
+          document.getElementById('playPauseBtn').innerText = '⏸️';
+        }
+      } catch(e) {
+        // 如果 API 呼叫失敗 (例如播放器未完全載入)，嘗試強制載入並播放
+        if (musicQueue.length > 0 && currentMusicIndex !== -1) {
+          loadAndPlayCurrentSong();
+        }
+      }
+    }
 
-      if (input.toLowerCase().startsWith('search:')) {
-        // 處理 search: 關鍵字
-        const query = input.substring(7).trim();
-        if (query) {
-          const searchResult = await searchYoutube(query);
-          if (searchResult) {
-            // 搜尋結果視為單一影片，使用其 ID 進行後續處理
-            result = { videoId: searchResult.id, isPlaylist: false };
-          }
-        } else {
-          alert("請在 search: 後面輸入有效的關鍵字。");
-          return;
-        }
-      } else {
-        // 處理 ID/URL
-        const videoMatch = input.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/ ]{11})|list=([^"&?\/ ]+)/i);
-        
-        if (videoMatch) {
-          if (videoMatch[2]) {
-            // 播放清單 ID (list=...)
-            result = { playlistId: videoMatch[2], isPlaylist: true };
-          } else {
-            // 影片 ID (v=... 或 youtu.be/...)
-            result = { videoId: videoMatch[1], isPlaylist: false };
-          }
-        } else if (input.length === 11) {
-          // 可能是純影片 ID
-          result = { videoId: input, isPlaylist: false };
-        } else if (input.startsWith('PL') || input.startsWith('UU') || input.startsWith('RD') || input.startsWith('OL')) {
-          // 可能是純播放清單 ID
-          result = { playlistId: input, isPlaylist: true };
-        } else {
-          alert("輸入格式錯誤或無法識別 ID/網址。");
-          return;
-        }
-      }
-      
-      if (!result) return;
-      
-      // 清除舊列表 (為了簡化，新請求會清空舊列表)
-      musicQueue = [];
-      currentMusicIndex = -1;
-      currentPlaylistId = null;
+    function updatePlayPauseButton(isCurrentlyPlaying) {
+      document.getElementById('playPauseBtn').innerText = isCurrentlyPlaying ? '⏸️' : '▶️';
+    }
 
-      if (result.isPlaylist) {
-        await fetchVideoInfo(null, result.playlistId);
-      } else {
-        await fetchVideoInfo(result.videoId, null);
-      }
-    }
+    function skipToNextSong() {
+      if (currentPlaylistId) {
+        musicPlayer.nextVideo();
+        return;
+      }
+      if (musicQueue.length === 0) return;
 
-    /**
-     * 獲取影片/播放清單資訊並加入隊列
-     */
-    async function fetchVideoInfo(videoId, playlistId) {
-      if (!videoId && !playlistId) return;
+      if (playbackMode === 'shuffle') {
+        let nextIndex;
+        do {
+          nextIndex = Math.floor(Math.random() * musicQueue.length);
+        } while (nextIndex === currentMusicIndex && musicQueue.length > 1);
+        currentMusicIndex = nextIndex;
+      } else {
+        currentMusicIndex++;
+        if (currentMusicIndex >= musicQueue.length) {
+          currentMusicIndex = 0; // 循環
+        }
+      }
+      loadAndPlayCurrentSong();
+    }
 
-      if (playlistId) {
-        console.log(`⏳ 正在載入播放清單 ID: ${playlistId} 的影片列表...`);
-        alert("播放清單功能已啟動，但載入多個影片的細節邏輯複雜，此處為簡化範例，建議檢查控制台輸出。");
-        
-        // 這裡應該是 Playlist API 呼叫的邏輯 (複雜，用模擬數據代替)
-        // 在實際應用中，您需要使用 `playlistItems` endpoint 獲取所有影片。
-        currentPlaylistId = playlistId;
-        musicQueue.push({ id: 'Ndo_8RuefH4', title: '清單範例 1: 大稻埕', channel: 'Taipei Cam' });
-        musicQueue.push({ id: 'z_fY1pj1VBw', title: '清單範例 2: 象山看101', channel: 'Taipei Cam' });
-        
-      } else if (videoId) {
-        // 單一影片處理 (包括 search: 找到的影片)
-        const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${YOUTUBE_API_KEY}`;
-        try {
-          const response = await fetch(url);
-          const data = await response.json();
-          
-          if (data.items && data.items.length > 0) {
-            const item = data.items[0].snippet;
-            const newSong = {
-              id: videoId,
-              title: item.title,
-              channel: item.channelTitle
-            };
-            
-            musicQueue.push(newSong);
-            console.log(`✅ 已將單曲 "${newSong.title}" 加入播放列表。`);
-            
-          } else {
-            alert("找不到該影片資訊，ID 可能無效。");
-            return;
-          }
-        } catch (error) {
-          console.error("Fetch Single Video Info Failed:", error);
-          alert("載入單曲資訊失敗。");
-          return;
-        }
-      }
-      
-      // 列表載入完成後，開始播放第一首
-      if (musicQueue.length > 0) {
-        loadAndPlaySong(0);
-      }
-    }
-    
-    // =======================================================
-    // ============= 【音樂播放器專屬功能】實作結束 =============
-    // =======================================================
-  </script>
+    function skipToPreviousSong() {
+      if (currentPlaylistId) {
+        musicPlayer.previousVideo();
+        return;
+      }
+      if (musicQueue.length === 0) return;
+
+      currentMusicIndex--;
+      if (currentMusicIndex < 0) {
+        currentMusicIndex = musicQueue.length - 1; // 循環
+      }
+      loadAndPlayCurrentSong();
+    }
+
+    function openMusicSettingsModal() {
+      updateModeButtons();
+      document.getElementById('musicSettingsModal').style.display = 'flex';
+    }
+
+    function closeMusicSettingsModal() {
+      document.getElementById('musicSettingsModal').style.display = 'none';
+    }
+
+    function closeMusicQueueModal() {
+      document.getElementById('musicQueueModal').style.display = 'none';
+    }
+
+    function updateModeButtons() {
+      document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`mode${playbackMode.charAt(0).toUpperCase() + playbackMode.slice(1)}`).classList.add('active');
+    }
+
+    function setPlaybackMode(mode) {
+      if (currentPlaylistId) {
+        alert("正在播放清單，無法切換單曲模式的播放設定。");
+        return;
+      }
+      playbackMode = mode;
+      updateModeButtons();
+      alert(`✅ 播放模式已切換為：${mode === 'listLoop' ? '列表循環' : '隨機播放'}`);
+    }
+
+    function stopAndCloseModal() {
+      if (musicPlayer) {
+        musicPlayer.stopVideo();
+      }
+      musicQueue = [];
+      currentPlaylistId = null;
+      currentMusicIndex = -1;
+      document.getElementById('musicControlsContainer').style.display = 'none';
+      isPlaying = false;
+      document.getElementById('playPauseBtn').innerText = '▶️';
+      closeMusicSettingsModal();
+    }
+
+    function showMusicQueueStatusModal() {
+      const queueContentDiv = document.getElementById('queueListContent');
+      
+      let content = '';
+      if (currentPlaylistId) {
+        content = `<p style="color:#fff; font-size:14px; margin-top:0;">正在播放清單 ID：<br><span style="color:#0078d7; word-break: break-all;">${currentPlaylistId}</span></p>`;
+        content += `<p style="color:#aaa; font-size:12px;">清單模式無法查看歌曲列表。</p>`;
+      } else if (musicQueue.length === 0) {
+        content = '<p style="text-align:center; color:#ccc;">播放列表是空的。</p>';
+      } else {
+        content += `<p style="color:#fff; font-size:14px; margin-top:0;">總計：${musicQueue.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}</p><ul style="list-style:none; padding:0; max-height:200px; overflow-y:auto;">`;
+        
+        musicQueue.forEach((id, index) => {
+          const isCurrent = index === currentMusicIndex;
+          content += `<li style="padding:4px 0; font-size:13px; color:${isCurrent ? '#f90' : '#ccc'}; word-break: break-all;">
+            ${isCurrent ? '▶ ' : ''}ID: ${id}
+          </li>`;
+        });
+        content += `</ul>`;
+      }
+      
+      queueContentDiv.innerHTML = content;
+      document.getElementById('musicQueueModal').style.display = 'flex';
+    }
+  </script>
 </body>
 </html>
