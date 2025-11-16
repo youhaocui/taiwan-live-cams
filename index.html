@@ -67,6 +67,14 @@
         background-color: #0078d7;
         border-color: #0078d7;
     }
+    
+    /* 【新增修正】 強制隱藏 YouTube 片尾推薦影片 (End Screens) */
+    /* 這些類別是 YouTube 片尾畫面常用的類別，用來阻擋它們的視覺呈現 */
+    .ytp-ce-element,
+    .ytp-ce-covering-overlay {
+        display: none !important;
+    }
+    /* 【新增修正結束】 */
 
 
     /* 影片舞台四格 */
@@ -570,7 +578,7 @@ padding-right:5px;"></div>
       }
     }
 
-    // **【修改區塊 1】: handleVisibilityChange 函式 (已修正)**
+    // 【已修正】: handleVisibilityChange 函式
     function handleVisibilityChange() {
         // 檢查文件是否從隱藏狀態變為可見
         if (!document.hidden) {
@@ -594,7 +602,6 @@ padding-right:5px;"></div>
             }
         }
     }
-    // **【修改區塊 1 結束】**
     
 
     /**
@@ -742,7 +749,7 @@ padding-right:5px;"></div>
       console.log("✅ 音樂播放器已就緒。");
     }
 
-    // **【修改區塊 3】: onMusicPlayerStateChange 函式 (已修正)**
+    // 【已修正】: onMusicPlayerStateChange 函式
     function onMusicPlayerStateChange(event) {
       if (event.data == YT.PlayerState.PLAYING) {
         musicBtn.textContent = '⏸ 暫停背景音樂';
@@ -787,7 +794,7 @@ padding-right:5px;"></div>
         // Buffering
       }
     }
-    // **【修改區塊 3 結束】**
+    
 
     function extractVideoId(urlOrId) {
       if (urlOrId.includes('list=')) {
@@ -839,7 +846,7 @@ match[1] : (urlOrId.length === 11 ? urlOrId : null);
       }
     }
     
-    // **【修改區塊 2】: 新增 updateMediaSession 函式 (Media Session API 註冊)**
+    // 【已修正】: 新增 updateMediaSession 函式 (Media Session API 註冊)
     function updateMediaSession() {
         // 檢查瀏覽器是否支援 Media Session API
         if ('mediaSession' in navigator) {
@@ -875,7 +882,6 @@ match[1] : (urlOrId.length === 11 ? urlOrId : null);
             }
         }
     }
-    // **【修改區塊 2 結束】**
 
 
     function loadAndPlayCurrentSong() {
