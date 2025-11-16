@@ -184,12 +184,6 @@
       overflow-y: auto;
     }
 
-    #queueListContent li {
-      padding: 6px 0; /* 增加間距 */
-      border-bottom: 1px solid #333;
-      font-size: 13px;
-    }
-
     .song-title {
       color: #fff;
       display: block;
@@ -197,6 +191,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-right: 5px;
     }
 
     .song-channel {
@@ -374,7 +369,7 @@ padding-right:5px;"></div>
       "嘉義-生力農場": {"id":"agEzlv9n9Eg","label":"生力農場","source":"阿里山國家風景區管理處"},
       "嘉義-里佳資訊站": {"id":"zDt8FBPozZQ","label":"里佳資訊站","source":"阿里山國家風景區管理處"},
       "台南-七股賞鳥台": {"id":"5KJe2gCTngA","label":"台南七股","source":"台江國家公園管理處"},
-      "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家公園管理處"},
+      "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家風景區管理處"},
     
       "台南-曾文水庫": {"id":"EH4V8IwFIp4","label":"曾文水庫","source":"西拉雅國家風景區管理處"},
       "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"},
@@ -412,7 +407,7 @@ padding-right:5px;"></div>
     /* JavaScript 功能 */
     /* ---------------------------------------------------------------------- */
 
-    // 您的 YouTube Data API Key
+    // 您的 YouTube Data API Key - 已嵌入
     const YOUTUBE_API_KEY = "AIzaSyCwW3oAnY8rqIgL-kK9yGCxb7pNsvbvIz4";
 
     const PLAYER_IDS = ['player0', 'player1', 'player2', 'player3'];
@@ -424,15 +419,16 @@ padding-right:5px;"></div>
     let streamState = Array(4).fill(null);
     let isMuted = true;
     let currentCity = null;
-    // 音樂播放器相關變數
+    
+    // 音樂播放器相關變數 (musicQueue 現在儲存的是物件)
     let musicPlayer = null;
-    // 關鍵：musicQueue 現在儲存的是物件 { id: 'videoId', title: 'Song Title', channel: 'Channel Name' }
     let musicQueue = []; 
     let currentMusicIndex = -1;
     let playbackMode = 'listLoop';
     let isPlaying = false;
     let isMusicReady = false;
     let currentPlaylistId = null;
+    
     // 單畫面延遲刷新保護狀態
     let lastReloadAt = [0, 0, 0, 0];
     let isReloading = [false, false, false, false];
@@ -500,7 +496,7 @@ padding-right:5px;"></div>
       document.addEventListener('msfullscreenchange', handleFullscreenChange); document.addEventListener('mozfullscreenchange', handleFullscreenChange); 
     }
 
-    // 處理全螢幕狀態變化的函式
+    // 處理全螢幕狀態變化的函式 (保持不變)
     function handleFullscreenChange() {
       const fullscreenElement = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
 
@@ -620,7 +616,7 @@ padding-right:5px;"></div>
       }
     }
 
-    // handleVisibilityChange 函式
+    // handleVisibilityChange 函式 (保持不變)
     function handleVisibilityChange() {
         if (!document.hidden) {
             players.forEach(player => {
@@ -643,8 +639,7 @@ padding-right:5px;"></div>
     
 
     /**
-     * 設定當前選中鏡頭的直播串流。
-     * @param {string} streamKey - 完整的串流鍵 (例如: "台北-象山看101")。
+     * 設定當前選中鏡頭的直播串流。（保持不變）
      */
     function setStream(streamKey) {
       const stream = ALL_STREAMS[streamKey];
@@ -743,7 +738,6 @@ padding-right:5px;"></div>
 
     /**
      * 顯示特定城市的景點直播按鈕列表 (取代城市按鈕)。（保持不變）
-     * @param {string} city - 城市名稱 (例如: "台北")。
      */
     function showCityStreams(city) {
       const streams = GROUPED_STREAMS[city];
@@ -789,18 +783,13 @@ padding-right:5px;"></div>
 
     function onMusicPlayerStateChange(event) {
       if (event.data == YT.PlayerState.PLAYING) {
-        isMusicPlaying = true;
         isPlaying = true; 
         updateMediaSession(); 
         updatePlayPauseButton(true);
       } else if (event.data == YT.PlayerState.PAUSED) {
-        isMusicPlaying = false;
-        isPlaying = true; 
         updatePlayPauseButton(false);
       } else if (event.data == YT.PlayerState.ENDED) {
-        if (currentPlaylistId) {
-          // 清單模式，YouTube API 會自動處理下一首
-        } else {
+        if (!currentPlaylistId) {
           // 單曲模式
           currentMusicIndex++;
           if (playbackMode === 'shuffle') {
@@ -823,6 +812,8 @@ padding-right:5px;"></div>
             // 列表播放完畢
             currentMusicIndex = -1;
             isPlaying = false;
+            document.getElementById('playPauseBtn').innerText = '▶️';
+            alert("播放列表已結束。");
           }
         }
       }
@@ -862,18 +853,55 @@ padding-right:5px;"></div>
       const match = urlOrId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+\&v=))([^&?]+)/);
       return match ? match[1] : (urlOrId.length === 11 ? urlOrId : null);
     }
+    
+    /**
+     * 處理單曲加入播放列表的邏輯，包括 Data API 呼叫。
+     */
+    async function fetchAndQueueSong(videoId) {
+        if (currentPlaylistId) {
+            alert("當前正在播放清單，請先停止清單播放 (設定 -> 停止)，再點播單曲。");
+            return;
+        }
+
+        document.getElementById('requestBtn').disabled = true;
+        
+        try {
+            const song = await getVideoDetails(videoId);
+            if (song.title === '未知歌曲' || song.title === '獲取失敗') {
+                throw new Error("無法取得影片標題，影片可能不存在或被移除。");
+            }
+            
+            musicQueue.push(song);
+
+            alert(`✅ 已將影片 "${song.title}" 加入播放列表。\n頻道: ${song.channel}`);
+            
+            if (currentMusicIndex === -1 || musicPlayer.getPlayerState() === YT.PlayerState.ENDED) {
+                currentMusicIndex = musicQueue.length - 1;
+                loadAndPlayCurrentSong();
+            }
+            document.getElementById('musicControlsContainer').style.display = 'flex';
+
+        } catch (error) {
+            console.error("處理單曲點播失敗:", error);
+            alert(`❌ 點播失敗。錯誤: ${error.message}`);
+        } finally {
+            document.getElementById('requestBtn').disabled = false;
+        }
+    }
+
 
     /**
      * 根據關鍵字呼叫 YouTube Data API 進行搜尋。
      * @param {string} keyword - 搜尋的關鍵字。
      */
     async function searchYouTubeVideo(keyword) {
-        if (!YOUTUBE_API_KEY || YOUTUBE_API_KEY === "YOUR_GOOGLE_API_KEY_HERE") {
+        if (!YOUTUBE_API_KEY) {
             alert("請先在程式碼中設定 YOUTUBE_API_KEY 才能使用關鍵字搜尋功能。");
             return;
         }
 
         const apiUrl = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(keyword)}&type=video&maxResults=5&key=${YOUTUBE_API_KEY}`;
+        document.getElementById('requestBtn').disabled = true;
 
         try {
             const response = await fetch(apiUrl);
@@ -891,7 +919,8 @@ padding-right:5px;"></div>
             const choices = [];
 
             data.items.forEach((item, index) => {
-                const title = item.snippet.title.replace(/&#39;/g, "'").replace(/&quot;/g, '"');
+                // 清理標題中的 HTML 實體
+                const title = item.snippet.title.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&');
                 selectionPrompt += `${index + 1}. ${title} (${item.snippet.channelTitle})\n`;
                 // 將完整的 song object 儲存到 choices
                 choices.push({
@@ -906,21 +935,29 @@ padding-right:5px;"></div>
 
             if (index >= 0 && index < choices.length) {
                 const song = choices[index];
+                
+                if (currentPlaylistId) {
+                    alert("當前正在播放清單，請先停止清單播放 (設定 -> 停止)，再點播單曲。");
+                    return;
+                }
+                
                 musicQueue.push(song);
                 alert(`✅ 已將影片 "${song.title}" 加入播放列表。`);
 
                 if (currentMusicIndex === -1 || musicPlayer.getPlayerState() === YT.PlayerState.ENDED) {
-                    currentMusicIndex = currentMusicIndex === -1 ? 0 : musicQueue.length - 1;
+                    currentMusicIndex = musicQueue.length - 1;
                     loadAndPlayCurrentSong();
                 }
                 document.getElementById('musicControlsContainer').style.display = 'flex';
             } else if (selection !== null && selection !== "") {
-                alert("無效的選擇編號。");
+                alert("無效的選擇編號或您已取消。");
             }
 
         } catch (error) {
             console.error("YouTube 搜尋失敗:", error);
             alert(`搜尋失敗，請檢查您的 API Key 和配額。錯誤: ${error.message}`);
+        } finally {
+            document.getElementById('requestBtn').disabled = false;
         }
     }
 
@@ -928,10 +965,11 @@ padding-right:5px;"></div>
     /**
      * 處理用戶的點歌請求（支援 ID/URL/清單 和 關鍵字搜尋）。
      */
-    async function requestSong() {
-        const input = prompt("🎶 輸入 YouTube 影片/清單網址或 ID：\n（或輸入 search: [關鍵字] 進行搜尋）");
+    function requestSong() {
+        const input = prompt("🎶 輸入 YouTube 影片/清單網址或 ID：\n（或輸入 search: 關鍵字 進行搜尋）");
         if (!input) return;
 
+        // 1. 處理搜尋指令 (search: 歌曲名稱)
         if (input.toLowerCase().startsWith('search:')) {
             const keyword = input.substring(7).trim();
             if (keyword) {
@@ -942,15 +980,17 @@ padding-right:5px;"></div>
             return;
         }
         
-        // 處理 ID / URL / 清單的舊有邏輯
+        // 2. 處理 ID / URL / 清單的舊有邏輯
         const id = extractVideoId(input);
         if (!id) {
-            alert("無效的 YouTube 網址或 ID。");
+            alert("無效的 YouTube 網址或 ID。請確保是 11 位元 ID 或有效的 YouTube 網址。");
             return;
         }
 
         const isPlaylist = input.includes('list=');
+        
         if (isPlaylist) {
+            // 播放清單邏輯
             if (currentPlaylistId === id) {
                 alert("該播放清單已在播放中。");
                 return;
@@ -962,31 +1002,27 @@ padding-right:5px;"></div>
             document.getElementById('musicControlsContainer').style.display = 'flex';
             alert(`✅ 已載入播放清單 ID: ${id}`);
         } else {
-            if (currentPlaylistId) {
-                alert("當前正在播放清單，請先停止清單播放 (設定 -> 停止)，再點播單曲。");
-                return;
-            }
-            
-            // 關鍵：對於單曲，獲取其詳細信息
-            const song = await getVideoDetails(id);
-            musicQueue.push(song);
-
-            alert(`✅ 已將影片 "${song.title}" 加入播放列表。`);
-            
-            if (currentMusicIndex === -1 || musicPlayer.getPlayerState() === YT.PlayerState.ENDED) {
-                currentMusicIndex = currentMusicIndex === -1 ? 0 : musicQueue.length - 1;
-                loadAndPlayCurrentSong();
-            }
-            document.getElementById('musicControlsContainer').style.display = 'flex';
+            // 單曲邏輯，呼叫 Data API 獲取標題並排入隊列
+            fetchAndQueueSong(id);
         }
     }
     
-    // updateMediaSession 函式 (Media Session API 註冊)
+    // updateMediaSession 函式 (Media Session API 註冊) - 保持不變
     function updateMediaSession() {
         if ('mediaSession' in navigator) {
+            // 嘗試取得當前歌曲資訊
+            let title = '背景音樂播放中';
+            let artist = '台灣即時直播四分割監看';
+            if (!currentPlaylistId && currentMusicIndex !== -1 && musicQueue[currentMusicIndex]) {
+                title = musicQueue[currentMusicIndex].title;
+                artist = musicQueue[currentMusicIndex].channel;
+            } else if (currentPlaylistId) {
+                title = `清單播放中: ${currentPlaylistId}`;
+            }
+
             navigator.mediaSession.metadata = new MediaMetadata({
-                title: '背景音樂播放中', 
-                artist: '台灣即時直播四分割監看',
+                title: title, 
+                artist: artist,
                 album: '背景播放列表',
             });
 
@@ -1010,11 +1046,14 @@ padding-right:5px;"></div>
       if (!isMusicReady || musicQueue.length === 0 || currentMusicIndex < 0) return;
 
       const song = musicQueue[currentMusicIndex];
+      // 確保播放器靜音被解除
+      musicPlayer.unMute(); 
       musicPlayer.loadVideoById(song.id, 0);
-      musicPlayer.unMute();
       musicPlayer.playVideo();
       isPlaying = true;
-      document.getElementById('playPauseBtn').innerText = '⏸️';
+      updatePlayPauseButton(true);
+      console.log(`正在播放：${song.title} - ${song.channel}`);
+      updateMediaSession(); // 更新 Media Session 資訊
     }
 
     function playPauseSong() {
@@ -1023,10 +1062,8 @@ padding-right:5px;"></div>
       try {
         if (musicPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
           musicPlayer.pauseVideo();
-          document.getElementById('playPauseBtn').innerText = '▶️';
         } else {
           musicPlayer.playVideo();
-          document.getElementById('playPauseBtn').innerText = '⏸️';
         }
       } catch(e) {
         if (musicQueue.length > 0 && currentMusicIndex !== -1) {
@@ -1036,6 +1073,14 @@ padding-right:5px;"></div>
     }
 
     function updatePlayPauseButton(isCurrentlyPlaying) {
+      // 如果未提供參數，則根據播放器狀態更新按鈕
+      if (typeof isCurrentlyPlaying === 'undefined') {
+        try {
+            isCurrentlyPlaying = musicPlayer.getPlayerState() === YT.PlayerState.PLAYING;
+        } catch(e) {
+            isCurrentlyPlaying = isPlaying; // fallback
+        }
+      }
       document.getElementById('playPauseBtn').innerText = isCurrentlyPlaying ? '⏸️' : '▶️';
     }
 
@@ -1118,6 +1163,7 @@ padding-right:5px;"></div>
 
     function showMusicQueueStatusModal() {
       const queueContentDiv = document.getElementById('queueListContent');
+      document.getElementById('musicQueueModal').style.display = 'flex';
       
       let content = '';
       if (currentPlaylistId) {
@@ -1126,20 +1172,21 @@ padding-right:5px;"></div>
       } else if (musicQueue.length === 0) {
         content = '<p style="text-align:center; color:#ccc;">播放列表是空的。</p>';
       } else {
-        content += `<p style="color:#fff; font-size:14px; margin-top:0;">總計：${musicQueue.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}</p><ul>`;
+        content += `<p style="color:#fff; font-size:14px; margin-top:0;">總計：${musicQueue.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}</p><ul style="list-style:none; padding:0; max-height:200px; overflow-y:auto;">`;
         
         musicQueue.forEach((song, index) => {
           const isCurrent = index === currentMusicIndex;
-          content += `<li style="color:${isCurrent ? '#0078d7' : '#ccc'}; border-color:${isCurrent ? '#0078d7' : '#333'}">
-            <span class="song-title">${isCurrent ? '▶ ' : ''}${song.title}</span>
-            <span class="song-channel">${song.channel || song.id}</span>
+          // 顯示歌曲標題和頻道名稱
+          const songTitle = song.title || song.id; 
+          const channelName = song.channel || 'N/A';
+
+          content += `<li style="padding:4px 0; font-size:13px; color:${isCurrent ? '#f90' : '#ccc'}; word-break: break-all; border-bottom:1px dotted #333;">
+            ${isCurrent ? '▶️ ' : '• '} <span class="song-title" style="color:${isCurrent ? '#0078d7' : '#fff'};">${songTitle}</span><span class="song-channel"> by ${channelName}</span>
           </li>`;
         });
         content += `</ul>`;
       }
-      
       queueContentDiv.innerHTML = content;
-      document.getElementById('musicQueueModal').style.display = 'flex';
     }
   </script>
 </body>
