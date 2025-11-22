@@ -84,12 +84,20 @@
     .cell{ position:relative; width:100%; height:100%;
       overflow:hidden; background:#000;
     }
+    /* 播放器容器及 iframe - 預設為原比例 (不再套用 transform) */
     .player-container, .player-container iframe{
       position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
       object-fit:cover; object-position:center;
       background:black;
-      transform: scale(1.65) translateY(-6%);
+      /* 移除通用的 transform */
     }
+
+    /* 【新增】專門為寺廟等需要隱藏標題的畫面加入縮放效果 (維持舊有的縮放比例) */
+    .player-container.zoomed-stream iframe,
+    .player-container.zoomed-stream {
+      transform: scale(1.65) translateY(-6%); 
+    }
+    
     /* 強化遮罩以阻擋 YouTube UI/Logo/推薦 */
     .interaction-shield{
       position:absolute;
@@ -331,13 +339,13 @@
       "台南-七股賞鳥台": {"id":"5KJe2gCTngA","label":"台南七股","source":"台江國家公園管理處"},
       "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家公園管理處"},
       "台南-曾文水庫": {"id":"EH4V8IwFIp4","label":"曾文水庫","source":"西拉雅國家風景區管理處"},
-      "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"},
+      "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"}, // <-- 廟宇 (需要縮放)
       // 高雄直播 - 新增蓮池潭
       "高雄-楠梓聖興橋": {"id":"1vVCtk5OXVk","label":"楠梓聖興橋","source":"水利署水利防災組"},
       "高雄-蚵寮國小": {"id":"sKrqs-5Auqo","label":"蚵寮國小","source":"水利署水利防災組"},
       "高雄-旗津海水浴場": {"id":"ka7FV0sCvxQ","label":"旗津海水浴場","source":"高雄旅遊網"},
       "高雄-壽山觀景台": {"id":"C03Itx8iSC0","label":"壽山觀景台","source":"高雄旅遊網"},
-      "高雄-蓮池潭": {"id":"BnPoNatG-HE","label":"蓮池潭","source":"高雄旅遊網"}, // <-- 新增的直播
+      "高雄-蓮池潭": {"id":"BnPoNatG-HE","label":"蓮池潭","source":"高雄旅遊網"}, 
       "高雄-高雄燈塔": {"id":"HqrPgNErSOA","label":"高雄燈塔","source":"Ship"}, 
       "高雄-旗津沙灘": {"id":"lh7OdmxRvTg","label":"旗津沙灘","source":"ship"}, 
       // 屏東直播
@@ -374,15 +382,15 @@
       "台東-綠島南寮": {"id":"wTHhv7M0vCI","label":"綠島南寮","source":"東部海岸國家風景區管理處"},
       "台東-綠島帆船鼻": {"id":"pLdBc8PvZko","label":"綠島帆船鼻","source":"東部海岸國家風景區管理處"},
       "台東-綠島柴口浮潛區": {"id":"a8nJQr5rBGs","label":"綠島柴口浮潛區","source":"東部海岸國家風景區管理處"},
-      "台東-娜路彎酒店": {"id":"Yo64T79w6Vg","label":"娜路彎酒店","source":"娜路彎吃.喝.玩.樂"}, // <-- 新增的直播
+      "台東-娜路彎酒店": {"id":"Yo64T79w6Vg","label":"娜路彎酒店","source":"娜路彎吃.喝.玩.樂"}, 
       "金門-麒麟山森林公園": {"id":"M4EJtf_iP8s","label":"金門麒麟山公園","source":"樂遊金門"},
       "金門-134高地": {"id":"-srNHTE-Nf0","label":"金門134高地","source":"樂遊金門"},
       "金門-建功嶼": {"id":"uh_yNAE01w8","label":"金門建功嶼","source":"樂遊金門"},
       // 馬祖直播
       "馬祖-北竿航空站休息室": {"id":"EaUVZ49xKQ4","label":"北竿航空站休息室","source":"MFK北竿航空站"},
       // 其他直播 - 新增蓮華寺與機場資訊
-      "其他-蓮華寺正殿1": {"id":"Cfh_CpU2KY0","label":"蓮華寺正殿1","source":"lifemap人生地圖"},
-      "其他-蓮華寺正殿2": {"id":"tQ5L2IMHjpM","label":"蓮華寺正殿2","source":"lifemap人生地圖"},
+      "其他-蓮華寺正殿1": {"id":"Cfh_CpU2KY0","label":"蓮華寺正殿1","source":"lifemap人生地圖"}, // <-- 廟宇 (需要縮放)
+      "其他-蓮華寺正殿2": {"id":"tQ5L2IMHjpM","label":"蓮華寺正殿2","source":"lifemap人生地圖"}, // <-- 廟宇 (需要縮放)
       "其他-地震監測直播": {"id":"meHTKm4XBS8","label":"地震監測直播","source":"華視新聞 CH52"},
       "其他-松山機場航班資訊": {"id":"ZoUCjUtTVxs","label":"松山機場航班資訊","source":"TWSkyWave 空中電波"},
       "其他-高雄機場航班資訊": {"id":"YdiLKafucSo","label":"高雄機場航班資訊","source":"TWSkyWave 空中電波"},
@@ -396,6 +404,13 @@
     const PLAYER_IDS = ['player0', 'player1', 'player2', 'player3'];
     const LABEL_IDS = ['label0', 'label1', 'label2', 'label3'];
     const DEFAULT_VIDEO_ID = "215ahZ_0rTg";
+
+    // 【新增】需要維持縮放比例的直播 (廟宇/宗教) 列表
+    const TEMPLE_STREAMS = [
+      "其他-蓮華寺正殿1",
+      "其他-蓮華寺正殿2",
+      "台南-火山碧雲寺"
+    ];
 
     let selectedCamIndex = 0;
     let players = [];
@@ -442,6 +457,9 @@
         const defaultKey = defaultStreams[index];
         const initialVideoId = (defaultKey && ALL_STREAMS[defaultKey]) 
           ? ALL_STREAMS[defaultKey].id : DEFAULT_VIDEO_ID;
+        
+        // 取得播放器容器元素，用於後面新增 CSS 類別
+        const playerContainer = document.getElementById(id); 
 
         players[index] = new YT.Player(id, {
           videoId: initialVideoId,
@@ -457,6 +475,10 @@
         if (defaultKey && ALL_STREAMS[defaultKey]) {
           streamState[index] = { key: defaultKey, ...ALL_STREAMS[defaultKey] };
           updateLabel(index);
+          // 【新增】檢查預設畫面是否需要縮放
+          if (TEMPLE_STREAMS.includes(defaultKey)) {
+             playerContainer.classList.add('zoomed-stream');
+          }
         }
       });
       musicPlayer = new YT.Player('player_music', {
@@ -624,9 +646,20 @@
     function setStream(streamKey) {
       const stream = ALL_STREAMS[streamKey];
       if (!stream) return;
+      
+      const playerContainer = document.getElementById(`player${selectedCamIndex}`); // 取得播放器容器
       const player = players[selectedCamIndex];
       streamState[selectedCamIndex] = { key: streamKey, ...stream };
       const videoId = stream.id;
+
+      // 【關鍵新增】檢查是否為需要縮放的直播 (廟宇/宗教)
+      const isTempleStream = TEMPLE_STREAMS.includes(streamKey);
+      if (isTempleStream) {
+        playerContainer.classList.add('zoomed-stream');
+      } else {
+        playerContainer.classList.remove('zoomed-stream');
+      }
+
       player.loadVideoById(videoId);
       player.mute();
       updateLabel(selectedCamIndex);
