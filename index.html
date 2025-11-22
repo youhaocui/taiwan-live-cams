@@ -750,6 +750,50 @@
       }
     }
 
+    // 新增：用 playlistItems API 抓取 playlist 的影片 id + title（會分頁，預設最多抓 200 筆）
+    async function fetchPlaylistItems(listId, maxItems = 200) {
+      if (!listId) return [];
+      const results = [];
+      let pageToken = '';
+      const maxPerPage = 50; // YouTube API single page 最大 50
+      try {
+        while (results.length < maxItems) {
+          const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${encodeURIComponent(listId)}&maxResults=${maxPerPage}${pageToken ? '&pageToken=' + pageToken : ''}&key=${YT_DATA_API_KEY}`;
+          const res = await fetch(url);
+          if (!res.ok) break;
+          const data = await res.json();
+          if (!data.items || data.items.length === 0) break;
+          data.items.forEach(item => {
+            const vid = item.snippet.resourceId && item.snippet.resourceId.videoId;
+            const title = item.snippet.title || vid;
+            if (vid) results.push({ id: vid, title });
+          });
+          if (!data.nextPageToken) break;
+          pageToken = data.nextPageToken;
+          if (results.length >= maxItems) break;
+        }
+      } catch (e) {
+        // silent fail，回傳目前抓到的
+      }
+      return results;
+    }
+
+    // 新增：在載入播放清單後呼叫來填充 musicQueue（放在成功設定 currentPlaylistId 的同一段）
+    async function loadPlaylistMetadata(listId) {
+      const items = await fetchPlaylistItems(listId, 200);
+      if (!items || items.length === 0) return;
+      musicQueue = items.map(it => ({ id: it.id, title: it.title }));
+      currentMusicIndex = 0;
+      if (musicQueue[0] && 'mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: musicQueue[0].title,
+          artist: '台灣即時直播四分割監看',
+          album: '播放清單'
+        });
+      }
+      document.getElementById('musicControlsContainer').style.display = 'flex';
+    }
+
     function onMusicPlayerReady() {
       isMusicReady = true;
       updateMediaSession();
@@ -813,7 +857,7 @@
         match[1] : (urlOrId.length === 11 ? urlOrId : null);
     }
 
-    // 修改後的 requestSong：支援連結/ID/關鍵字，並以 Data API 取得標題
+    // 修改後的 requestSong：支援連結/ID/關鍵字/播放清單，並於播放清單情況下用 Data API 取得每首標題
     async function requestSong() {
       const input = prompt("🎶 輸入 YouTube 影片/清單網址、ID 或關鍵字：\n（例如：影片ID: dQw4w9WgXcQ，或播放清單網址，或關鍵字）");
       if (!input) return;
@@ -837,6 +881,8 @@
         document.getElementById('musicControlsContainer').style.display = 'flex';
         isPlaying = true;
         updatePlayPauseButton(true);
+        // 新增：背景抓取播放清單的每首 id + title，填充 musicQueue
+        loadPlaylistMetadata(listId);
         alert(`✅ 已載入播放清單 ID: ${listId}`);
         return;
       }
