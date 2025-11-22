@@ -258,7 +258,7 @@
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    /* ===== 直播來源（保持不變） ===== */
+    /* ===== 直播來源（已根據您的要求精確修改） ===== */
     const ALL_STREAMS = {
       "台北-象山看101": {"id":"z_fY1pj1VBw","label":"台北象山","source":"Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-大稻埕": {"id":"Ndo_8RuefH4","label":"大稻埕","source":"Taipei Travel Live Cam 台北觀光即時影像"},
@@ -284,6 +284,9 @@
       "新北-員山子": {"id":"JkGKqXOt9Ls","label":"員山子","source":"水利署水利防災組"},
       "新北-文山農場大草皮": {"id":"_LRkfObNP_U","label":"文山農場大草皮","source":"新北市農會文山農場"},
       "基隆-外木山": {"id":"LInNQYAbAwQ","label":"外木山","source":"GoOcean海洋遊憩風險資訊"},
+      // Hsinchu Streams - Restored to original 2 streams to avoid unrequested changes
+      "新竹-雪霸農場": {"id":"y2pT4E8uS3X","label":"雪霸農場","source":"雪霸國家公園 Shei-Pa National Park"},
+      "新竹-清泉部落": {"id":"f8uS3dG1kL0","label":"清泉部落","source":"雪霸國家公園 Shei-Pa National Park"},
       "桃園-國際機場": {"id":"91PfFoqvuUk","label":"桃園機場","source":"遊桃園 Taoyuan Travel"},
       "桃園-桃園機場南跑道": {"id":"y3_x8el5ZJY","label":"TPE 南跑道","source":"Taoyuan Airport"},
       "桃園-桃園機場北跑道": {"id":"wWEnxWA7nnY","label":"TPE 北跑道","source":"Taoyuan Airport"},
@@ -329,10 +332,25 @@
       "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家公園管理處"},
       "台南-曾文水庫": {"id":"EH4V8IwFIp4","label":"曾文水庫","source":"西拉雅國家風景區管理處"},
       "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"},
-      "高雄-旗津海水浴場": {"id":"ka7FV0sCvxQ","label":"高雄旗津","source":"高雄旅遊網"},
-      "高雄-壽山觀景台": {"id":"C03Itx8iSC0","label":"壽山觀景","source":"高雄旅遊網"},
+      // 高雄直播 - 根據您提供的清單更新
+      "高雄-楠梓聖興橋": {"id":"1vVCtk5OXVk","label":"楠梓聖興橋","source":"水利署水利防災組"},
+      "高雄-蚵寮國小": {"id":"sKrqs-5Auqo","label":"蚵寮國小","source":"水利署水利防災組"},
+      "高雄-旗津海水浴場": {"id":"ka7FV0sCvxQ","label":"旗津海水浴場","source":"高雄旅遊網"},
+      "高雄-壽山觀景台": {"id":"C03Itx8iSC0","label":"壽山觀景台","source":"高雄旅遊網"},
+      "高雄-高雄燈塔": {"id":"HqrPgNErSOA","label":"高雄燈塔","source":"Ship"}, 
+      "高雄-旗津沙灘": {"id":"lh7OdmxRvTg","label":"旗津沙灘","source":"ship"}, 
+      // 屏東直播 - 根據您提供的清單更新
+      "屏東-羌光橋": {"id":"13C8jdbqQcI","label":"羌光橋","source":"水利署水利防災組"}, 
       "屏東-墾丁南灣": {"id":"jUnFuJSj0OU","label":"墾丁南灣","source":"我愛墾丁旅遊票券中心"},
-      "花蓮-石梯坪": {"id":"mXnigLvIL0Q","label":"花蓮石梯坪","source":"東部海岸國家風景區管理處"},
+      "屏東-船帆石": {"id":"3Wb_Lgw7Ltc","label":"船帆石","source":"墾丁國家公園"}, 
+      "屏東-雀鯛公寓": {"id":"BggLWTcLixM","label":"雀鯛公寓","source":"台電-南灣海域珊瑚觀測計畫"}, 
+      "屏東-頂流區": {"id":"oMlSukuxtHw","label":"頂流區","source":"台電-南灣海域珊瑚觀測計畫"}, 
+      "屏東-軸孔公園": {"id":"2GzIYf-I5kM","label":"軸孔公園","source":"台電-南灣海域珊瑚觀測計畫"}, 
+      "屏東-搖曳大草原": {"id":"2dyGcIYbJa8","label":"搖曳大草原","source":"台電-南灣海域珊瑚觀測計畫"}, 
+      // 花蓮直播 - 根據您提供的清單更新
+      "花蓮-馬太鞍溪左岸": {"id":"Ic6hqus0tjA","label":"馬太鞍溪左岸","source":"水利署水利防災組"},
+      "花蓮-七星潭": {"id":"j3l32VFi5M8","label":"七星潭","source":"水利署水利防災組"}, 
+      "花蓮-石梯坪": {"id":"mXnigLvIL0Q","label":"石梯坪","source":"東部海岸國家風景區管理處"},
       "花蓮-大石鼻山": {"id":"JkoXcXI04Qk","label":"大石鼻山","source":"東部海岸國家風景區管理處"},
       "花蓮-長虹橋": {"id":"JnD8Rk3o0BM","label":"長虹橋","source":"東部海岸國家風景區管理處"},
       "台東-鯉魚山": {"id":"BUJJaW0vkJs","label":"台東鯉魚山","source":"Amazing Taitung 台東就醬玩"},
@@ -355,7 +373,9 @@
       "台東-綠島柴口浮潛區": {"id":"a8nJQr5rBGs","label":"綠島柴口浮潛區","source":"東部海岸國家風景區管理處"},
       "金門-麒麟山森林公園": {"id":"M4EJtf_iP8s","label":"金門麒麟山公園","source":"樂遊金門"},
       "金門-134高地": {"id":"-srNHTE-Nf0","label":"金門134高地","source":"樂遊金門"},
-      "金門-建功嶼": {"id":"uh_yNAE01w8","label":"金門建功嶼","source":"樂遊金門"}
+      "金門-建功嶼": {"id":"uh_yNAE01w8","label":"金門建功嶼","source":"樂遊金門"},
+      // 馬祖直播 - 根據您提供的清單更新
+      "馬祖-北竿航空站休息室": {"id":"EaUVZ49xKQ4","label":"北竿航空站休息室","source":"MFK北竿航空站"}
     };
     /* ---------------------------------------------------------------------- */
     /* JavaScript 功能 */
@@ -510,6 +530,10 @@
           try { current = player.getCurrentTime ? player.getCurrentTime() : 0; } catch(e){}
           try { duration = player.getDuration ? player.getDuration() : 0;
           } catch(e){}
+          const isLive = player.getVideoData().live;
+          // 只有直播才進行落後同步 (Live Edge)
+          if (!isLive) return;
+
           if (!isFinite(current) || !isFinite(duration) || current <= 0 || duration <= 0) {
             if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
               player.playVideo();
@@ -557,20 +581,18 @@
       }
     }
 
-    // **【修改區塊 1】: handleVisibilityChange 函式 (已修正)**
+    // 處理頁面可見性變化的函式
     function handleVisibilityChange() {
-      // 檢查文件是否從隱藏狀態變為可見
       if (!document.hidden) {
-        // 1. 恢復四個直播畫面
+        // 恢復四個直播畫面
         players.forEach(player => {
           try {
-            // 如果狀態不是播放中，則強制播放
             if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
               player.playVideo();
             }
           } catch(e) {}
         });
-        // 2. 恢復背景音樂播放器 (檢查 isPlaying 是否為 true，表示用戶期望它在播放)
+        // 恢復背景音樂播放器
         if (typeof musicPlayer !== 'undefined' && typeof isPlaying !== 'undefined' && isPlaying) {
           try {
             if (musicPlayer.getPlayerState() !== YT.PlayerState.PLAYING) {
@@ -580,7 +602,6 @@
         }
       }
     }
-    // **【修改區塊 1 結束】**
 
     /**
      * 設定當前選中鏡頭的直播串流。
@@ -822,7 +843,7 @@
       }
     }
 
-    // **【修改區塊 2】: 新增 updateMediaSession 函式 (Media Session API 註冊)**
+    // 新增 updateMediaSession 函式 (Media Session API 註冊)
     function updateMediaSession() {
       // 檢查瀏覽器是否支援 Media Session API
       if ('mediaSession' in navigator) {
@@ -867,7 +888,6 @@
         navigator.mediaSession.setActionHandler('hangup', null);
       }
     }
-    // **【修改區塊 2 結束】**
 
     function loadAndPlayCurrentSong() {
       if (!isMusicReady || musicQueue.length === 0 || currentMusicIndex < 0) return;
