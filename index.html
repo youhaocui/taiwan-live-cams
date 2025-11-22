@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     /* ---------------------------------------------------------------------- */
-    /* CSS 樣式 - 保持不變（僅修正影片比例處理） */
+    /* CSS 樣式 - 保持不變 */
     /* ---------------------------------------------------------------------- */
     html,body{
       height:100%;
@@ -75,6 +75,7 @@
         border-color: #0078d7;
     }
 
+
     /* 影片舞台四格 */
     .stage-wrap{
       position:fixed; top:0;
@@ -86,18 +87,12 @@
     .cell{ position:relative; width:100%; height:100%;
       overflow:hidden; background:#000;
     }
-
-    /* 播放器容器及 iframe - 用 object-fit: cover 讓 16:9 自動填滿，不再使用硬縮放 */
-    .player-container{
-      position:absolute; inset:0; width:100%; height:100%;
-      border:0; display:block; overflow:hidden; background:black;
-    }
-    .player-container iframe{
+    /* 播放器容器及 iframe - 重新套用縮放以使 16:9 畫面填滿象限並隱藏標題 */
+    .player-container, .player-container iframe{
       position:absolute; inset:0; width:100%; height:100%; border:0; display:block;
+      object-fit:cover; object-position:center;
       background:black;
-      object-fit:cover;           /* 保持比例填滿象限 */
-      object-position:center;     /* 置中 */
-      /* 移除硬縮放 transform，以確保比例一致 */
+      transform: scale(1.65) translateY(-6%); /* <-- 重新套用通用縮放 */
     }
 
     /* 強化遮罩以阻擋 YouTube UI/Logo/推薦 */
@@ -253,7 +248,7 @@
 
   <div id="musicQueueModal" style="display:none;
     position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; justify-content:center; align-items:center;">
-    <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20px rgba(0,0,0,0.5); width:350px;
+    <div style="background:#222; padding:20px; border-radius:10px; box-shadow:0 0 20pxrgba(0,0,0,0.5); width:350px;
     max-width:90%;">
       <h3 style="margin-top:0; color:#fff; text-align:center;">🎶 播放列表狀態</h3>
       <div id="queueListContent" style="margin-bottom:15px;
@@ -313,7 +308,7 @@
       "桃園-桃園國際機場凱悅酒店": {"id":"68GFgzQxrXs","label":"機場凱悅","source":"遊桃園 Taoyuan Travel"},
       "桃園-小烏來寰宇平台": {"id":"PJWye36lEj4","label":"寰宇平台","source":"遊桃園 Taoyuan Travel"},
       "桃園-許厝港濕地": {"id":"44JArbF682k","label":"許厝港濕地","source":"遊桃園 Taoyuan Travel"},
-      /* 將蓮華寺歸類到桃園（由原本「其他-」改為「桃園-」） */
+      /* 將蓮華寺歸類到桃園 */
       "桃園-蓮華寺正殿1": {"id":"Cfh_CpU2KY0","label":"蓮華寺正殿1","source":"lifemap人生地圖"},
       "桃園-蓮華寺正殿2": {"id":"tQ5L2IMHjpM","label":"蓮華寺正殿2","source":"lifemap人生地圖"},
 
@@ -404,7 +399,7 @@
     let isMuted = true;
     let currentCity = null;
 
-    // 音樂播放器相關變數（musicQueue 存物件 {id,title}）
+    // 音樂播放器相關變數
     let musicPlayer = null;
     let musicQueue = [];
     let currentMusicIndex = -1;
@@ -417,8 +412,10 @@
     let isReloading = [false, false, false, false];
     const RELOAD_COOLDOWN_MS = 60000;
 
-    // YouTube Data API key（請妥善保護；此範例使用你提供的 key）
     const YT_DATA_API_KEY = 'AIzaSyCwW3oAnY8rqIgL-kK9yGCxb7pNsvbvIz4';
+
+    // 新增：每象限靜音狀態（true=靜音, false=有聲）
+    const playerMuteState = [true, true, true, true];
 
     // 城市分組
     const GROUPED_STREAMS = {};
@@ -435,6 +432,16 @@
       '離島': ['金門', '馬祖'],
       '其他': ['其他']
     };
+
+    // 將指定象限的狀態同步到播放器（直播也適用）
+    function applyMuteState(index) {
+      const p = players[index];
+      if (!p) return;
+      try {
+        if (playerMuteState[index]) p.mute();
+        else p.unMute();
+      } catch (e) {}
+    }
 
     function onYouTubeIframeAPIReady() {
       PLAYER_IDS.forEach((id, index) => {
@@ -501,14 +508,14 @@
         btn.classList.remove('active');
       });
       document.getElementById(`select-cam-${index}`).classList.add('active');
-      // 僅更新按鈕文字，不自動解除靜音
+      // 切換不更動聲音，只更新按鈕文字
       refreshMuteButtonLabel();
     }
 
     function onPlayerReady(event) {
       const player = event.target;
       try { player.setLoop(true); } catch(e) {}
-      try { player.mute(); } catch(e) {}
+      try { player.mute(); } catch(e) {} // 初次建立一律靜音（符合自動播放政策）
       const playPromise = player.playVideo();
       if (playPromise && typeof playPromise.catch === 'function') {
         playPromise.catch(error => {});
@@ -539,6 +546,7 @@
           if (!isFinite(current) || !isFinite(duration) || current <= 0 || duration <= 0) {
             if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
               player.playVideo();
+              applyMuteState(index); // 保持該象限既有狀態
             }
             return;
           }
@@ -562,6 +570,8 @@
                 player.playVideo();
               } catch(e){}
             }
+            // 直播追尾後維持該象限既有的靜音/有聲狀態
+            applyMuteState(index);
             setTimeout(() => { isReloading[index] = false; }, 3000);
           }
         } catch(e) {}
@@ -580,10 +590,11 @@
 
     function handleVisibilityChange() {
       if (!document.hidden) {
-        players.forEach(player => {
+        players.forEach((player, index) => {
           try {
             if (player.getPlayerState() !== YT.PlayerState.PLAYING) {
               player.playVideo();
+              applyMuteState(index);
             }
           } catch(e) {}
         });
@@ -606,11 +617,8 @@
 
       player.loadVideoById(videoId);
 
-      // 保持現有靜音狀態，不自動解除
-      try {
-        const muted = typeof player.isMuted === 'function' ? player.isMuted() : true;
-        muted ? player.mute() : player.unMute();
-      } catch (e) {}
+      // 換直播後，沿用此象限既有狀態（已解除就保持有聲，未解除保持靜音）
+      applyMuteState(selectedCamIndex);
 
       updateLabel(selectedCamIndex);
       lastReloadAt[selectedCamIndex] = Date.now();
@@ -653,24 +661,18 @@
       const player = players[selectedCamIndex];
       if (!player) return;
 
-      try {
-        const currentlyMuted = typeof player.isMuted === 'function' ? player.isMuted() : true;
-        if (currentlyMuted) {
-          player.unMute();  // 使用者明確按下才解除靜音
-        } else {
-          player.mute();
-        }
-      } catch (e) {}
+      // 反轉目前選中象限的狀態
+      playerMuteState[selectedCamIndex] = !playerMuteState[selectedCamIndex];
 
+      // 同步到播放器
+      applyMuteState(selectedCamIndex);
+
+      // 更新按鈕文字
       refreshMuteButtonLabel();
     }
 
     function refreshMuteButtonLabel() {
-      const player = players[selectedCamIndex];
-      let muted = true;
-      try {
-        muted = player && typeof player.isMuted === 'function' ? player.isMuted() : true;
-      } catch (e) {}
+      const muted = playerMuteState[selectedCamIndex] === true;
       document.getElementById('muteBtn').innerText = muted ? '解除靜音' : '靜音';
     }
 
@@ -759,7 +761,7 @@
       }
     }
 
-    // 取播放清單每首影片 id + title（分頁）
+    // 播放清單 API（維持你先前邏輯）
     async function fetchPlaylistItems(listId, maxItems = 200) {
       if (!listId) return [];
       const results = [];
@@ -863,7 +865,6 @@
         match[1] : (urlOrId.length === 11 ? urlOrId : null);
     }
 
-    // 支援影片/清單/ID/關鍵字；播放清單補標題
     async function requestSong() {
       const input = prompt("🎶 輸入 YouTube 影片/清單網址、ID 或關鍵字：\n（例如：影片ID: dQw4w9WgXcQ，或播放清單網址，或關鍵字）");
       if (!input) return;
@@ -886,7 +887,6 @@
         document.getElementById('musicControlsContainer').style.display = 'flex';
         isPlaying = true;
         updatePlayPauseButton(true);
-        // 背景抓取播放清單每首標題
         loadPlaylistMetadata(listId);
         alert(`✅ 已載入播放清單 ID: ${listId}`);
         return;
@@ -923,7 +923,6 @@
       document.getElementById('musicControlsContainer').style.display = 'flex';
     }
 
-    // Media Session
     function updateMediaSession() {
       if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -1162,7 +1161,7 @@
         
         musicQueue.forEach((item, index) => {
           const isCurrent = index === currentMusicIndex;
-          content += `<li class="queue-item" style="background:${isCurrent ? 'rgba(0,120,215,0.12)' : 'transparent'};">
+          content += `<li class="queue-item" style="background:${isCurrent ? 'rgba(0,120,215,0.12)' : '透明'};">
             <button onclick="playQueueAtIndex(${index})" style="background:#222; border:1px solid #444; color:#fff; border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
               ${isCurrent ? '▶️' : (index + 1)}
             </button>
@@ -1197,7 +1196,6 @@
       closeMusicQueueModal();
     }
 
-    // 小工具：避免 XSS 的簡單 escape（顯示 API 回傳標題）
     function escapeHtml(s) {
       if (!s) return '';
       return s.replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
