@@ -160,11 +160,6 @@
         justify-content: center;
     }
     
-    /* 彈窗內滾動樣式 */
-    .modal-list { max-height: 320px; overflow-y: auto; padding-right: 6px; }
-    .queue-item { display:flex; align-items:center; gap:8px; padding:6px 4px; border-radius:4px; }
-    .queue-item .title { flex:1; font-size:13px; color:#fff; word-break:break-word; }
-    .queue-item .meta { font-size:12px; color:#888; margin-left:8px; }
   </style>
 </head>
 <body>
@@ -394,10 +389,9 @@
     let selectedCamIndex = 0;
     let players = [];
     let streamState = Array(4).fill(null);
-    let isMuted = true;
+    let isMuted = true; // 不再作為實際判斷依據，僅用於初始 UI
     let currentCity = null;
-
-    // 音樂播放器相關變數（musicQueue 存物件 {id,title}）
+    // 音樂播放器相關變數
     let musicPlayer = null;
     let musicQueue = [];
     let currentMusicIndex = -1;
@@ -405,13 +399,14 @@
     let isPlaying = false;
     let isMusicReady = false;
     let currentPlaylistId = null;
-
+    // 單畫面延遲刷新保護狀態
     let lastReloadAt = [0, 0, 0, 0];
     let isReloading = [false, false, false, false];
-    const RELOAD_COOLDOWN_MS = 60000;
+    const RELOAD_COOLDOWN_MS = 60000; // 60 秒冷卻時間
 
-    // YouTube Data API key（請妥善保護；此範例使用你提供的 key）
-    const YT_DATA_API_KEY = 'AIzaSyCwW3oAnY8rqIgL-kK9yGCxb7pNsvbvIz4';
+    // playlist meta cache
+    let currentPlaylistMeta = null; // [{videoId, title}, ...]
+    const YT_API_KEY = 'YOUR_API_KEY'; // <-- 請換成你的 API Key
 
     // 城市分組
     const GROUPED_STREAMS = {};
@@ -428,7 +423,6 @@
       '離島': ['金門', '馬祖'],
       '其他': ['其他']
     };
-
     function onYouTubeIframeAPIReady() {
       PLAYER_IDS.forEach((id, index) => {
         const defaultStreams = [
@@ -474,6 +468,7 @@
       document.addEventListener('msfullscreenchange', handleFullscreenChange); 
       document.addEventListener('mozfullscreenchange', handleFullscreenChange);
 
+      // 初次同步靜音按鈕文字
       refreshMuteButtonLabel();
     }
 
@@ -488,6 +483,7 @@
       }
     }
 
+    // 選擇鏡頭：更新選取樣式並同步靜音按鈕文字
     function selectCam(index) {
       selectedCamIndex = index;
       document.querySelectorAll('.controls button[id^="select-cam-"]').forEach(btn => {
@@ -496,6 +492,8 @@
       document.getElementById(`select-cam-${index}`).classList.add('active');
       refreshMuteButtonLabel();
     }
+
+    // ------------------- 播放器事件處理 -------------------
 
     function onPlayerReady(event) {
       const player = event.target;
@@ -560,6 +558,8 @@
       });
     }
 
+    // ------------------- 核心互動功能 -------------------
+
     function updateLabel(index) {
       const state = streamState[index];
       const labelElement = document.getElementById(`label${index}`);
@@ -598,6 +598,7 @@
 
       player.loadVideoById(videoId);
 
+      // 保留當前象限原本的靜音狀態
       try {
         const muted = typeof player.isMuted === 'function' ? player.isMuted() : true;
         muted ? player.mute() : player.unMute();
@@ -606,6 +607,7 @@
       updateLabel(selectedCamIndex);
       lastReloadAt[selectedCamIndex] = Date.now();
 
+      // 切換來源後更新按鈕文字
       refreshMuteButtonLabel();
     }
 
@@ -640,6 +642,7 @@
       document.getElementById('labelsToggleBtn').innerText = isHidden ? '顯示標籤' : '標籤隱藏';
     }
 
+    // 僅控制「當前選取象限」的靜音/解除
     function toggleMute() {
       const player = players[selectedCamIndex];
       if (!player) return;
@@ -656,6 +659,7 @@
       refreshMuteButtonLabel();
     }
 
+    // 依當前象限狀態更新「解除靜音/靜音」文字
     function refreshMuteButtonLabel() {
       const player = players[selectedCamIndex];
       let muted = true;
@@ -665,6 +669,9 @@
       document.getElementById('muteBtn').innerText = muted ? '解除靜音' : '靜音';
     }
 
+    /**
+     * 渲染頂層的地區/城市群組按鈕。
+     */
     function renderRegionButtons() {
       const container = document.getElementById('regionButtons');
       container.innerHTML = '';
@@ -693,6 +700,10 @@
       });
     }
 
+    /**
+     * 顯示特定城市的景點直播按鈕列表。
+     * 要求：不顯示「城市標籤」，僅返回 + 景點列表。
+     */
     function showCityStreams(city) {
       const streams = GROUPED_STREAMS[city];
       if (!streams || streams.length === 0) return;
@@ -700,6 +711,7 @@
       const container = document.getElementById('regionButtons');
       container.innerHTML = '';
 
+      // 返回按鈕（sticky 固定）
       const backBtn = document.createElement('button');
       backBtn.className = 'back-btn';
       backBtn.textContent = '🏠 返回地區列表';
@@ -707,6 +719,9 @@
       backBtn.onclick = renderRegionButtons;
       container.appendChild(backBtn);
 
+      // 不顯示城市名稱標籤
+
+      // 景點列表（僅顯示地名）
       streams.forEach(stream => {
         const streamBtn = document.createElement('button');
         streamBtn.className = 'stream-btn';
@@ -717,38 +732,7 @@
       });
     }
 
-    /* ===== YouTube Data API helpers ===== */
-    async function fetchVideoTitle(videoId) {
-      if (!videoId) return null;
-      try {
-        const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${encodeURIComponent(videoId)}&key=${YT_DATA_API_KEY}`;
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        const data = await res.json();
-        const item = (data.items && data.items[0]) || null;
-        return item ? item.snippet.title : null;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    async function searchByKeywords(q) {
-      if (!q) return null;
-      try {
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=1&q=${encodeURIComponent(q)}&key=${YT_DATA_API_KEY}`;
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        const data = await res.json();
-        const item = (data.items && data.items[0]) || null;
-        if (!item) return null;
-        return {
-          id: item.id.videoId,
-          title: item.snippet.title
-        };
-      } catch (e) {
-        return null;
-      }
-    }
+    // ------------------- 音樂播放功能 -------------------
 
     function onMusicPlayerReady() {
       isMusicReady = true;
@@ -759,6 +743,7 @@
       if (!isPlaying) return;
 
       if (event.data == YT.PlayerState.PLAYING) {
+        updateNowPlayingTitle();
         updatePlayPauseButton(true);
       } else if (event.data == YT.PlayerState.PAUSED) {
         updatePlayPauseButton(false);
@@ -766,6 +751,7 @@
         updatePlayPauseButton(false);
         
         if (currentPlaylistId) {
+          // 清單模式：套用隨機/循環
           const playlist = musicPlayer.getPlaylist();
           const idx = musicPlayer.getPlaylistIndex();
           if (!playlist || playlist.length === 0) return;
@@ -780,6 +766,7 @@
             musicPlayer.playVideoAt(next);
           }
         } else {
+          // 自訂列表模式
           if (musicQueue.length === 0) {
             isPlaying = false;
             document.getElementById('musicControlsContainer').style.display = 'none';
@@ -801,77 +788,54 @@
     }
 
     function extractVideoId(urlOrId) {
-      try {
-        if (urlOrId.includes('list=')) {
-          const urlParams = new URLSearchParams(urlOrId.split('?')[1] || '');
-          const listId = urlParams.get('list');
-          if (listId) return listId;
-        }
-      } catch (e) {}
+      if (urlOrId.includes('list=')) {
+        const urlParams = new URLSearchParams(urlOrId.split('?')[1]);
+        const listId = urlParams.get('list');
+        if (listId) return listId;
+      }
       const match = urlOrId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
       return match ?
         match[1] : (urlOrId.length === 11 ? urlOrId : null);
     }
 
-    // 修改後的 requestSong：支援連結/ID/關鍵字，並以 Data API 取得標題
-    async function requestSong() {
-      const input = prompt("🎶 輸入 YouTube 影片/清單網址、ID 或關鍵字：\n（例如：影片ID: dQw4w9WgXcQ，或播放清單網址，或關鍵字）");
+    function requestSong() {
+      const input = prompt("🎶 輸入 YouTube 影片/清單網址或 ID：\n（例如：影片ID: dQw4w9WgXcQ，或播放清單網址）");
       if (!input) return;
-
+      const id = extractVideoId(input);
+      if (!id) {
+        alert("無效的 YouTube 網址或 ID。");
+        return;
+      }
       const isPlaylist = input.includes('list=');
-      let possibleId = extractVideoId(input);
 
       if (isPlaylist) {
-        // 解析 list id
-        let listId = null;
-        try {
-          const params = new URLSearchParams(input.split('?')[1] || '');
-          listId = params.get('list') || possibleId;
-        } catch (e) { listId = possibleId; }
-        if (!listId) { alert("無效的播放清單。"); return; }
-        if (currentPlaylistId === listId) { alert("該播放清單已在播放中。"); return; }
-        currentPlaylistId = listId;
+        if (currentPlaylistId === id) {
+          alert("該播放清單已在播放中。");
+          return;
+        }
+        currentPlaylistId = id;
         musicQueue = [];
         currentMusicIndex = -1;
-        musicPlayer.loadPlaylist({ list: listId, listType: 'playlist', index: 0, startSeconds: 0 });
+        musicPlayer.loadPlaylist({ list: id, listType: 'playlist', index: 0, startSeconds: 0 });
         document.getElementById('musicControlsContainer').style.display = 'flex';
         isPlaying = true;
         updatePlayPauseButton(true);
-        alert(`✅ 已載入播放清單 ID: ${listId}`);
-        return;
-      }
+        alert(`✅ 已載入播放清單 ID: ${id}`);
+        loadPlaylistMeta(id);
+      } else {
+        if (currentPlaylistId) {
+          alert("當前正在播放清單，請先停止清單播放 (設定 -> 停止)，再點播單曲。");
+          return;
+        }
+        musicQueue.push(id);
+        alert(`✅ 已將影片 ID: ${id} 加入播放列表。`);
 
-      // 若為影片 ID 或連結，可能回傳影片 id
-      if (possibleId) {
-        const id = possibleId;
-        let title = await fetchVideoTitle(id);
-        if (!title) title = id;
-        musicQueue.push({ id, title });
-        alert(`✅ 已將 ${title} 加入播放列表。`);
         if (currentMusicIndex === -1 || !isPlaying) {
           currentMusicIndex = currentMusicIndex === -1 ? 0 : musicQueue.length - 1;
           loadAndPlayCurrentSong();
         }
         document.getElementById('musicControlsContainer').style.display = 'flex';
-        return;
       }
-
-      // 否則當作關鍵字搜尋
-      const q = input.trim();
-      if (!q) return;
-      const result = await searchByKeywords(q);
-      if (!result || !result.id) {
-        alert("找不到符合的影片。");
-        return;
-      }
-      const { id, title } = result;
-      musicQueue.push({ id, title });
-      alert(`✅ 已找到並加入：${title}`);
-      if (currentMusicIndex === -1 || !isPlaying) {
-        currentMusicIndex = currentMusicIndex === -1 ? 0 : musicQueue.length - 1;
-        loadAndPlayCurrentSong();
-      }
-      document.getElementById('musicControlsContainer').style.display = 'flex';
     }
 
     // Media Session
@@ -900,13 +864,17 @@
           skipToPreviousSong();
         });
 
-        ['stop','seekto','seekforward','seekbackward','togglemicrophone','togglecamera','hangup'].forEach(a=>{
-          try{ navigator.mediaSession.setActionHandler(a, null);}catch(e){}
-        });
+        navigator.mediaSession.setActionHandler('stop', null);
+        navigator.mediaSession.setActionHandler('seekto', null);
+        navigator.mediaSession.setActionHandler('seekforward', null);
+        navigator.mediaSession.setActionHandler('seekbackward', null);
+        navigator.mediaSession.setActionHandler('togglemicrophone', null);
+        navigator.mediaSession.setActionHandler('togglecamera', null);
+        navigator.mediaSession.setActionHandler('hangup', null);
       }
     }
 
-    async function loadAndPlayCurrentSong() {
+    function loadAndPlayCurrentSong() {
       if (!isMusicReady) return;
 
       if (currentPlaylistId) {
@@ -914,26 +882,18 @@
         musicPlayer.playVideo();
         isPlaying = true;
         document.getElementById('playPauseBtn').innerText = '⏸️';
+        updateNowPlayingTitle();
         return;
       }
 
       if (musicQueue.length === 0 || currentMusicIndex < 0) return;
-      const song = musicQueue[currentMusicIndex];
-      if (!song) return;
-      const songId = song.id || song;
+      const songId = musicQueue[currentMusicIndex];
       musicPlayer.loadVideoById(songId, 0);
       musicPlayer.unMute();
       musicPlayer.playVideo();
       isPlaying = true;
       document.getElementById('playPauseBtn').innerText = '⏸️';
-
-      if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-          title: song.title || '背景音樂',
-          artist: '台灣即時直播四分割監看',
-          album: '播放清單'
-        });
-      }
+      updateNowPlayingTitle();
     }
 
     function playPauseSong() {
@@ -1031,8 +991,7 @@
       playbackMode = mode;
       document.getElementById('modeListLoop').classList.remove('active');
       document.getElementById('modeShuffle').classList.remove('active');
-      if (mode === 'listLoop') document.getElementById('modeListLoop').classList.add('active');
-      if (mode === 'shuffle') document.getElementById('modeShuffle').classList.add('active');
+      document.getElementById(`mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('active');
       alert(`播放模式已切換為：${mode === 'listLoop' ? '列表循環 🔄' : '隨機播放 🔀'}`);
     }
 
@@ -1040,8 +999,7 @@
       document.getElementById('musicSettingsModal').style.display = 'flex';
       document.getElementById('modeListLoop').classList.remove('active');
       document.getElementById('modeShuffle').classList.remove('active');
-      if (playbackMode === 'listLoop') document.getElementById('modeListLoop').classList.add('active');
-      if (playbackMode === 'shuffle') document.getElementById('modeShuffle').classList.add('active');
+      document.getElementById(`mode${playbackMode.charAt(0).toUpperCase() + playbackMode.slice(1)}`).classList.add('active');
     }
 
     function closeMusicSettingsModal() {
@@ -1054,6 +1012,7 @@
         currentPlaylistId = null;
         musicQueue = [];
         currentMusicIndex = -1;
+        currentPlaylistMeta = null;
       }
       document.getElementById('musicControlsContainer').style.display = 'none';
       isPlaying = false;
@@ -1061,6 +1020,7 @@
       closeMusicSettingsModal();
     }
 
+    // 清單模式可見列表 + 可跳轉
     function showMusicQueueStatusModal() {
       const queueContentDiv = document.getElementById('queueListContent');
       
@@ -1074,51 +1034,66 @@
           <span style="color:#0078d7; word-break: break-all;">${currentPlaylistId}</span>
         </p>`;
 
-        if (!playlist || !Array.isArray(playlist) || playlist.length === 0) {
+        if (!currentPlaylistMeta || currentPlaylistMeta.length === 0) {
           content += `<p style="color:#aaa; font-size:12px;">（清單尚未讀取或為空）</p>`;
-        } else {
-          content += `<p style="color:#fff; font-size:13px; margin:8px 0 6px;">
-            總計：${playlist.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}
-          </p>`;
-          content += `<ul style="list-style:none; padding:0; margin:0; max-height:220px; overflow-y:auto;">`;
+          if (playlist && playlist.length > 0) {
+            content += `<p style="color:#fff; font-size:13px; margin:8px 0 6px;">
+              總計：${playlist.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}
+            </p>`;
+            content += `<ul style="list-style:none; padding:0; margin:0; max-height:220px; overflow-y:auto;">`;
 
-          playlist.forEach((videoId, i) => {
+            playlist.forEach((videoId, i) => {
+              const isCurrent = i === idx;
+              content += `
+                <li style="display:flex; align-items:center; gap:8px; padding:4px 0;
+                           color:${isCurrent ? '#0078d7' : '#fff'};
+                           background:${isCurrent ? 'rgba(0,120,215,0.16)' : 'transparent'};
+                           border-radius:4px;">
+                  <button onclick="playPlaylistAtIndex(${i})"
+                          style="background:#222; border:1px solid #444; color:#fff;
+                                 border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
+                    ${isCurrent ? '▶️ 目前' : `${i + 1}`}
+                  </button>
+                  <span style="font-size:13px; word-break:break-all;">${videoId}</span>
+                </li>
+              `;
+            });
+
+            content += `</ul>`;
+          }
+        } else {
+          content += `<p style="color:#fff; font-size:13px; margin:8px 0 6px;">總計：${currentPlaylistMeta.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}</p>`;
+          content += `<ul style="list-style:none; padding:0; margin:0; max-height:320px; overflow-y:auto;">`;
+          currentPlaylistMeta.forEach((item, i) => {
             const isCurrent = i === idx;
             content += `
-              <li style="display:flex; align-items:center; gap:8px; padding:4px 0;
-                         color:${isCurrent ? '#0078d7' : '#fff'};
-                         background:${isCurrent ? 'rgba(0,120,215,0.16)' : 'transparent'};
-                         border-radius:4px;">
-                <button onclick="playPlaylistAtIndex(${i})"
-                        style="background:#222; border:1px solid #444; color:#fff;
-                               border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
+              <li style="display:flex; align-items:center; gap:8px; padding:6px 0; color:${isCurrent ? '#0078d7' : '#fff'}; background:${isCurrent ? 'rgba(0,120,215,0.12)' : 'transparent'}; border-radius:4px;">
+                <button onclick="playPlaylistAtIndex(${i})" style="background:#222; border:1px solid #444; color:#fff; border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
                   ${isCurrent ? '▶️ 目前' : `${i + 1}`}
                 </button>
-                <span style="font-size:13px; word-break:break-all;">${videoId}</span>
+                <div style="display:flex; flex-direction:column; gap:4px;">
+                  <span style="font-size:14px; color:${isCurrent ? '#0078d7' : '#fff'}; font-weight:${isCurrent ? '600' : '400'}; word-break:break-word;">${escapeHtml(item.title)}</span>
+                  <span style="font-size:12px; color:#888; word-break:break-all;">ID: ${item.videoId}</span>
+                </div>
               </li>
             `;
           });
-
           content += `</ul>`;
-          content += `<p style="color:#888; font-size:11px; margin-top:8px;">
-            顯示的是影片 ID（要顯示標題需使用 YouTube Data API）。
-          </p>`;
         }
       } else if (musicQueue.length === 0) {
         content = '<p style="text-align:center; color:#ccc;">播放列表是空的。</p>';
       } else {
         content += `<p style="color:#fff; font-size:14px; margin-top:0;">
           總計：${musicQueue.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}
-        </p><ul style="list-style:none; padding:0; max-height:280px; overflow-y:auto;" class="modal-list">`;
+        </p><ul style="list-style:none; padding:0; max-height:200px; overflow-y:auto;">`;
         
-        musicQueue.forEach((item, index) => {
+        musicQueue.forEach((id, index) => {
           const isCurrent = index === currentMusicIndex;
-          content += `<li class="queue-item" style="background:${isCurrent ? 'rgba(0,120,215,0.12)' : 'transparent'};">
-            <button onclick="playQueueAtIndex(${index})" style="background:#222; border:1px solid #444; color:#fff; border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
-              ${isCurrent ? '▶️' : (index + 1)}
-            </button>
-            <div class="title">${(item && item.title) ? escapeHtml(item.title) : item.id}</div>
-            <div class="meta">ID:${item.id}</div>
+          content += `<li style="padding:4px 0; font-size:13px;
+                           color:${isCurrent ? '#0078d7' : '#fff'};
+                           background:${isCurrent ? 'rgba(0,120,215,0.2)' : 'transparent'};
+                           border-radius:4px; ${isCurrent ? 'font-weight:bold;' : ''}">
+            ${isCurrent ? '▶️' : (index + 1) + '.'} 影片 ID: <span style="word-break: break-all;">${id}</span>
           </li>`;
         });
         content += '</ul>';
@@ -1132,6 +1107,7 @@
       document.getElementById('musicQueueModal').style.display = 'none';
     }
 
+    // 跳至清單索引（清單模式）
     function playPlaylistAtIndex(index) {
       if (!currentPlaylistId) return;
       try {
@@ -1141,18 +1117,71 @@
       }
     }
 
-    function playQueueAtIndex(index) {
-      if (index < 0 || index >= musicQueue.length) return;
-      currentMusicIndex = index;
-      loadAndPlayCurrentSong();
-      closeMusicQueueModal();
+    /* ------------------- 取得播放清單標題（YouTube Data API） ------------------- */
+
+    async function fetchPlaylistItemsTitles(playlistId) {
+      if (!YT_API_KEY || YT_API_KEY === 'YOUR_API_KEY') return [];
+      const results = [];
+      let pageToken = '';
+      try {
+        do {
+          const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems');
+          url.searchParams.set('part', 'snippet');
+          url.searchParams.set('maxResults', '50');
+          url.searchParams.set('playlistId', playlistId);
+          url.searchParams.set('key', YT_API_KEY);
+          if (pageToken) url.searchParams.set('pageToken', pageToken);
+
+          const res = await fetch(url.toString());
+          if (!res.ok) throw new Error('API error ' + res.status);
+          const json = await res.json();
+          (json.items || []).forEach(it => {
+            const vid = it.snippet.resourceId?.videoId || '';
+            const title = it.snippet.title || '';
+            results.push({ videoId: vid, title });
+          });
+          pageToken = json.nextPageToken || '';
+        } while (pageToken);
+      } catch (e) {
+        console.error('fetchPlaylistItemsTitles error', e);
+      }
+      return results;
     }
 
-    // 小工具：避免 XSS 的簡單 escape（顯示 API 回傳標題）
-    function escapeHtml(s) {
-      if (!s) return '';
-      return s.replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]; });
+    async function loadPlaylistMeta(playlistId) {
+      currentPlaylistMeta = null;
+      // 先立即顯示 modal 內 ID 清單（如果使用者開啟）
+      const items = await fetchPlaylistItemsTitles(playlistId);
+      if (items && items.length > 0) currentPlaylistMeta = items;
+      // 若 modal 已開，重新渲染內容
+      const modal = document.getElementById('musicQueueModal');
+      if (modal.style.display === 'flex') showMusicQueueStatusModal();
     }
+
+    /* ------------------- 顯示目前播放標題（即時） ------------------- */
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>"']/g, function(m) {
+        return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m];
+      });
+    }
+
+    function updateNowPlayingTitle() {
+      try {
+        const data = musicPlayer.getVideoData();
+        const title = data && data.title ? data.title : '未知標題';
+        if ('mediaSession' in navigator) {
+          try {
+            navigator.mediaSession.metadata = new MediaMetadata({ title, artist: '台灣即時直播四分割監看', album: '背景播放列表' });
+          } catch(e) {}
+        }
+        // 簡單把標題放到播放/暫停按鈕的 title 中，或你可以改到其他 UI
+        document.getElementById('playPauseBtn').title = title;
+      } catch(e) {}
+    }
+
+    /* 初始化結束 */
   </script>
 </body>
 </html>
