@@ -304,8 +304,7 @@
       "桃園-桃園機場南跑道": {"id":"y3_x8el5ZJY","label":"TPE 南跑道","source":"Taoyuan Airport"},
       "桃園-桃園機場北跑道": {"id":"wWEnxWA7nnY","label":"TPE 北跑道","source":"Taoyuan Airport"},
       "桃園-永安漁港": {"id":"tD_a03trUvE","label":"永安漁港","source":"遊桃園 Taoyuan Travel"},
-      "桃園-拉拉山遊客中心": {"id":"YkIUZjVlhv4","label":"拉拉山遊客中心","source":"遊桃園 
-      Taoyuan Travel"},
+      "桃園-拉拉山遊客中心": {"id":"YkIUZjVlhv4","label":"拉拉山遊客中心","source":"遊桃園 Taoyuan Travel"}, // **[修正 1: 移除換行符號]**
       "桃園-虎頭山環保公園": {"id":"tu_gsIkNt-w","label":"虎頭山環保公園","source":"遊桃園 Taoyuan Travel"},
       "桃園-小烏來天空步道": {"id":"neaiCec1kec","label":"小烏來天空步道","source":"遊桃園 Taoyuan Travel"},
       "桃園-角板山思親亭": {"id":"3Za9y4z_Lzc","label":"角板山思親亭","source":"遊桃園 Taoyuan Travel"},
@@ -316,8 +315,7 @@
       "桃園-角板山生態池": {"id":"XEbo8NzMTbQ","label":"角板山生態池","source":"遊桃園 Taoyuan Travel"},
       "桃園-大溪老街": {"id":"XUWjAsajKXg","label":"大溪老街","source":"遊桃園 Taoyuan Travel"},
       "桃園-石門水庫": {"id":"GUCaVR88ZFU","label":"石門水庫","source":"遊桃園 Taoyuan Travel"},
-      "桃園-慈湖水岸廣場": {"id":"pSQ0e-ZTZ5g","label":"慈湖水岸廣場","source":"遊桃園 
-      Travel"},
+      "桃園-慈湖水岸廣場": {"id":"pSQ0e-ZTZ5g","label":"慈湖水岸廣場","source":"遊桃園 Travel"}, // **[修正 2: 移除換行符號]**
       "桃園-阿姆坪薑母島": {"id":"EUOp2LchPQM","label":"薑母島","source":"遊桃園 Taoyuan Travel"},
       "桃園-上巴陵": {"id":"nV-DKquUjFs","label":"上巴陵","source":"遊桃園 Taoyuan Travel"},
       "桃園-桃園國際機場凱悅酒店": {"id":"68GFgzQxrXs","label":"機場凱悅","source":"遊桃園 Taoyuan Travel"},
@@ -382,9 +380,8 @@
       "台東-杉原灣": {"id":"VqS_Y8ZCj6M","label":"台東杉原灣","source":"Amazing Taitung 台東就醬玩"},
       "台東-富岡漁港": {"id":"D945F_dauls","label":"台東富岡漁港","source":"Amazing Taitung 台東就醬玩"},
       "台東-華源曙光觀景台": {"id":"TY4qQElcUrA","label":"台東華源曙光觀景台","source":"Amazing Taitung 台東就醬玩"},
-      "台東-南橫埡口": {"id":"LSkq-wHMxQY","label":"台東南橫口","source":"Amazing Taitung 台東就醬玩"},
-      "台東-池上天堂路": {"id":"6kUEK3LVrro","label":"台東池上天堂路","source":"Amazing Taitung 
-      台東就醬玩"},
+      "台東-南橫埡口": {"id":"LSkq-wHMxQY","label":"台東南橫口","source":"Amazing Taitung 台東就醬玩"}, // **[修正 3: 移除換行符號]**
+      "台東-池上天堂路": {"id":"6kUEK3LVrro","label":"台東池上天堂路","source":"Amazing Taitung 台東就醬玩"},
       "台東-多良車站": {"id":"UCG1aXVO8H8","label":"台東多良","source":"Amazing Taitung 台東就醬玩"},
       "台東-鹿野高台": {"id":"rvc1klNIgQc","label":"鹿野高台","source":"ervnsa"},
       "台東-成功三仙台": {"id":"dQ7Sd6PGLdA","label":"三仙台","source":"東部海岸國家風景區管理處"},
@@ -1099,8 +1096,7 @@
       } else if (musicQueue.length === 0) {
         content = '<p style="text-align:center; color:#ccc;">播放列表是空的。</p>';
       } else {
-        content += `<p style="color:#fff; font-size:14px; margin-top:0;">總計：${musicQueue.length} 首 |
-        模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}</p><ul style="list-style:none; padding:0; max-height:200px; overflow-y:auto;">`;
+        content += `<p style="color:#fff; font-size:14px; margin-top:0;">總計：${musicQueue.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}</p><ul style="list-style:none; padding:0; max-height:200px; overflow-y:auto;">`;
         musicQueue.forEach((id, index) => {
           const isCurrent = index === currentMusicIndex;
           content += `<li style="padding:4px 0; font-size:13px; color:${isCurrent ? '#0078d7' : '#fff'}; background:${isCurrent ? 'rgba(0,120,215,0.2)' : 'transparent'}; border-radius:4px; ${isCurrent ? 'font-weight:bold;' : ''}">`;
