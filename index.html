@@ -404,10 +404,6 @@
     let isReloading = [false, false, false, false];
     const RELOAD_COOLDOWN_MS = 60000; // 60 秒冷卻時間
 
-    // playlist meta cache
-    let currentPlaylistMeta = null; // [{videoId, title}, ...]
-    const YT_API_KEY = 'YOUR_API_KEY'; // <-- 請換成你的 API Key
-
     // 城市分組
     const GROUPED_STREAMS = {};
     Object.keys(ALL_STREAMS).forEach(key => {
@@ -743,7 +739,6 @@
       if (!isPlaying) return;
 
       if (event.data == YT.PlayerState.PLAYING) {
-        updateNowPlayingTitle();
         updatePlayPauseButton(true);
       } else if (event.data == YT.PlayerState.PAUSED) {
         updatePlayPauseButton(false);
@@ -821,7 +816,6 @@
         isPlaying = true;
         updatePlayPauseButton(true);
         alert(`✅ 已載入播放清單 ID: ${id}`);
-        loadPlaylistMeta(id);
       } else {
         if (currentPlaylistId) {
           alert("當前正在播放清單，請先停止清單播放 (設定 -> 停止)，再點播單曲。");
@@ -882,7 +876,6 @@
         musicPlayer.playVideo();
         isPlaying = true;
         document.getElementById('playPauseBtn').innerText = '⏸️';
-        updateNowPlayingTitle();
         return;
       }
 
@@ -893,7 +886,6 @@
       musicPlayer.playVideo();
       isPlaying = true;
       document.getElementById('playPauseBtn').innerText = '⏸️';
-      updateNowPlayingTitle();
     }
 
     function playPauseSong() {
@@ -1012,7 +1004,6 @@
         currentPlaylistId = null;
         musicQueue = [];
         currentMusicIndex = -1;
-        currentPlaylistMeta = null;
       }
       document.getElementById('musicControlsContainer').style.display = 'none';
       isPlaying = false;
@@ -1034,51 +1025,35 @@
           <span style="color:#0078d7; word-break: break-all;">${currentPlaylistId}</span>
         </p>`;
 
-        if (!currentPlaylistMeta || currentPlaylistMeta.length === 0) {
+        if (!playlist || !Array.isArray(playlist) || playlist.length === 0) {
           content += `<p style="color:#aaa; font-size:12px;">（清單尚未讀取或為空）</p>`;
-          if (playlist && playlist.length > 0) {
-            content += `<p style="color:#fff; font-size:13px; margin:8px 0 6px;">
-              總計：${playlist.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}
-            </p>`;
-            content += `<ul style="list-style:none; padding:0; margin:0; max-height:220px; overflow-y:auto;">`;
-
-            playlist.forEach((videoId, i) => {
-              const isCurrent = i === idx;
-              content += `
-                <li style="display:flex; align-items:center; gap:8px; padding:4px 0;
-                           color:${isCurrent ? '#0078d7' : '#fff'};
-                           background:${isCurrent ? 'rgba(0,120,215,0.16)' : 'transparent'};
-                           border-radius:4px;">
-                  <button onclick="playPlaylistAtIndex(${i})"
-                          style="background:#222; border:1px solid #444; color:#fff;
-                                 border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
-                    ${isCurrent ? '▶️ 目前' : `${i + 1}`}
-                  </button>
-                  <span style="font-size:13px; word-break:break-all;">${videoId}</span>
-                </li>
-              `;
-            });
-
-            content += `</ul>`;
-          }
         } else {
-          content += `<p style="color:#fff; font-size:13px; margin:8px 0 6px;">總計：${currentPlaylistMeta.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}</p>`;
-          content += `<ul style="list-style:none; padding:0; margin:0; max-height:320px; overflow-y:auto;">`;
-          currentPlaylistMeta.forEach((item, i) => {
+          content += `<p style="color:#fff; font-size:13px; margin:8px 0 6px;">
+            總計：${playlist.length} 首 | 模式：${playbackMode === 'listLoop' ? '循環' : '隨機'}
+          </p>`;
+          content += `<ul style="list-style:none; padding:0; margin:0; max-height:220px; overflow-y:auto;">`;
+
+          playlist.forEach((videoId, i) => {
             const isCurrent = i === idx;
             content += `
-              <li style="display:flex; align-items:center; gap:8px; padding:6px 0; color:${isCurrent ? '#0078d7' : '#fff'}; background:${isCurrent ? 'rgba(0,120,215,0.12)' : 'transparent'}; border-radius:4px;">
-                <button onclick="playPlaylistAtIndex(${i})" style="background:#222; border:1px solid #444; color:#fff; border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
+              <li style="display:flex; align-items:center; gap:8px; padding:4px 0;
+                         color:${isCurrent ? '#0078d7' : '#fff'};
+                         background:${isCurrent ? 'rgba(0,120,215,0.16)' : 'transparent'};
+                         border-radius:4px;">
+                <button onclick="playPlaylistAtIndex(${i})"
+                        style="background:#222; border:1px solid #444; color:#fff;
+                               border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
                   ${isCurrent ? '▶️ 目前' : `${i + 1}`}
                 </button>
-                <div style="display:flex; flex-direction:column; gap:4px;">
-                  <span style="font-size:14px; color:${isCurrent ? '#0078d7' : '#fff'}; font-weight:${isCurrent ? '600' : '400'}; word-break:break-word;">${escapeHtml(item.title)}</span>
-                  <span style="font-size:12px; color:#888; word-break:break-all;">ID: ${item.videoId}</span>
-                </div>
+                <span style="font-size:13px; word-break:break-all;">${videoId}</span>
               </li>
             `;
           });
+
           content += `</ul>`;
+          content += `<p style="color:#888; font-size:11px; margin-top:8px;">
+            顯示的是影片 ID（要顯示標題需使用 YouTube Data API）。
+          </p>`;
         }
       } else if (musicQueue.length === 0) {
         content = '<p style="text-align:center; color:#ccc;">播放列表是空的。</p>';
@@ -1116,72 +1091,6 @@
         musicPlayer.playVideo();
       }
     }
-
-    /* ------------------- 取得播放清單標題（YouTube Data API） ------------------- */
-
-    async function fetchPlaylistItemsTitles(playlistId) {
-      if (!YT_API_KEY || YT_API_KEY === 'YOUR_API_KEY') return [];
-      const results = [];
-      let pageToken = '';
-      try {
-        do {
-          const url = new URL('https://www.googleapis.com/youtube/v3/playlistItems');
-          url.searchParams.set('part', 'snippet');
-          url.searchParams.set('maxResults', '50');
-          url.searchParams.set('playlistId', playlistId);
-          url.searchParams.set('key', YT_API_KEY);
-          if (pageToken) url.searchParams.set('pageToken', pageToken);
-
-          const res = await fetch(url.toString());
-          if (!res.ok) throw new Error('API error ' + res.status);
-          const json = await res.json();
-          (json.items || []).forEach(it => {
-            const vid = it.snippet.resourceId?.videoId || '';
-            const title = it.snippet.title || '';
-            results.push({ videoId: vid, title });
-          });
-          pageToken = json.nextPageToken || '';
-        } while (pageToken);
-      } catch (e) {
-        console.error('fetchPlaylistItemsTitles error', e);
-      }
-      return results;
-    }
-
-    async function loadPlaylistMeta(playlistId) {
-      currentPlaylistMeta = null;
-      // 先立即顯示 modal 內 ID 清單（如果使用者開啟）
-      const items = await fetchPlaylistItemsTitles(playlistId);
-      if (items && items.length > 0) currentPlaylistMeta = items;
-      // 若 modal 已開，重新渲染內容
-      const modal = document.getElementById('musicQueueModal');
-      if (modal.style.display === 'flex') showMusicQueueStatusModal();
-    }
-
-    /* ------------------- 顯示目前播放標題（即時） ------------------- */
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/[&<>"']/g, function(m) {
-        return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m];
-      });
-    }
-
-    function updateNowPlayingTitle() {
-      try {
-        const data = musicPlayer.getVideoData();
-        const title = data && data.title ? data.title : '未知標題';
-        if ('mediaSession' in navigator) {
-          try {
-            navigator.mediaSession.metadata = new MediaMetadata({ title, artist: '台灣即時直播四分割監看', album: '背景播放列表' });
-          } catch(e) {}
-        }
-        // 簡單把標題放到播放/暫停按鈕的 title 中，或你可以改到其他 UI
-        document.getElementById('playPauseBtn').title = title;
-      } catch(e) {}
-    }
-
-    /* 初始化結束 */
   </script>
 </body>
 </html>
