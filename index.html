@@ -247,7 +247,7 @@
         padding:10px 15px; border-radius:6px; cursor:pointer; width:100%;
     }
 
-    /* 右上角台灣地圖疊層 */
+    /* 右上角台灣地圖疊層（全局，保留） */
     .map-overlay {
       position: fixed;
       top: 8px;
@@ -263,7 +263,7 @@
       width: 120px;
       height: 160px;
       opacity: 0.28; /* 透明 */
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox=\'0 0 300 400\'><path d=\'M190 10l50 60-10 40 30 40-20 40 10 40-40 60-40 30-50 20-40-30 20-40-30-40 10-50 40-40 30-60 50-10z\' fill=\'%23ffffff\'/></svg>') no-repeat center/contain;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/b/bc/Blank_Taiwan_map.svg') no-repeat center/contain;
       filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
     }
     .map-overlay .badge {
@@ -279,12 +279,41 @@
       text-overflow: ellipsis;
     }
     .hide-map-overlay .map-overlay { display: none; }
+
+    /* 每格右上角台灣地圖疊層（新增，僅台灣輪廓） */
+    .cell .taiwan-map {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 120px;
+      height: 160px;
+      opacity: 0.28;
+      pointer-events: none;
+      z-index: 2000;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/b/bc/Blank_Taiwan_map.svg') no-repeat center/contain;
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,0.3));
+    }
+    .cell .taiwan-map .pin {
+      position: absolute;
+      width: 8px; height: 8px;
+      background: #ff3b30; border-radius: 50%;
+      box-shadow: 0 0 0 2px rgba(255,59,48,0.35);
+      transform: translate(-50%, -50%);
+    }
+    .cell .taiwan-map .pin-label {
+      position: absolute;
+      font-size: 11px; color: #fff;
+      background: rgba(0,0,0,0.55);
+      padding: 3px 6px; border-radius: 4px; pointer-events: none;
+      white-space: nowrap; max-width: 50vw; overflow: hidden; text-overflow: ellipsis;
+    }
+    .hide-map-overlay .cell .taiwan-map { display: none; }
     
   </style>
 </head>
 <body class="hide-cam-select" id="pageBody"> 
 
-  <!-- 右上角台灣地圖疊層 -->
+  <!-- 全局右上角台灣地圖疊層（保留） -->
   <div id="mapOverlay" class="map-overlay">
     <div class="map"></div>
     <div id="mapBadge" class="badge">—</div>
@@ -330,46 +359,56 @@
       <div id="player0" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label0">載入中...<span class="source-on-screen"></span></div>
+      <!-- 每格台灣地圖 -->
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
     <div class="cell" data-index="1">
       <div id="player1" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label1">載入中...<span class="source-on-screen"></span></div>
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
     <div class="cell" data-index="2">
       <div id="player2" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label2">載入中...<span class="source-on-screen"></span></div>
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
     <div class="cell" data-index="3">
       <div id="player3" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
     <div class="cell" data-index="4" style="display:none;">
       <div id="player4" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label4">載入中...<span class="source-on-screen"></span></div>
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
     <div class="cell" data-index="5" style="display:none;">
       <div id="player5" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label5">載入中...<span class="source-on-screen"></span></div>
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
     <div class="cell" data-index="6" style="display:none;">
       <div id="player6" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label6">載入中...<span class="source-on-screen"></span></div>
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
     <div class="cell" data-index="7" style="display:none;">
       <div id="player7" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label7">載入中...<span class="source-on-screen"></span></div>
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
     <div class="cell" data-index="8" style="display:none;">
       <div id="player8" class="player-container"></div>
       <div class="interaction-shield"></div>
       <div class="label" id="label8">載入中...<span class="source-on-screen"></span></div>
+      <div class="taiwan-map"><div class="pin" style="left:50%;top:50%;"></div><div class="pin-label">—</div></div>
     </div>
   </div>
     
@@ -394,7 +433,7 @@
                 <button id="grid2x2Btn" class="grid-btn active" onclick="setGridSize('2x2')">2x2 (四分割)</button>
                 <button id="grid3x3Btn" class="grid-btn" onclick="setGridSize('3x3')">3x3 (九分割)</button>
             </div>
-            <p style="font-size:12px; color:#888; margin:10px 0 0;" id="gridSizeHint">更改分割模式將重設所有畫面。</p>
+            <p id="gridSizeHint" style="font-size:12px; color:#888; margin:10px 0 0;">更改分割模式將重設所有畫面。</p>
         </div>
 
         <div style="margin-top:20px; padding:10px; border:1px solid #444; border-radius:6px;">
@@ -593,7 +632,7 @@
     let isMapOverlayVisible = !(localStorage.getItem('hideMapOverlay') === 'true'); // 地圖疊層預設顯示
     let currentLang = localStorage.getItem('language') || 'zh-TW';
 
-    // 音樂播放器相關變數
+    // 音樂播放器相關變數（完整保留）
     let musicPlayer = null;
     let musicQueue = [];
     let currentMusicIndex = -1;
@@ -624,7 +663,7 @@
       '離島': ['金門', '馬祖'],
       '其他': ['其他']
     };
-    // 新增：縣市與攝影機地點的英文對照表
+    // 英文對照
     const CITY_NAMES_EN = {
         '台北': 'Taipei', '新北': 'New Taipei', '基隆': 'Keelung', '桃園': 'Taoyuan', '宜蘭': 'Yilan', '新竹': 'Hsinchu',
         '苗栗': 'Miaoli', '台中': 'Taichung', '彰化': 'Changhua', '南投': 'Nantou', '雲林': 'Yunlin',
@@ -711,6 +750,11 @@
             'labels_toggle_hide': '標籤隱藏',
             'labels_toggle_show': '標籤顯示',
             'settings_close_btn': '關閉設定',
+            // 地圖疊層
+            'map_overlay_label': '地圖標註顯示：',
+            'map_overlay_hide': '標註隱藏',
+            'map_overlay_show': '標註顯示',
+            // 音樂模組文案（保留）
             'music_mode_title': '音樂播放模式',
             'music_mode_hint': '點擊下方按鈕選擇播放模式：',
             'mode_list_loop': '🔄 列表循環',
@@ -736,10 +780,6 @@
             'alert_found_and_added': (title) => `✅ 已找到並加入：${title}`,
             'alert_playing_now': '正在播放：',
             'alert_play_index_error': '播放索引錯誤。',
-            // 地圖疊層
-            'map_overlay_label': '地圖標註顯示：',
-            'map_overlay_hide': '標註隱藏',
-            'map_overlay_show': '標註顯示',
         },
         'en-US': {
             'title': 'Taiwan Live Stream Multi-View Monitor',
@@ -792,7 +832,8 @@
             'alert_playlist_playing': 'This playlist is already playing.',
             'alert_playlist_queued': (id) => `✅ Playlist ID: ${id} will start automatically after the current song ends.`,
             'alert_playlist_loaded': (id) => `✅ Playlist ID: ${id} loaded.`,
-            'alert_song_added': (title) => `✅ Added ${title to the playback queue.`,
+            // 修正語法錯誤：缺少 } 與反引號
+            'alert_song_added': (title) => `✅ Added ${title} to the playback queue.`,
             'alert_no_video_found': 'No matching video found.',
             'alert_found_and_added': (title) => `✅ Found and added: ${title}`,
             'alert_playing_now': 'Now Playing:',
@@ -964,7 +1005,7 @@
           queue_close_btn: '닫기',
           alert_invalid_playlist: '유효하지 않은 목록입니다.',
           alert_playlist_playing: '이미 재생 중인 목록입니다.',
-          alert_playlist_queued: (id) => `✅ 현재 곡 종료 후 목록 ID: ${id}가 시작됩니다.`,
+          alert_playlist_queued': (id) => `✅ 현재 곡 종료 후 목록 ID: ${id}가 시작됩니다.`,
           alert_playlist_loaded: (id) => `✅ 목록 ID: ${id} 로드 완료.`,
           alert_song_added: (t) => `✅ ${t} 추가됨.`,
           alert_no_video_found: '해당 영상이 없습니다.',
@@ -1035,6 +1076,78 @@
         }
     };
 
+    /* ===== 台灣地圖座標投影與對應 ===== */
+    const TAIWAN_BOUNDS = { minLat: 21.9, maxLat: 25.3, minLon: 119.0, maxLon: 122.1 };
+
+    const CITY_GEO = {
+      '台北': { lat: 25.0375, lon: 121.5637 },
+      '新北': { lat: 25.012,  lon: 121.465 },
+      '基隆': { lat: 25.1276, lon: 121.7396 },
+      '桃園': { lat: 24.993,  lon: 121.301 },
+      '宜蘭': { lat: 24.757,  lon: 121.753 },
+      '新竹': { lat: 24.806,  lon: 120.967 },
+      '苗栗': { lat: 24.565,  lon: 120.825 },
+      '台中': { lat: 24.1477, lon: 120.6736 },
+      '彰化': { lat: 24.081,  lon: 120.538 },
+      '南投': { lat: 23.91,   lon: 120.684 },
+      '雲林': { lat: 23.709,  lon: 120.431 },
+      '嘉義': { lat: 23.48,   lon: 120.44 },
+      '台南': { lat: 22.9997, lon: 120.2270 },
+      '高雄': { lat: 22.6273, lon: 120.3014 },
+      '屏東': { lat: 22.671,  lon: 120.481 },
+      '花蓮': { lat: 23.987,  lon: 121.601 },
+      '台東': { lat: 22.758,  lon: 121.144 },
+      '金門': { lat: 24.45,   lon: 118.36 },
+      '馬祖': { lat: 26.16,   lon: 119.93 },
+      '其他': { lat: 23.7,    lon: 121.0 }
+    };
+
+    const STREAM_GEO = {
+      '台北象山': { lat: 25.031, lon: 121.570 },
+      '大稻埕': { lat: 25.057, lon: 121.513 },
+      '碧山巖': { lat: 25.093, lon: 121.583 },
+      '微風平台': { lat: 25.058, lon: 121.532 },
+      '貓空指南宮': { lat: 24.961, lon: 121.579 },
+      '擎天岡草原': { lat: 25.160, lon: 121.564 },
+      '陽明書屋': { lat: 25.163, lon: 121.545 },
+      '新北淡水': { lat: 25.173, lon: 121.437 },
+      '新北鼻頭': { lat: 25.128, lon: 121.917 },
+      '中角灣': { lat: 25.225, lon: 121.657 },
+      '十分瀑布公園': { lat: 25.041, lon: 121.786 },
+      '新北九份': { lat: 25.109, lon: 121.847 },
+      '外木山': { lat: 25.154, lon: 121.715 },
+      '桃園機場': { lat: 25.080, lon: 121.232 },
+      '台中高美': { lat: 24.320, lon: 120.566 },
+      '望高寮': { lat: 24.132, lon: 120.607 },
+      '彰化王功': { lat: 23.917, lon: 120.302 },
+      '武嶺亭': { lat: 24.141, lon: 121.275 },
+      '嘉義奮起湖': { lat: 23.508, lon: 120.695 },
+      '台南七股': { lat: 23.151, lon: 120.074 },
+      '壽山觀景台': { lat: 22.653, lon: 120.278 },
+      '蓮池潭': { lat: 22.686, lon: 120.296 },
+      '墾丁南灣': { lat: 21.963, lon: 120.744 },
+      '船帆石': { lat: 21.949, lon: 120.831 },
+      '七星潭': { lat: 24.030, lon: 121.633 },
+      '石梯坪': { lat: 23.487, lon: 121.503 },
+      '台東鯉魚山': { lat: 22.755, lon: 121.144 },
+      '金樽觀浪': { lat: 22.976, lon: 121.281 },
+      '三仙台': { lat: 23.121, lon: 121.419 },
+      '綠島南寮': { lat: 22.659, lon: 121.477 },
+      '綠島帆船鼻': { lat: 22.618, lon: 121.509 },
+      '金門建功嶼': { lat: 24.434, lon: 118.317 }
+    };
+
+    function projectToPercent(lat, lon) {
+      const { minLat, maxLat, minLon, maxLon } = TAIWAN_BOUNDS;
+      const x = (lon - minLon) / (maxLon - minLon);
+      const y = (maxLat - lat) / (maxLat - minLat);
+      return {
+        leftPct: Math.max(0, Math.min(100, x * 100)),
+        topPct: Math.max(0, Math.min(100, y * 100))
+      };
+    }
+
+    /* ===== 語言工具 ===== */
     function getTranslation(key, ...args) {
         const langData = LANGUAGES[currentLang] || LANGUAGES['zh-TW'];
         let text = langData[key] || LANGUAGES['zh-TW'][key] || key; 
@@ -1098,6 +1211,7 @@
         refreshMuteButtonLabel();
         for (let i = 0; i < MAX_PLAYERS; i++) {
             updateLabel(i);
+            updateCellMap(i);
         }
         
         // Update buttons in regionButtons (if visible)
@@ -1119,7 +1233,8 @@
             if (langBtn) langBtn.classList.add('active');
         }
 
-        updateMapOverlay(); // 語言改變時同步更新標註內容
+        updateMapOverlay(); // 全局標註
+        document.body.classList.toggle('hide-map-overlay', !isMapOverlayVisible);
     }
 
     function onYouTubeIframeAPIReady() {
@@ -1157,10 +1272,11 @@
         if (defaultKey && ALL_STREAMS[defaultKey]) {
           streamState[index] = { key: defaultKey, ...ALL_STREAMS[defaultKey] };
           updateLabel(index);
+          updateCellMap(index);
         }
       }
       
-      // 初始化音樂播放器
+      // 初始化音樂播放器（保留）
       musicPlayer = new YT.Player('player_music', {
         videoId: '',
         playerVars: {
@@ -1193,8 +1309,9 @@
       document.addEventListener("mozfullscreenchange", onFullscreenChange);
       document.addEventListener("MSFullscreenChange", onFullscreenChange);
 
-      // 初始地圖疊層顯示狀態
+      // 初始地圖疊層顯示狀態（全局＋每格）
       updateMapOverlay();
+      document.body.classList.toggle('hide-map-overlay', !isMapOverlayVisible);
     }
 
     function onFullscreenChange() {
@@ -1417,7 +1534,8 @@
         }
 
         applyMuteStates();
-        updateMapOverlay(); // 切換象限時同步更新右上角標註
+        updateMapOverlay(); // 全局標註同步
+        updateCellMap(index); // 每格標註同步
     }
 
     function toggleFullscreen() {
@@ -1490,6 +1608,7 @@
                 streamState[i] = { key: targetKey, ...ALL_STREAMS[targetKey] };
             }
             updateLabel(i);
+            updateCellMap(i);
 
             if (!players[i]) {
                 players[i] = new YT.Player(PLAYER_IDS[i], {
@@ -1515,7 +1634,8 @@
         
         updateCamSelectButtons(numCams);
         applyMuteStates(); // 切換分割後套用一次靜音策略
-        updateMapOverlay(); // 分割切換後更新標註
+        updateMapOverlay(); // 全局標註刷新
+        document.body.classList.toggle('hide-map-overlay', !isMapOverlayVisible);
     }
     
     function openMainSettingsModal() {
@@ -1593,6 +1713,8 @@
                 labelElement.appendChild(sourceElement);
             }
         }
+        // 每格地圖標點同步
+        updateCellMap(index);
     }
 
     function updateMapOverlay() {
@@ -1613,6 +1735,39 @@
       document.body.classList.toggle('hide-map-overlay', !isMapOverlayVisible);
     }
 
+    function updateCellMap(index) {
+      const cell = CELLS[index];
+      if (!cell) return;
+      const map = cell.querySelector('.taiwan-map');
+      if (!map) return;
+      const pin = map.querySelector('.pin');
+      const pinLabel = map.querySelector('.pin-label');
+
+      const state = streamState[index];
+      if (!state) {
+        if (pin) { pin.style.left = '50%'; pin.style.top = '50%'; }
+        if (pinLabel) { pinLabel.textContent = '—'; pinLabel.style.left = '52%'; pinLabel.style.top = '48%'; }
+        return;
+      }
+
+      const [cityName] = state.key.split('-');
+      const spotName = state.label;
+      const pt = STREAM_GEO[spotName] || CITY_GEO[cityName] || CITY_GEO['其他'];
+      const pos = projectToPercent(pt.lat, pt.lon);
+
+      if (pin) {
+        pin.style.left = `${pos.leftPct}%`;
+        pin.style.top = `${pos.topPct}%`;
+      }
+      let displaySpot = spotName;
+      if (currentLang === 'en-US') displaySpot = STREAM_NAME_EN[displaySpot] || displaySpot;
+      if (pinLabel) {
+        pinLabel.textContent = displaySpot || '—';
+        pinLabel.style.left = `${Math.min(98, pos.leftPct + 2)}%`;
+        pinLabel.style.top = `${Math.max(0, pos.topPct - 2)}%`;
+      }
+    }
+
     function setStream(streamKey) {
         const stream = ALL_STREAMS[streamKey];
         const index = selectedCamIndex;
@@ -1622,6 +1777,7 @@
         if (!player) return;
         streamState[index] = { ...stream, key: streamKey };
         updateLabel(index);
+        updateCellMap(index);
         
         try {
             player.loadVideoById(stream.id, 0);
@@ -1630,9 +1786,10 @@
             console.error(`Error loading video for index ${index}:`, e);
             streamState[index] = null;
             updateLabel(index);
+            updateCellMap(index);
         }
         applyMuteStates(); // 載入新來源後套用一次靜音策略
-        updateMapOverlay(); // 更新標註
+        updateMapOverlay(); // 全局標註
     }
     
     function renderRegionButtons() {
