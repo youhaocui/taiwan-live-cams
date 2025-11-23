@@ -777,7 +777,10 @@
         document.querySelectorAll('.lang-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        document.getElementById(`lang${currentLang.replace('-', '')}Btn`).classList.add('active');
+        const langBtn = document.getElementById(`lang${currentLang.replace('-', '')}Btn`);
+        if (langBtn) {
+            langBtn.classList.add('active');
+        }
     }
     
     // 初始化時調用
@@ -861,12 +864,9 @@
     function initializeGridSettings() {
         // 確保 currentGridSize 正確讀取
         currentGridSize = localStorage.getItem('gridSize') || '2x2';
-        setGridSize(currentGridSize, false); 
+        setGridSize(currentGridSize, false); // 確保 currentGridSize 和 body class 設置正確
         
-        document.querySelectorAll('.grid-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        document.getElementById(`grid${currentGridSize.replace('x', '')}Btn`).classList.add('active');
+        // 這裡不再需要重複更新按鈕 active 狀態，因為 setGridSize 已經處理。
     }
 
     function initializeLabelSettings() {
@@ -1064,7 +1064,7 @@
         const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(query)}&type=video&videoSyndicated=true&videoEmbeddable=true&regionCode=TW&maxResults=1&key=${YT_DATA_API_KEY}`;
         try {
             const response = await fetch(url);
-            const data = await response.json();
+            const data = await data.json();
             if (data.items && data.items.length > 0) {
                 const item = data.items[0];
                 return {
@@ -1194,12 +1194,14 @@
         // 3. 更新攝影機選擇按鈕 (調用修正後的函數)
         updateCamSelectButtons(numCams);
         
-        // 4. 更新設定彈窗內的按鈕狀態
+        // 4. 更新設定彈窗內的按鈕狀態 (新增 null 檢查來修復錯誤)
         document.querySelectorAll('.grid-btn').forEach(btn => {
             btn.classList.remove('active');
         });
-        document.getElementById(`grid${size.replace('x', '')}Btn`).classList.add('active');
-
+        const activeGridBtn = document.getElementById(`grid${size.replace('x', '')}Btn`);
+        if (activeGridBtn) { // <--- 核心修正: 檢查元素是否存在
+            activeGridBtn.classList.add('active');
+        }
 
         // 5. 重置或初始化播放器
         if (resetStreams) {
@@ -1497,7 +1499,7 @@
         updateMediaSession(currentSong.title);
     }
     
-    /* ===== 核心修正：點歌邏輯修正 `requestSong` 函數 (保持不變) ===== */
+    /* ===== 核心修正：點歌邏輯修正 `requestSong` 函式 (保持不變) ===== */
     async function requestSong() {
         const input = prompt(getTranslation('request_btn') + "\n" + getTranslation('music_mode_hint', '（例如：影片ID: dQw4w9WgXcQ，或播放清單網址，或關鍵字）'));
 
