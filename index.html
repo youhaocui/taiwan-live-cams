@@ -20,17 +20,21 @@
       bottom:0; left:0; width:100%; height:78px;
       background:rgba(12,12,12,0.95); color:#fff; padding:8px 12px;
       box-sizing:border-box; display:flex; flex-direction:row; align-items:center;
-      gap:10px; z-index:3000; overflow:hidden;
+      gap:10px; z-index:3000; 
+      /* 修正: 移除 overflow:hidden 以免遮擋彈出選單，但內容過長仍需處理 */
     }
     
-    /* 修正：控制按鈕容器 - 強制單行顯示，不換行 */
+    /* 修正：控制按鈕容器 - 確保 3x3 按鈕全部可見且在最上層 */
     #camSelectButtons {
       display: flex;
       flex-wrap: nowrap; /* 禁止換行 */
       overflow-x: auto;  /* 內容過多時允許水平滑動 */
       gap: 5px;
-      max-width: 40%;    /* 限制最大寬度，避免擠壓其他按鈕 */
+      flex: 1;           /* 修正: 自動佔滿剩餘空間，不再限制 40% */
+      min-width: 0;      /* Flexbox 溢出修復 */
       scrollbar-width: none; /* Firefox 隱藏滾動條 */
+      z-index: 3010;     /* 確保層級高於其他元素 */
+      align-items: center;
     }
     #camSelectButtons::-webkit-scrollbar { display: none; } /* Chrome 隱藏滾動條 */
 
@@ -41,6 +45,7 @@
       height:40px; flex-shrink:0; white-space:nowrap; text-align:center;
     }
     .controls button.active{ background-color:#0078d7; border-color:#0078d7; }
+    
     .divider{ width:1px; height:60%;
       background:#333; flex-shrink:0; margin:0;
     }
@@ -48,7 +53,8 @@
     /* 縣市 / 景點容器（可左右滾動） */
     #regionButtons{
       display:flex;
-      flex-grow:1; min-width:0; gap:6px;
+      flex-grow:2; /* 增加權重 */
+      min-width:0; gap:6px;
       overflow-x:auto; padding-bottom:6px; height:100%; align-items:center;
     }
     #regionButtons::-webkit-scrollbar{ height:6px; background-color:rgba(255,255,255,0.06); }
@@ -125,15 +131,16 @@
       background:black;
       /* 預設 2x2 縮放 (為了擋掉標題和推薦，需要放大) */
       transform: scale(1.65) translateY(-6%);
+      pointer-events: none; /* 禁止滑鼠與 YouTube iframe 互動 (徹底防止點擊 Logo/標題) */
     }
     
     /* 針對不同網格大小調整縮放以保持畫面填滿且隱藏標題 */
     .stage-wrap.grid-1x1 .player-container, .stage-wrap.grid-1x1 .player-container iframe{
-        /* 修正：1x1 模式下放大比例，解決黑邊問題並隱藏 UI */
-        transform: scale(1.35) translateY(0%);
+        /* 修正：1x1 模式下更激進的放大，切除上下黑邊、標題列與紅色 Logo */
+        transform: scale(1.55) translateY(0%);
     }
     .stage-wrap.grid-3x3 .player-container, .stage-wrap.grid-3x3 .player-container iframe{
-        transform: scale(2.4) translateY(-8%);
+        transform: scale(2.6) translateY(-10%);
         /* 3x3 更大放大 */
     }
 
@@ -340,7 +347,6 @@
   </div>
     
     <script>
-        // 確保所有 9 個 player ID 和 label ID 都存在於陣列中
         const PLAYER_IDS = ['player0', 'player1', 'player2', 'player3', 'player4', 'player5', 'player6', 'player7', 'player8'];
         const LABEL_IDS = ['label0', 'label1', 'label2', 'label3', 'label4', 'label5', 'label6', 'label7', 'label8'];
         const CELLS = document.querySelectorAll('.stage-wrap .cell');
@@ -593,13 +599,67 @@
       '其他': ['其他']
     };
     
-    // 新增：縣市英文對照表
+    // 新增：縣市與攝影機地點的英文對照表
     const CITY_NAMES_EN = {
         '台北': 'Taipei', '新北': 'New Taipei', '基隆': 'Keelung', '桃園': 'Taoyuan', '宜蘭': 'Yilan', '新竹': 'Hsinchu',
         '苗栗': 'Miaoli', '台中': 'Taichung', '彰化': 'Changhua', '南投': 'Nantou', '雲林': 'Yunlin',
         '嘉義': 'Chiayi', '台南': 'Tainan', '高雄': 'Kaohsiung', '屏東': 'Pingtung', '澎湖': 'Penghu',
         '花蓮': 'Hualien', '台東': 'Taitung', '金門': 'Kinmen', '馬祖': 'Matsu', '其他': 'Others',
         '北部': 'North', '中部': 'Central', '南部': 'South', '東部': 'East', '離島': 'Islands'
+    };
+
+    const STREAM_NAME_EN = {
+        // 台北
+        "台北象山": "Elephant Mountain", "大稻埕": "Dadaocheng", "碧山巖": "Bishan Temple", "微風平台": "Breeze Platform",
+        "貓空指南宮": "Maokong Zhinan Temple", "擎天岡草原": "Qingtiangang Grassland", "陽明書屋": "Yangming Bookshelf",
+        "遠眺七星山": "Mt. Qixing View", "二坪子停車場": "Erpingzi Parking", "大屯自然公園": "Datun Nature Park",
+        "小油坑停車場": "Xiaoyoukeng Parking", "冷水坑停車場": "Lengshuikeng Parking",
+        // 新北
+        "新北淡水": "Tamsui", "新北鼻頭": "Bitou Cape", "中角灣": "Zhongjiao Bay", "十分瀑布公園": "Shifen Waterfall",
+        "新北九份": "Jiufen", "內洞國家森林遊樂區": "Neidong Forest Area", "三峽老街北段": "Sanxia Old St. (N)",
+        "三峽老街南段": "Sanxia Old St. (S)", "烏來吊橋": "Wulai Suspension Bridge", "員山子": "Yuanshanzi",
+        "文山農場大草皮": "Wenshan Farm",
+        // 基隆/新竹/桃園
+        "外木山": "Waimushan", "成功湖": "Cheng Kung Lake", "大草坪": "Great Lawn",
+        "桃園機場": "Taoyuan Airport", "TPE 南跑道": "TPE South Runway", "TPE 北跑道": "TPE North Runway",
+        "永安漁港": "Yongan Fishing Port", "拉拉山遊客中心": "Lalashan Visitor Ctr", "虎頭山環保公園": "Hutoushan Park",
+        "小烏來天空步道": "Xiao Wulai Skywalk", "角板山思親亭": "Jiaobanshan Pavilion", "三龜戲水觀景平台": "San-Gui-Xi-Shui",
+        "大溪橋": "Daxi Bridge", "奧爾森林學堂": "Owl Forest School", "角板山梅園": "Jiaobanshan Plum Garden",
+        "角板山生態池": "Jiaobanshan Pond", "大溪老街": "Daxi Old Street", "石門水庫": "Shihmen Reservoir",
+        "慈湖水岸廣場": "Cihu Waterfront", "薑母島": "Jiangmu Island", "上巴陵": "Upper Baling",
+        "機場凱悅": "Hyatt Place", "寰宇平台": "Huanyu Platform", "許厝港濕地": "Xucuogang Wetlands",
+        "桃園機場畫面/資訊": "Airport Info/View",
+        // 宜蘭
+        "宜蘭外澳": "Waiao Beach", "宜蘭福隆": "Fulong Beach", "石城漁港": "Shicheng Port", "無尾港": "Wuwei Port",
+        "石城漁港1": "Shicheng Port 1", "礁溪寒沐酒店": "Mu Jiao Xi Hotel",
+        // 苗栗/台中/彰化/南投
+        "汶水遊客中心": "Wenshui Visitor Ctr", "觀霧遊憩區": "Guanwu Rec Area", "雪見遊憩區": "Xuejian Rec Area",
+        "台中高美": "Gaomei Wetlands", "望高寮": "Wanggaoliao", "彰化王功": "Wanggong Port", "武嶺亭": "Wuling Pavilion",
+        // 嘉義/台南
+        "嘉義奮起湖": "Fenqihu", "二延平步道": "Eryanping Trail", "太平雲梯": "Taiping Suspension Bridge",
+        "觸口遊客中心": "Chukou Visitor Ctr", "愛情大草原": "Love Prairie", "生力農場": "Shengli Farm",
+        "里佳資訊站": "Lijia Info Station", "台南七股": "Qigu", "北汕尾水鳥保護區": "Beishanwei Birds",
+        "曾文水庫": "Zengwen Reservoir", "火山碧雲寺": "Biyun Temple",
+        // 高雄/屏東
+        "楠梓聖興橋": "Shengxing Bridge", "蚵寮國小": "Keliao Elementary", "旗津海水浴場": "Cijin Beach",
+        "壽山觀景台": "Shoushan Lookout", "蓮池潭": "Lotus Pond", "高雄燈塔": "Kaohsiung Lighthouse",
+        "旗津沙灘": "Cijin Beach Cam", "羌光橋": "Qiangguang Bridge", "墾丁南灣": "Kenting Nanwan",
+        "船帆石": "Chuanfanshi", "船帆石沙灘 (4K)": "Chuanfanshi Beach", "雀鯛公寓": "Damselfish Apt",
+        "頂流區": "Upcurrent Zone", "軸孔公園": "Acropora Park", "搖曳大草原": "Swaying Grassland",
+        // 花蓮/台東
+        "馬太鞍溪左岸": "Mataian Creek", "七星潭": "Qixingtan", "石梯坪": "Shitiping", "大石鼻山": "Dashibishan",
+        "長虹橋": "Changhong Bridge", "台東鯉魚山": "Liyushan", "台東金崙大橋": "Jinlun Bridge",
+        "台東金樽觀浪": "Jinzun Surf", "台東富山": "Fushan", "台東杉原灣": "Shanyuan Bay",
+        "台東富岡漁港": "Fugang Port", "台東華源曙光觀景台": "Huayuan Sunrise", "台東南橫口": "S. Cross-Island Hwy",
+        "台東池上天堂路": "Chishang Paradise Rd", "台東多良": "Duoliang Station", "鹿野高台": "Luye Highland",
+        "三仙台": "Sanxiantai", "金樽遊憩區": "Jinzun Rec Area", "都歷遊客中心": "Duli Visitor Ctr",
+        "加路蘭遊憩區": "Jialulan Rec Area", "綠島南寮": "Green Island Nanliao", "綠島帆船鼻": "Fanchuanbi",
+        "綠島柴口浮潛區": "Chaikou Snorkeling", "娜路彎酒店": "Naruwan Hotel",
+        // 離島/其他
+        "金門麒麟山公園": "Qilin Mt. Park", "金門134高地": "134 Highland", "金門建功嶼": "Jiangong Islet",
+        "北竿航空站休息室": "Beigan Airport", "蓮華寺正殿1": "Lianhua Temple 1", "蓮華寺正殿2": "Lianhua Temple 2",
+        "地震監測直播": "Earthquake Monitor", "松山機場航班資訊": "TSA Flight Info", "高雄機場航班資訊": "KHH Flight Info",
+        "桃園機場航班資訊": "TPE Flight Info"
     };
 
     /* ===== 語言包 (Localization) ===== */
@@ -889,6 +949,19 @@
       for (let i = numCams; i < MAX_PLAYERS; i++) {
         players[i] = null;
       }
+
+      // 註冊全螢幕變化監聽，解決 ESC 退出時 UI 不見的問題
+      document.addEventListener("fullscreenchange", onFullscreenChange);
+      document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+      document.addEventListener("mozfullscreenchange", onFullscreenChange);
+      document.addEventListener("MSFullscreenChange", onFullscreenChange);
+    }
+
+    function onFullscreenChange() {
+        if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) {
+            document.body.classList.remove('fullscreen-active');
+            document.getElementById('controls').style.display = 'flex';
+        }
     }
     
     function initializeGridSettings() {
@@ -1232,9 +1305,11 @@
 
         // 5. 重置或初始化播放器
         if (resetStreams) {
-            // 修正：切換分割時，先將選取索引重置為 0，但必須強制靜音
-            // 避免因為 selectedCamIndex 變成 0 而誤觸發解除靜音
-            selectedCamIndex = 0;
+            selectedCamIndex = 0; // 重置選擇
+            
+            // 修正：在切換模式（特別是切換到 1x1）時，確保狀態為靜音
+            isMuted = true;
+            refreshMuteButtonLabel();
             
             const defaultStreams = [
                 "台北-貓空指南宮", "桃園-國際機場", "台中-高美濕地", "高雄-壽山觀景台", 
@@ -1245,24 +1320,22 @@
                  const defaultKey = defaultStreams[i];
                  const initialVideoId = (defaultKey && ALL_STREAMS[defaultKey]) ? ALL_STREAMS[defaultKey].id : DEFAULT_VIDEO_ID;
                  
-                 // 無論新舊播放器，切換網格時先全部靜音
+                 // 先強制靜音現有播放器
                  if (players[i] && typeof players[i].mute === 'function') {
                     players[i].mute();
                  }
 
                  if (!players[i]) {
-                    // 如果播放器尚未初始化，則進行初始化
                      players[i] = new YT.Player(PLAYER_IDS[i], {
                         videoId: initialVideoId,
                         playerVars: { autoplay: 1, controls: 0, modestbranding: 1, rel: 0, showinfo: 0, fs: 0, disablekb: 1, loop: 1, mute: 1, playsinline: 1, start: 0 },
                         events: { onReady: onPlayerReady, onStateChange: (event) => handleStateChange(event, i) }
                     });
                  } else {
-                    // 如果已經存在，直接載入預設影片
                     try {
                         players[i].loadVideoById(initialVideoId, 0);
-                        players[i].mute(); // 再次確保靜音
-                    } catch(e) { /* silent fail */ }
+                        players[i].mute(); 
+                    } catch(e) { }
                 }
                 
                 streamState[i] = { key: defaultKey, ...ALL_STREAMS[defaultKey] };
@@ -1279,11 +1352,8 @@
                 }
             }
             
-            // 修正：最後再根據全域 isMuted 狀態來決定是否解除 cam 0 的靜音
-            // 此時 selectedCamIndex 為 0
-            setTimeout(() => {
-                selectCam(selectedCamIndex);
-            }, 500); // 稍微延遲以確保 loadVideoById 完成
+            // 移除可能導致自動解除靜音的延遲呼叫，改為直接更新 UI
+            updateCamSelectButtons(numCams);
         }
     }
     
@@ -1319,38 +1389,25 @@
     }
     
     function refreshMuteButtonLabel() {
-        // 如果播放器還沒好，依賴全域變數
-        const player = players[selectedCamIndex];
-        let muted = isMuted; // 預設使用記錄的狀態
-        
-        try {
-            if (player && typeof player.isMuted === 'function') {
-                muted = player.isMuted();
-            }
-        } catch (e) {}
-        
-        // 更新全域變數
-        isMuted = muted;
-
-        document.getElementById('muteBtn').innerText = muted ?
+        // 修正：直接依賴全域變數 isMuted，不再詢問 Player (避免非同步延遲)
+        document.getElementById('muteBtn').innerText = isMuted ?
             getTranslation('mute_btn_unmuted') : getTranslation('mute_btn_muted');
     }
     
     function toggleMute() {
         const player = players[selectedCamIndex];
-        if (!player) return;
         
-        try {
-            const currentlyMuted = typeof player.isMuted === 'function' ?
-            player.isMuted() : true;
-            if (currentlyMuted) {
-                player.unMute();
-                isMuted = false;
-            } else {
-                player.mute();
-                isMuted = true;
-            }
-        } catch (e) {}
+        // 修正：先切換狀態變數，再執行動作，最後更新 UI，確保按一下就同步
+        if (isMuted) {
+             // 目前是靜音，要解除靜音
+             isMuted = false;
+             if (player) { try { player.unMute(); } catch(e){} }
+        } else {
+             // 目前有聲音，要靜音
+             isMuted = true;
+             if (player) { try { player.mute(); } catch(e){} }
+        }
+        
         refreshMuteButtonLabel();
     }
     
@@ -1365,12 +1422,16 @@
             // 英文翻譯邏輯
             let displayText = state.label;
             if (currentLang === 'en-US') {
-                // 嘗試將 "縣市-" 替換為英文
-                Object.keys(CITY_NAMES_EN).forEach(zh => {
-                    if (displayText.startsWith(zh)) {
-                        displayText = displayText.replace(zh, CITY_NAMES_EN[zh]);
-                    }
-                });
+                if (STREAM_NAME_EN[displayText]) {
+                    displayText = STREAM_NAME_EN[displayText];
+                } else {
+                    // Fallback to City replacement
+                    Object.keys(CITY_NAMES_EN).forEach(zh => {
+                        if (displayText.startsWith(zh)) {
+                            displayText = displayText.replace(zh, CITY_NAMES_EN[zh]);
+                        }
+                    });
+                }
             }
 
             labelElement.textContent = displayText || getTranslation('loading');
@@ -1478,8 +1539,21 @@
       streams.forEach(stream => {
         const streamBtn = document.createElement('button');
         streamBtn.className = 'stream-btn';
-        // 簡單處理按鈕名稱翻譯
-        let btnText = stream.key.split('-').slice(1).join('-');
+        
+        // 翻譯攝影機地點按鈕
+        let btnText = stream.label;
+        if (currentLang === 'en-US') {
+            if (STREAM_NAME_EN[btnText]) {
+                btnText = STREAM_NAME_EN[btnText];
+            } else {
+                // Fallback
+                 Object.keys(CITY_NAMES_EN).forEach(zh => {
+                    if (btnText.startsWith(zh)) {
+                        btnText = btnText.replace(zh, CITY_NAMES_EN[zh] + " ");
+                    }
+                });
+            }
+        }
         
         streamBtn.textContent = btnText;
         streamBtn.title = `${getTranslation('alert_playing_now')}${stream.label} (${stream.source})`;
