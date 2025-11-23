@@ -1,4 +1,4 @@
-# 🇹🇼 Taiwan Live Cams：台灣即時影像四分割監看平台
+# Taiwan Live Cams：台灣即時影像四分割監看平台
 
 ## 🔗 專案連結
 
