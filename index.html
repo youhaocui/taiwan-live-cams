@@ -2,7 +2,7 @@
 <html lang="zh-TW" id="htmlLang">
 <head>
   <meta charset="utf-8" />
-  <title id="pageTitle">台灣即時直播四分割監看</title>
+  <title id="pageTitle">台灣即時直播多分割監看</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     /* ---------------------------------------------------------------------- */
@@ -10,61 +10,61 @@
     /* ---------------------------------------------------------------------- */
     html,body{
       height:100%;
-margin:0; padding:0; background:#000;
+      margin:0; padding:0; background:#000;
       font-family: system-ui, sans-serif; color:#fff; overflow:hidden;
     }
 
     /* 底部控制列 */
     .controls{
       position:fixed;
-bottom:0; left:0; width:100%; height:78px;
+      bottom:0; left:0; width:100%; height:78px;
       background:rgba(12,12,12,0.95); color:#fff; padding:8px 12px;
       box-sizing:border-box; display:flex; flex-direction:row; align-items:center;
       gap:10px; z-index:3000; overflow:hidden;
-}
+    }
     .controls button{
       background-color:#222; color:#fff; border:1px solid #444;
       padding:8px 12px; font-size:13px; cursor:pointer;
-border-radius:6px;
+      border-radius:6px;
       height:40px; flex-shrink:0; white-space:nowrap; text-align:center;
     }
     .controls button.active{ background-color:#0078d7; border-color:#0078d7; }
     .divider{ width:1px; height:60%;
-background:#333; flex-shrink:0; margin:0;
+      background:#333; flex-shrink:0; margin:0;
     }
 
     /* 縣市 / 景點容器（可左右滾動） */
     #regionButtons{
       display:flex;
-flex-grow:1; min-width:0; gap:6px;
+      flex-grow:1; min-width:0; gap:6px;
       overflow-x:auto; padding-bottom:6px; height:100%; align-items:center;
     }
     #regionButtons::-webkit-scrollbar{ height:6px; background-color:rgba(255,255,255,0.06); }
     #regionButtons::-webkit-scrollbar-thumb{ background-color:#444;
-border-radius:3px;
+      border-radius:3px;
     }
     .region-label{ color:#fff; margin:0 8px 0 4px; font-weight:600; flex-shrink:0; user-select:none;
-}
+    }
     /* 通用城市/景點按鈕樣式 */
     #regionButtons .city-btn, #regionButtons .stream-btn, #regionButtons .back-btn{
       background-color:#111;
-color:#fff; border:1px solid #555;
+      color:#fff; border:1px solid #555;
       padding:6px 10px; margin:0;
       border-radius:6px; cursor:pointer;
       height:36px; flex-shrink:0; font-size:13px;
-}
+    }
     #regionButtons .city-btn:hover, #regionButtons .stream-btn:hover, #regionButtons .back-btn:hover{
         background-color:#1a1a1a; border-color:#666;
-}
+    }
     /* 景點按鈕微調樣式 */
     #regionButtons .stream-btn{
         background-color: #222;
-border-color: #444;
+        border-color: #444;
     }
     /* 返回按鈕樣式 + 黏在左側固定 */
     #regionButtons .back-btn{
         background-color: #555;
-border-color: #777;
+        border-color: #777;
         position: sticky;
         left: 0;
         z-index: 2;
@@ -72,14 +72,14 @@ border-color: #777;
     /* 當前選中的城市按鈕，用於城市/景點切換狀態標記 */
     #regionButtons .city-btn.active-city{
         background-color: #0078d7;
-border-color: #0078d7;
+        border-color: #0078d7;
     }
 
 
     /* 影片舞台四格 */
     .stage-wrap{
       position:fixed; top:0;
-left:0; width:100vw;
+      left:0; width:100vw;
       height:calc(100vh - 78px);
       display:grid; 
       gap:0; z-index:1;
@@ -102,13 +102,13 @@ left:0; width:100vw;
     }
     
     .cell{ position:relative; width:100%; height:100%;
-overflow:hidden; background:#000;
+      overflow:hidden; background:#000;
     }
     
     /* 播放器容器及 iframe - 重新套用縮放以使 16:9 畫面填滿象限並隱藏標題 */
     .player-container, .player-container iframe{
       position:absolute;
-inset:0; width:100%; height:100%; border:0; display:block;
+      inset:0; width:100%; height:100%; border:0; display:block;
       object-fit:cover; object-position:center;
       background:black;
       /* 預設 2x2 縮放 */
@@ -127,34 +127,34 @@ inset:0; width:100%; height:100%; border:0; display:block;
     /* 強化遮罩以阻擋 YouTube UI/Logo/推薦 */
     .interaction-shield{
       position:absolute;
-inset:0; z-index:9999; background:transparent;
+      inset:0; z-index:9999; background:transparent;
       pointer-events:auto; cursor:default;
     }
     .label{
       position:absolute; left:8px; right:8px; bottom:8px; display:flex;
-flex-direction:column; align-items:flex-start; padding:6px 8px;
+      flex-direction:column; align-items:flex-start; padding:6px 8px;
       font-size:14px; color:#fff; background:rgba(0,0,0,0.6); border-radius:6px;
       pointer-events:none; z-index:10000;
     }
     .source-on-screen{ font-size:11px; color:#ccc; margin-top:4px; line-height:1.1;
-}
+    }
 
     /* 顯示控制 */
     .hide-labels .label{ display:none;
     }
     .fullscreen-active .controls{ display:none;
-}
+    }
     .fullscreen-active .stage-wrap{ height:100vh; }
 
     @media (max-width:640px){
       .controls{ padding:6px 8px;
-height:80px;
+        height:80px;
       }
       .controls button{ padding:6px 8px; font-size:12px; height:36px;
-}
+      }
       #regionButtons .city-btn, #regionButtons .stream-btn, #regionButtons .back-btn{
         padding:6px 8px;
-font-size:12px; height:34px;
+        font-size:12px; height:34px;
       }
     }
     
@@ -164,18 +164,18 @@ font-size:12px; height:34px;
 
     .music-controls-container {
         display: none;
-flex-shrink: 0;
+        flex-shrink: 0;
         height: 100%;
         align-items: center;
     }
     .music-controls {
         display: flex;
-gap: 5px;
+        gap: 5px;
     }
     .music-controls button {
         background-color: #222;
         color: #fff;
-border: 1px solid #444;
+        border: 1px solid #444;
         border-radius: 6px;
         cursor: pointer;
         height: 40px; 
@@ -184,19 +184,19 @@ border: 1px solid #444;
         font-size: 16px;
         line-height: 1;
         flex-shrink: 0;
-display: flex;
+        display: flex;
         align-items: center;
         justify-content: center;
     }
     
     /* 彈窗內滾動樣式 */
     .modal-list { max-height: 320px;
-overflow-y: auto; padding-right: 6px; }
+      overflow-y: auto; padding-right: 6px; }
     .queue-item { display:flex; align-items:center; gap:8px; padding:6px 4px; border-radius:4px;
-}
+    }
     .queue-item .title { flex:1; font-size:13px; color:#fff; word-break:break-word; }
     .queue-item .meta { font-size:12px; color:#888;
-margin-left:8px; }
+      margin-left:8px; }
     
     /* 彈窗通用樣式 */
     .modal-backdrop{
@@ -256,8 +256,7 @@ margin-left:8px; }
     <button id="requestBtn" onclick="requestSong()" title="輸入網址/ID點歌或播放清單">🎶 點歌/清單</button>
 
     <div id="musicControlsContainer" class="music-controls-container">
-    
- <div class="music-controls">
+      <div class="music-controls">
         <button id="prevSongBtn" onclick="skipToPreviousSong()" title="上一首">⏮️</button>
         <button id="playPauseBtn" onclick="playPauseSong()" title="播放/暫停">⏸️</button>
         <button id="nextSongBtn" onclick="skipToNextSong()" title="下一首">⏭️</button>
@@ -271,8 +270,7 @@ margin-left:8px; }
     <div class="cell" data-index="0">
       <div id="player0" class="player-container"></div>
       <div class="interaction-shield"></div>
-      
-<div class="label" id="label0">載入中...<span class="source-on-screen"></span></div>
+      <div class="label" id="label0">載入中...<span class="source-on-screen"></span></div>
     </div>
     <div class="cell" data-index="1">
       <div id="player1" class="player-container"></div>
@@ -287,8 +285,7 @@ margin-left:8px; }
     <div class="cell" data-index="3">
       <div id="player3" class="player-container"></div>
       <div class="interaction-shield"></div>
-    
-  <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
+      <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
     </div>
     
     <div class="cell" data-index="4" style="display:none;">
@@ -328,7 +325,7 @@ margin-left:8px; }
 
   <div id="player_music_container" style="position:fixed;
     top:-100px; left:-100px; width:1px; height:1px;
-overflow:hidden;">
+    overflow:hidden;">
     <div id="player_music"></div>
   </div>
 
@@ -364,16 +361,14 @@ overflow:hidden;">
   </div>
 
 
-  <div id="musicSettingsModal" class="modal-backdrop" style="
-justify-content:center;
-align-items:center;">
+  <div id="musicSettingsModal" class="modal-backdrop">
     <div class="modal-content" style="width:300px; max-width:90%;
-text-align:center;">
+    text-align:center;">
       <h3 id="musicModeTitle" style="margin-top:0; color:#fff;">音樂播放模式</h3>
       <p id="musicModeHint" style="font-size:12px;
-color:#aaa;">點擊下方按鈕選擇播放模式：</p>
+    color:#aaa;">點擊下方按鈕選擇播放模式：</p>
       <div style="display:flex; justify-content:space-around; gap:10px;
-margin-top:15px;">
+    margin-top:15px;">
         <button id="modeListLoop" class="mode-btn" onclick="setPlaybackMode('listLoop')">🔄 列表循環</button>
         <button id="modeShuffle" class="mode-btn" onclick="setPlaybackMode('shuffle')">🔀 隨機播放</button>
       </div>
@@ -382,13 +377,12 @@ margin-top:15px;">
     </div>
   </div>
 
-  <div id="musicQueueModal" class="modal-backdrop" style="
-justify-content:center; align-items:center;">
+  <div id="musicQueueModal" class="modal-backdrop">
     <div class="modal-content" style="width:350px;
-max-width:90%;">
+    max-width:90%;">
       <h3 id="queueTitle" style="margin-top:0; color:#fff; text-align:center;">🎶 播放列表狀態</h3>
       <div id="queueListContent" style="margin-bottom:15px;
-padding-right:5px;"></div>
+    padding-right:5px;"></div>
       <button id="queueCloseBtn" onclick="closeMusicQueueModal()" style="margin-top:10px;">關閉</button>
     </div>
   </div>
@@ -403,8 +397,7 @@ padding-right:5px;"></div>
       "台北-微風平台": {"id":"34h_Cy_n0Ok","label":"微風平台","source":"Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-貓空指南宮": {"id":"215ahZ_0rTg","label":"貓空指南宮","source":"Taipei Travel Live Cam 台北觀光即時影像"},
       "台北-擎天岡草原": {"id":"yF2LAyOvq0Q","label":"擎天岡草原","source":"陽明山國家公園"},
-    
-  "台北-陽明書屋": {"id":"RttyIGHbN_w","label":"陽明書屋","source":"陽明山國家公園"},
+      "台北-陽明書屋": {"id":"RttyIGHbN_w","label":"陽明書屋","source":"陽明山國家公園"},
       "台北-遠眺七星山": {"id":"PvJr2efA6n0","label":"遠眺七星山","source":"陽明山國家公園"},
       "台北-二坪子停車場": {"id":"d9KuXrPCWYU","label":"二坪子停車場","source":"陽明山國家公園"},
       "台北-大屯自然公園": {"id":"6ghffcNt3Nw","label":"大屯自然公園","source":"陽明山國家公園"},
@@ -417,8 +410,7 @@ padding-right:5px;"></div>
       "新北-九份": {"id":"XSD5ptYisw8","label":"新北九份","source":"新北旅客 New Taipei Tour"},
       "新北-內洞國家森林遊樂區": {"id":"lX2MYEFomK0","label":"內洞國家森林遊樂區","source":"國家森林遊樂區即時影像"},
       "新北-三峽老街北段": {"id":"M24SZJU-uoo","label":"三峽老街北段","source":"三峽民權老街商圈"},
-   
-   "新北-三峽老街南段": {"id":"R_5jhoux3nY","label":"三峽老街南段","source":"三峽民權老街商圈"},
+      "新北-三峽老街南段": {"id":"R_5jhoux3nY","label":"三峽老街南段","source":"三峽民權老街商圈"},
       "新北-烏來吊橋": {"id":"jGoYvmTxLyU","label":"烏來吊橋","source":"水利署水利防災組"},
       "新北-員山子": {"id":"JkGKqXOt9Ls","label":"員山子","source":"水利署水利防災組"},
       "新北-文山農場大草皮": {"id":"_LRkfObNP_U","label":"文山農場大草皮","source":"新北市農會文山農場"},
@@ -430,8 +422,7 @@ padding-right:5px;"></div>
       "桃園-桃園機場北跑道": {"id":"wWEnxWA7nnY","label":"TPE 北跑道","source":"Taoyuan Airport"},
       "桃園-永安漁港": {"id":"tD_a03trUvE","label":"永安漁港","source":"遊桃園 Taoyuan Travel"},
       "桃園-拉拉山遊客中心": {"id":"YkIUZjVlhv4","label":"拉拉山遊客中心","source":"遊桃園 Taoyuan Travel"},
-      "桃園-虎頭山環保公園": {"id":"tu_gsIkNt-w","label":"虎頭山環保公園","source":"遊桃園 Taoyuan 
-Travel"},
+      "桃園-虎頭山環保公園": {"id":"tu_gsIkNt-w","label":"虎頭山環保公園","source":"遊桃園 Taoyuan Travel"},
       "桃園-小烏來天空步道": {"id":"neaiCec1kec","label":"小烏來天空步道","source":"遊桃園 Taoyuan Travel"},
       "桃園-角板山思親亭": {"id":"3Za9y4z_Lzc","label":"角板山思親亭","source":"遊桃園 Taoyuan Travel"},
       "桃園-三龜戲水觀景平台": {"id":"5YDXZ1aiR5Y","label":"三龜戲水觀景平台","source":"遊桃園 Taoyuan Travel"},
@@ -443,8 +434,7 @@ Travel"},
       "桃園-石門水庫": {"id":"GUCaVR88ZFU","label":"石門水庫","source":"遊桃園 Taoyuan Travel"},
       "桃園-慈湖水岸廣場": {"id":"pSQ0e-ZTZ5g","label":"慈湖水岸廣場","source":"遊桃園 Taoyuan Travel"},
       "桃園-阿姆坪薑母島": {"id":"EUOp2LchPQM","label":"薑母島","source":"遊桃園 Taoyuan Travel"},
- 
-     "桃園-上巴陵": {"id":"nV-DKquUjFs","label":"上巴陵","source":"遊桃園 Taoyuan Travel"},
+      "桃園-上巴陵": {"id":"nV-DKquUjFs","label":"上巴陵","source":"遊桃園 Taoyuan Travel"},
       "桃園-桃園國際機場凱悅酒店": {"id":"68GFgzQxrXs","label":"機場凱悅","source":"遊桃園 Taoyuan Travel"},
       "桃園-小烏來寰宇平台": {"id":"PJWye36lEj4","label":"寰宇平台","source":"遊桃園 Taoyuan Travel"},
       "桃園-許厝港濕地": {"id":"44JArbF682k","label":"許厝港濕地","source":"遊桃園 Taoyuan Travel"},
@@ -455,8 +445,7 @@ Travel"},
       "宜蘭-石城漁港": {"id":"ozZVLl0h--A","label":"石城漁港1","source":"GoOcean海洋遊憩風險資訊"}, 
       "宜蘭-礁溪寒沐酒店": {"id":"cPh2vzrtG_w","label":"礁溪寒沐酒店","source":"礁溪寒沐酒店MU JIAO XI HOTEL"}, 
       "苗栗-汶水遊客中心(雪霸)": {"id":"VgmWVBUsfGo","label":"汶水遊客中心","source":"雪霸國家公園 Shei-Pa National Park"},
-  
-    "苗栗-觀霧遊憩區(雪霸)": {"id":"Isp6RQiuxNo","label":"觀霧遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
+      "苗栗-觀霧遊憩區(雪霸)": {"id":"Isp6RQiuxNo","label":"觀霧遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
       "苗栗-雪見遊憩區(雪霸)": {"id":"2KDE860OW_A","label":"雪見遊憩區","source":"雪霸國家公園 Shei-Pa National Park"},
       "台中-高美濕地": {"id":"fjhg3gAnMFg","label":"台中高美","source":"大玩台中-臺中觀光旅遊局"},
       "台中-望高寮": {"id":"lhXXhDyjFtI","label":"望高寮","source":"大玩台中-臺中觀光旅遊局"},
@@ -469,8 +458,7 @@ Travel"},
       "嘉義-愛情大草原": {"id":"hMYs60qtkK8","label":"愛情大草原","source":"阿里山國家風景區管理處"},
       "嘉義-生力農場": {"id":"agEzlv9n9Eg","label":"生力農場","source":"阿里山國家風景區管理處"},
       "嘉義-里佳資訊站": {"id":"zDt8FBPozZQ","label":"里佳資訊站","source":"阿里山國家風景區管理處"},
-   
-   "台南-七股賞鳥台": {"id":"5KJe2gCTngA","label":"台南七股","source":"台江國家公園管理處"},
+      "台南-七股賞鳥台": {"id":"5KJe2gCTngA","label":"台南七股","source":"台江國家公園管理處"},
       "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家公園管理處"},
       "台南-曾文水庫": {"id":"EH4V8IwFIp4","label":"曾文水庫","source":"西拉雅國家風景區管理處"},
       "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"}, 
@@ -483,8 +471,7 @@ Travel"},
       "高雄-旗津沙灘": {"id":"lh7OdmxRvTg","label":"旗津沙灘","source":"ship"}, 
       "屏東-羌光橋": {"id":"13C8jdbqQcI","label":"羌光橋","source":"水利署水利防災組"}, 
       "屏東-墾丁南灣": {"id":"jUnFuJSj0OU","label":"墾丁南灣","source":"我愛墾丁旅遊票券中心"},
-      "屏東-船帆石": 
-{"id":"3Wb_Lgw7Ltc","label":"船帆石","source":"墾丁國家公園"}, 
+      "屏東-船帆石": {"id":"3Wb_Lgw7Ltc","label":"船帆石","source":"墾丁國家公園"}, 
       "屏東-船帆石沙灘": {"id":"f8yo_osMxAg","label":"船帆石沙灘 (4K)","source":"墾丁國家公園"},
       "屏東-雀鯛公寓": {"id":"BggLWTcLixM","label":"雀鯛公寓","source":"台電-南灣海域珊瑚觀測計畫"}, 
       "屏東-頂流區": {"id":"oMlSukuxtHw","label":"頂流區","source":"台電-南灣海域珊瑚觀測計畫"}, 
@@ -497,8 +484,7 @@ Travel"},
       "花蓮-長虹橋": {"id":"JnD8Rk3o0BM","label":"長虹橋","source":"東部海岸國家風景區管理處"},
       "台東-鯉魚山": {"id":"BUJJaW0vkJs","label":"台東鯉魚山","source":"Amazing Taitung 台東就醬玩"},
       "台東-金崙大橋": {"id":"9QqBz3kNHis","label":"台東金崙大橋","source":"Amazing Taitung 台東就醬玩"},
-     
- "台東-金樽觀浪": {"id":"q3KJt-SZc2s","label":"台東金樽觀浪","source":"Amazing Taitung 台東就醬玩"},
+      "台東-金樽觀浪": {"id":"q3KJt-SZc2s","label":"台東金樽觀浪","source":"Amazing Taitung 台東就醬玩"},
       "台東-富山": {"id":"Rsq95SQ26bY","label":"台東富山","source":"Amazing Taitung 台東就醬玩"},
       "台東-杉原灣": {"id":"VqS_Y8ZCj6M","label":"台東杉原灣","source":"Amazing Taitung 台東就醬玩"},
       "台東-富岡漁港": {"id":"D945F_dauls","label":"台東富岡漁港","source":"Amazing Taitung 台東就醬玩"},
@@ -510,8 +496,7 @@ Travel"},
       "台東-成功三仙台": {"id":"dQ7Sd6PGLdA","label":"三仙台","source":"東部海岸國家風景區管理處"},
       "台東-金樽遊憩區": {"id":"ZdqHgQwvZOw","label":"金樽遊憩區","source":"東部海岸國家風景區管理處"},
       "台東-都歷遊客中心": {"id":"JhQuR77AR7U","label":"都歷遊客中心","source":"東部海岸國家風景區管理處"},
-     
- "台東-加路蘭遊憩區": {"id":"AKl3F6cAY2Q","label":"加路蘭遊憩區","source":"東部海岸國家風景區管理處"},
+      "台東-加路蘭遊憩區": {"id":"AKl3F6cAY2Q","label":"加路蘭遊憩區","source":"東部海岸國家風景區管理處"},
       "台東-綠島南寮": {"id":"wTHhv7M0vCI","label":"綠島南寮","source":"東部海岸國家風景區管理處"},
       "台東-綠島帆船鼻": {"id":"pLdBc8PvZko","label":"綠島帆船鼻","source":"東部海岸國家風景區管理處"},
       "台東-綠島柴口浮潛區": {"id":"a8nJQr5rBGs","label":"綠島柴口浮潛區","source":"東部海岸國家風景區管理處"},
@@ -525,11 +510,10 @@ Travel"},
       "其他-地震監測直播": {"id":"meHTKm4XBS8","label":"地震監測直播","source":"華視新聞 CH52"},
       "其他-松山機場航班資訊": {"id":"ZoUCjUtTVxs","label":"松山機場航班資訊","source":"TWSkyWave 空中電波"},
       "其他-高雄機場航班資訊": {"id":"YdiLKafucSo","label":"高雄機場航班資訊","source":"TWSkyWave 空中電波"},
- 
-     "其他-桃園機場航班資訊": {"id":"GbvjIBkhOow","label":"桃園機場航班資訊","source":"TWSkyWave 空中電波"},
+      "其他-桃園機場航班資訊": {"id":"GbvjIBkhOow","label":"桃園機場航班資訊","source":"TWSkyWave 空中電波"},
       "其他-桃園機場畫面/資訊": {"id":"0D6QgDOdI6c","label":"桃園機場畫面/資訊","source":"遊桃園 Taoyuan Travel"}
     };
-/* ---------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
     /* JavaScript 功能 */
     /* ---------------------------------------------------------------------- */
     
@@ -548,31 +532,31 @@ Travel"},
     let isLabelsVisible = !(localStorage.getItem('hideLabels') === 'true'); // 預設為顯示
     let currentLang = localStorage.getItem('language') || 'zh-TW';
 
-// 音樂播放器相關變數
+    // 音樂播放器相關變數
     let musicPlayer = null;
     let musicQueue = [];
     let currentMusicIndex = -1;
-    let pendingPlaylistId = null; // 修正：用於延遲播放清單
-let playbackMode = localStorage.getItem('playbackMode') || 'listLoop'; 
+    let pendingPlaylistId = null; 
+    let playbackMode = localStorage.getItem('playbackMode') || 'listLoop'; 
     let isPlaying = false;
     let isMusicReady = false;
     let currentPlaylistId = null;
 
-let lastReloadAt = Array(MAX_PLAYERS).fill(0); 
+    let lastReloadAt = Array(MAX_PLAYERS).fill(0); 
     let isReloading = Array(MAX_PLAYERS).fill(false); 
     const RELOAD_COOLDOWN_MS = 60000;
     
-// YouTube Data API key
+    // YouTube Data API key (請注意：此為公開測試用 Key，正式環境請使用您自己的 Key)
     const YT_DATA_API_KEY = 'AIzaSyCwW3oAnY8rqIgL-kK9yGCxb7pNsvbvIz4';
     
-// 城市分組
+    // 城市分組
     const GROUPED_STREAMS = {};
     Object.keys(ALL_STREAMS).forEach(key => {
       const city = key.split('-')[0];
       if (!GROUPED_STREAMS[city]) GROUPED_STREAMS[city] = [];
       GROUPED_STREAMS[city].push({ key: key, ...ALL_STREAMS[key] });
     });
-const REGION_GROUPS = {
+    const REGION_GROUPS = {
       '北部': ['台北', '新北', '基隆', '桃園', '宜蘭', '新竹'],
       '中部': ['苗栗', '台中', '彰化', '南投', '雲林'],
       '南部': ['嘉義', '台南', '高雄', '屏東', '澎湖'],
@@ -744,7 +728,7 @@ const REGION_GROUPS = {
         document.getElementById('langZhTwBtn').innerText = getTranslation('lang_zh_tw');
         document.getElementById('langEnUsBtn').innerText = getTranslation('lang_en_us');
         document.getElementById('labelsToggleLabel').innerText = getTranslation('labels_toggle_label');
-        document.getElementById('labelsToggleInModalBtn').innerText = isLabelsVisible ? getTranslation('labels_toggle_hide') : getTranslation('labels_toggle_show');
+        document.getElementById('labelsToggleInModalBtn').innerText = isLabelsVisible ? getTranslation('labels_toggle_show') : getTranslation('labels_toggle_hide');
         document.getElementById('musicModeTitle').innerText = getTranslation('music_mode_title');
         document.getElementById('musicModeHint').innerText = getTranslation('music_mode_hint');
         document.getElementById('modeListLoop').innerText = getTranslation('mode_list_loop');
@@ -776,7 +760,7 @@ const REGION_GROUPS = {
     // 初始化時調用
     updateUIForLanguage();
 
-function onYouTubeIframeAPIReady() {
+    function onYouTubeIframeAPIReady() {
       // 根據當前網格大小，初始化所需數量的播放器
       const numCams = getGridDimension() * getGridDimension();
       
@@ -869,7 +853,7 @@ function onYouTubeIframeAPIReady() {
         }
     }
 
-function onPlayerReady(event) {
+    function onPlayerReady(event) {
       // 強化：確保播放器載入成功後，強制開始播放並靜音
       try {
         event.target.mute();
