@@ -423,7 +423,7 @@
   </div>
 
   <div id="mainSettingsModal" class="modal-backdrop">
-    <div class="modal-content" style="width:420px; max-width:90%;">
+    <div class="modal-content" style="width:420px; max-width:90%;;">
         <h3 id="settingsTitle">⚙️ 程式設定</h3>
         
         <div style="margin-top:20px; padding:10px; border:1px solid #444; border-radius:6px;">
@@ -476,7 +476,7 @@
   </div>
 
   <div id="musicQueueModal" class="modal-backdrop">
-    <div class="modal-content" style="width:350px; max-width:90%;">
+    <div class="modal-content" style="width:350px; max-width:90%;;">
       <h3 id="queueTitle" style="margin-top:0; color:#fff; text-align:center;">🎶 播放列表狀態</h3>
       <div id="queueListContent" style="margin-bottom:15px; padding-right:5px;"></div>
       <button id="queueCloseBtn" onclick="closeMusicQueueModal()" style="margin-top:10px;">關閉</button>
@@ -832,7 +832,6 @@
             'alert_playlist_playing': 'This playlist is already playing.',
             'alert_playlist_queued': (id) => `✅ Playlist ID: ${id} will start automatically after the current song ends.`,
             'alert_playlist_loaded': (id) => `✅ Playlist ID: ${id} loaded.`,
-            // 修正語法錯誤：缺少 } 與反引號
             'alert_song_added': (title) => `✅ Added ${title} to the playback queue.`,
             'alert_no_video_found': 'No matching video found.',
             'alert_found_and_added': (title) => `✅ Found and added: ${title}`,
@@ -1005,7 +1004,7 @@
           queue_close_btn: '닫기',
           alert_invalid_playlist: '유효하지 않은 목록입니다.',
           alert_playlist_playing: '이미 재생 중인 목록입니다.',
-          alert_playlist_queued': (id) => `✅ 현재 곡 종료 후 목록 ID: ${id}가 시작됩니다.`,
+          alert_playlist_queued: (id) => `✅ 현재 곡 종료 후 목록 ID: ${id}가 시작됩니다.`,
           alert_playlist_loaded: (id) => `✅ 목록 ID: ${id} 로드 완료.`,
           alert_song_added: (t) => `✅ ${t} 추가됨.`,
           alert_no_video_found: '해당 영상이 없습니다.',
@@ -2054,135 +2053,4 @@
         if (currentPlaylistId) {
             musicPlayer.previousVideo();
         } else if (musicQueue.length > 0) {
-            if (currentMusicIndex > 0) {
-                currentMusicIndex--;
-                loadAndPlayCurrentSong();
-            } else {
-                if (playbackMode === 'listLoop') {
-                    currentMusicIndex = musicQueue.length - 1;
-                    loadAndPlayCurrentSong();
-                } else {
-                    try { musicPlayer.seekTo(0); } catch(e) {}
-                }
-            }
-        }
-    }
-
-    function setPlaybackMode(mode) {
-        playbackMode = mode;
-        localStorage.setItem('playbackMode', mode);
-        document.getElementById('modeListLoop').classList.remove('active');
-        document.getElementById('modeShuffle').classList.remove('active');
-        document.getElementById(`mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.add('active');
-        closeMusicSettingsModal();
-    }
-
-    function openMusicSettingsModal() {
-        document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`mode${playbackMode.charAt(0).toUpperCase() + playbackMode.slice(1)}`).classList.add('active');
-        document.getElementById('musicSettingsModal').style.display = 'flex';
-    }
-    function closeMusicSettingsModal() {
-        document.getElementById('musicSettingsModal').style.display = 'none';
-    }
-    function stopAndCloseModal() {
-        stopMusic();
-        closeMusicSettingsModal();
-    }
-
-    function showMusicQueueStatusModal() {
-        const queueContentDiv = document.getElementById('queueListContent');
-        let content = '';
-        const modeText = playbackMode === 'shuffle' ? getTranslation('mode_shuffle') : getTranslation('mode_list_loop');
-
-        if (currentPlaylistId) {
-            const playlist = (typeof musicPlayer.getPlaylist === 'function') ? musicPlayer.getPlaylist() : null;
-            const idx = (typeof musicPlayer.getPlaylistIndex === 'function') ? musicPlayer.getPlaylistIndex() : -1;
-            content = `<p style="color:#fff; font-size:14px; margin-top:0;"> 
-                ${getTranslation('queue_playing_playlist')}<br> 
-                <span style="color:#0078d7; word-break: break-all;">${currentPlaylistId}</span> 
-            </p>`;
-            if (!playlist || !Array.isArray(playlist) || playlist.length === 0) {
-                content += `<p style="color:#aaa; font-size:12px;">${getTranslation('queue_list_empty')}</p>`;
-            } else {
-                content += `<p style="color:#fff; font-size:13px; margin:8px 0 6px;"> 
-                    ${getTranslation('queue_total', musicQueue.length, idx + 1, modeText)}
-                </p>`;
-                if (idx < musicQueue.length - 1) {
-                    content += `<p style="font-size:13px; color:#ccc;">${getTranslation('queue_next_video')} ${musicQueue[idx + 1] ? escapeHtml(musicQueue[idx + 1].title) : 'N/A'}</p>`;
-                }
-                content += `<p style="color:#fff; font-weight:bold; margin-top:15px; margin-bottom:5px;">完整清單：</p>`;
-                content += '<ul class="modal-list" style="list-style:none; padding:0; margin:0;">';
-                musicQueue.forEach((item, index) => {
-                    const isCurrent = index === idx;
-                    content += `<li class="queue-item" style="background:${isCurrent ? 'rgba(0,120,215,0.12)' : 'transparent'};">
-                        <button onclick="playPlaylistAtIndex(${index})" style="background:#222; border:1px solid #444; color:#fff; border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
-                            ${isCurrent ? getTranslation('queue_mode_current') : getTranslation('queue_mode_index', index)}
-                        </button>
-                        <div class="title">${(item && item.title) ? escapeHtml(item.title) : item.id}</div>
-                        <div class="meta">ID:${item.id}</div>
-                    </li>`;
-                });
-                content += '</ul>';
-            }
-        } else if (musicQueue.length > 0) {
-            const isPlayingSingle = currentMusicIndex !== -1 && isPlaying;
-            content += `<p style="color:#fff; font-size:14px; margin-top:0; text-align:center; border-bottom:1px solid #444; padding-bottom:10px;">
-                ${getTranslation('queue_playing_queue')}
-            </p>`;
-            if (pendingPlaylistId) {
-                content += `<p style="color:#d70000; font-size:13px; margin-top:10px; padding:8px; border:1px dashed #d70000; border-radius:4px; text-align:center;">
-                    ${getTranslation('queue_playlist_pending', pendingPlaylistId)}
-                </p>`;
-            }
-            content += `<p style="color:#fff; font-size:13px; margin:8px 0 6px;"> 
-                ${getTranslation('queue_total', musicQueue.length, currentMusicIndex + 1, modeText)}
-            </p>`;
-            content += '<ul class="modal-list" style="list-style:none; padding:0; margin:0;">';
-            musicQueue.forEach((item, index) => {
-                const isCurrent = index === currentMusicIndex;
-                content += `<li class="queue-item" style="background:${isCurrent ? 'rgba(0,120,215,0.12)' : 'transparent'};">
-                    <button onclick="playQueueAtIndex(${index})" style="background:#222; border:1px solid #444; color:#fff; border-radius:6px; height:28px; padding:0 8px; cursor:pointer; flex-shrink:0;">
-                        ${isCurrent ? getTranslation('queue_mode_current') : getTranslation('queue_mode_index', index)}
-                    </button>
-                    <div class="title">${(item && item.title) ? escapeHtml(item.title) : item.id}</div>
-                    <div class="meta">ID:${item.id}</div>
-                </li>`;
-            });
-            content += '</ul>';
-        } else {
-            if (pendingPlaylistId) {
-                content += `<p style="color:#d70000; font-size:13px; margin-top:10px; padding:8px; border:1px dashed #d70000; border-radius:4px; text-align:center;">
-                    ${getTranslation('queue_playlist_pending', pendingPlaylistId)}
-                </p>`;
-            }
-            content += `<p style="color:#aaa; font-size:14px; text-align:center;">${getTranslation('queue_empty_queue')}</p>`;
-        }
-        
-        queueContentDiv.innerHTML = content;
-        document.getElementById('musicQueueModal').style.display = 'flex';
-    }
-
-    function closeMusicQueueModal() {
-      document.getElementById('musicQueueModal').style.display = 'none';
-    }
-
-    function playPlaylistAtIndex(index) {
-      if (!currentPlaylistId) return;
-      try {
-        musicPlayer.playVideoAt(index);
-      } catch (e) {
-        musicPlayer.playVideo();
-      }
-    }
-
-    function playQueueAtIndex(index) {
-      if (index < 0 || index >= musicQueue.length) return;
-      currentMusicIndex = index;
-      loadAndPlayCurrentSong();
-      closeMusicQueueModal();
-    }
-    
-  </script>
-</body>
-</html>
+           
