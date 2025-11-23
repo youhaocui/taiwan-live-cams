@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     /* ---------------------------------------------------------------------- */
-    /* CSS 樣式 */
+    /* CSS 樣式 (保持不變) */
     /* ---------------------------------------------------------------------- */
     html,body{
       height:100%;
@@ -146,6 +146,11 @@
     }
     .fullscreen-active .stage-wrap{ height:100vh; }
 
+    /* 畫面選擇按鈕控制 */
+    .hide-cam-select #camSelectButtons {
+        display: none;
+    }
+    
     @media (max-width:640px){
       .controls{ padding:6px 8px;
         height:80px;
@@ -159,7 +164,7 @@
     }
     
     /* ---------------------------------------------------------------------- */
-    /* CSS 樣式：音樂控制區塊 */
+    /* CSS 樣式：音樂控制區塊 (保持不變) */
     /* ---------------------------------------------------------------------- */
 
     .music-controls-container {
@@ -230,8 +235,7 @@
     
   </style>
 </head>
-<body>
-  <div class="controls" id="controls">
+<body class="hide-cam-select" id="pageBody"> <div class="controls" id="controls">
     <div id="camSelectButtons">
       <button id="select-cam-0" class="active" onclick="selectCam(0)">左上</button>
       <button id="select-cam-1" onclick="selectCam(1)">右上</button>
@@ -287,7 +291,6 @@
       <div class="interaction-shield"></div>
       <div class="label" id="label3">載入中...<span class="source-on-screen"></span></div>
     </div>
-    
     <div class="cell" data-index="4" style="display:none;">
       <div id="player4" class="player-container"></div>
       <div class="interaction-shield"></div>
@@ -565,11 +568,24 @@
       '其他': ['其他']
     };
     
-    /* ===== 語言包 (Localization) ===== */
+    /* ===== 語言包 (Localization) - 修正 cam_name 順序 ===== */
     const LANGUAGES = {
         'zh-TW': {
             'title': '台灣即時直播多分割監看',
-            'cam_name': (index) => ['左上', '右上', '左下', '右下', '中上', '中下', '左中', '右中', '中央'][index] || `畫面 ${index + 1}`,
+            // 修正 3x3 順序：左上,中上,右上,左中,中央,右中,左下,中下,右下
+            'cam_name': (index) => {
+                const names = ['左上', '右上', '左下', '右下']; // 2x2 預設
+                const names3x3 = ['左上', '中上', '右上', '左中', '中央', '右中', '左下', '中下', '右下']; // 3x3
+                const numCams = getGridDimension() * getGridDimension();
+                
+                if (numCams === 9) {
+                    return names3x3[index] || `畫面 ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `畫面 ${index + 1}`;
+                } else {
+                    return `畫面 ${index + 1}`;
+                }
+            },
             'fullscreen_btn': '全螢幕',
             'settings_btn': '⚙️ 設定',
             'mute_btn_unmuted': '解除靜音',
@@ -622,7 +638,19 @@
         },
         'en-US': {
             'title': 'Taiwan Live Stream Multi-View Monitor',
-            'cam_name': (index) => ['Top Left', 'Top Right', 'Bottom Left', 'Bottom Right', 'Middle Top', 'Middle Bottom', 'Middle Left', 'Middle Right', 'Center'][index] || `Cam ${index + 1}`,
+            'cam_name': (index) => {
+                const names = ['Top Left', 'Top Right', 'Bottom Left', 'Bottom Right'];
+                const names3x3 = ['Top Left', 'Top Center', 'Top Right', 'Middle Left', 'Center', 'Middle Right', 'Bottom Left', 'Bottom Center', 'Bottom Right'];
+                const numCams = getGridDimension() * getGridDimension();
+                
+                if (numCams === 9) {
+                    return names3x3[index] || `Cam ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `Cam ${index + 1}`;
+                } else {
+                    return `Cam ${index + 1}`;
+                }
+            },
             'fullscreen_btn': 'Fullscreen',
             'settings_btn': '⚙️ Settings',
             'mute_btn_unmuted': 'Unmute',
@@ -699,16 +727,7 @@
         // Control buttons
         const camButtonsContainer = document.getElementById('camSelectButtons');
         if (camButtonsContainer) { 
-            camButtonsContainer.innerHTML = '';
-            const numCams = getGridDimension() * getGridDimension();
-            for(let i=0; i<numCams; i++) {
-                const btn = document.createElement('button');
-                btn.id = `select-cam-${i}`;
-                btn.className = (i === selectedCamIndex) ? 'active' : '';
-                btn.setAttribute('onclick', `selectCam(${i})`);
-                btn.innerText = getTranslation('cam_name', i);
-                camButtonsContainer.appendChild(btn);
-            }
+            updateCamSelectButtons(getGridDimension() * getGridDimension());
         }
         
         document.getElementById('fullscreenBtn').innerText = getTranslation('fullscreen_btn');
@@ -745,9 +764,13 @@
         }
         
         // Update buttons in regionButtons (if visible)
-        const backBtn = document.querySelector('#regionButtons .back-btn');
-        if (backBtn) {
-             backBtn.textContent = getTranslation('back_btn');
+        if (!currentCity) { // 只有在主列表時才需要重新渲染
+            renderRegionButtons();
+        } else {
+             const backBtn = document.querySelector('#regionButtons .back-btn');
+             if (backBtn) {
+                 backBtn.textContent = getTranslation('back_btn');
+             }
         }
         
         // Update language buttons active state
@@ -758,10 +781,12 @@
     }
     
     // 初始化時調用
-    updateUIForLanguage();
+    // updateUIForLanguage(); // 移至 onYouTubeIframeAPIReady 之後
 
     function onYouTubeIframeAPIReady() {
-      // 根據當前網格大小，初始化所需數量的播放器
+      // 確保在初始化播放器之前，grid size 已經被讀取並設置
+      initializeGridSettings(); // 確保 currentGridSize 和 body class 設置正確
+      
       const numCams = getGridDimension() * getGridDimension();
       
       const defaultStreams = [
@@ -787,7 +812,7 @@
             loop: 1,
             mute: 1,
             playsinline: 1,
-            start: 0 // 強化：確保直播從頭開始載入
+            start: 0
           },
           events: {
             onReady: onPlayerReady,
@@ -821,10 +846,10 @@
         }
       });
       
-      // 初始化設定
-      initializeGridSettings();
+      // 完成初始化後更新 UI
       initializeLabelSettings();
-      renderRegionButtons();
+      updateUIForLanguage();
+      renderRegionButtons(); // 確保縣市列表顯示
       refreshMuteButtonLabel();
       
       // 確保播放器陣列中的其餘部分被填充為 null
@@ -834,6 +859,8 @@
     }
     
     function initializeGridSettings() {
+        // 確保 currentGridSize 正確讀取
+        currentGridSize = localStorage.getItem('gridSize') || '2x2';
         setGridSize(currentGridSize, false); 
         
         document.querySelectorAll('.grid-btn').forEach(btn => {
@@ -846,10 +873,8 @@
         const body = document.body;
         if (!isLabelsVisible) {
              body.classList.add('hide-labels');
-             document.getElementById('labelsToggleInModalBtn').innerText = getTranslation('labels_toggle_show');
         } else {
              body.classList.remove('hide-labels');
-             document.getElementById('labelsToggleInModalBtn').innerText = getTranslation('labels_toggle_hide');
         }
     }
 
@@ -869,7 +894,7 @@
       updateMediaSession();
     }
     
-    /* ===== 核心修正：點歌邏輯修正與播放器狀態處理強化 ===== */
+    /* ===== 核心修正：點歌邏輯修正與播放器狀態處理強化 (保持不變) ===== */
     function onMusicPlayerStateChange(event) {
       if (!isPlaying) return;
 
@@ -1053,20 +1078,44 @@
         return null;
     }
     
+    function updateCamSelectButtons(numCams) {
+        const camButtonsContainer = document.getElementById('camSelectButtons');
+        
+        // 邏輯 2 & 3 修正: 1x1 不顯示按鈕，其他模式顯示並更新按鈕名稱
+        if (numCams === 1) {
+             document.getElementById('pageBody').classList.add('hide-cam-select');
+             camButtonsContainer.innerHTML = '';
+        } else {
+             document.getElementById('pageBody').classList.remove('hide-cam-select');
+             camButtonsContainer.innerHTML = '';
+             for (let i = 0; i < numCams; i++) {
+                const btn = document.createElement('button');
+                btn.id = `select-cam-${i}`;
+                btn.className = (i === selectedCamIndex) ? 'active' : '';
+                btn.setAttribute('onclick', `selectCam(${i})`);
+                btn.innerText = getTranslation('cam_name', i);
+                camButtonsContainer.appendChild(btn);
+            }
+        }
+    }
+    
     function selectCam(index) {
         const numCams = getGridDimension() * getGridDimension();
         if (index >= numCams) return; 
         
         selectedCamIndex = index;
         
-        // 更新按鈕樣式
-        for (let i = 0; i < numCams; i++) {
-            const btn = document.getElementById(`select-cam-${i}`);
-            if (btn) {
-                if (i === selectedCamIndex) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
+        // 更新按鈕樣式 (如果按鈕顯示的話)
+        const camButtonsContainer = document.getElementById('camSelectButtons');
+        if (!document.getElementById('pageBody').classList.contains('hide-cam-select')) {
+            for (let i = 0; i < numCams; i++) {
+                const btn = document.getElementById(`select-cam-${i}`);
+                if (btn) {
+                    if (i === selectedCamIndex) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
                 }
             }
         }
@@ -1142,17 +1191,8 @@
             cell.style.display = index < numCams ? 'block' : 'none';
         });
 
-        // 3. 更新攝影機選擇按鈕
-        const camButtonsContainer = document.getElementById('camSelectButtons');
-        camButtonsContainer.innerHTML = '';
-        for (let i = 0; i < numCams; i++) {
-            const btn = document.createElement('button');
-            btn.id = `select-cam-${i}`;
-            btn.className = (i === selectedCamIndex && i < numCams) ? 'active' : '';
-            btn.setAttribute('onclick', `selectCam(${i})`);
-            btn.innerText = getTranslation('cam_name', i);
-            camButtonsContainer.appendChild(btn);
-        }
+        // 3. 更新攝影機選擇按鈕 (調用修正後的函數)
+        updateCamSelectButtons(numCams);
         
         // 4. 更新設定彈窗內的按鈕狀態
         document.querySelectorAll('.grid-btn').forEach(btn => {
@@ -1318,6 +1358,7 @@
         }
     }
     
+    // 修正: 確保縣市列表能夠正確渲染
     function renderRegionButtons() {
       const container = document.getElementById('regionButtons');
       container.innerHTML = '';
@@ -1456,7 +1497,7 @@
         updateMediaSession(currentSong.title);
     }
     
-    /* ===== 核心修正：點歌邏輯修正 `requestSong` 函數 ===== */
+    /* ===== 核心修正：點歌邏輯修正 `requestSong` 函數 (保持不變) ===== */
     async function requestSong() {
         const input = prompt(getTranslation('request_btn') + "\n" + getTranslation('music_mode_hint', '（例如：影片ID: dQw4w9WgXcQ，或播放清單網址，或關鍵字）'));
 
