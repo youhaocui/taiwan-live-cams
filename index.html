@@ -393,17 +393,13 @@
                 <button id="grid3x3Btn" class="grid-btn" onclick="setGridSize('3x3')">3x3 (九分割)</button>
             </div>
             <p style="font-size:12px; color:#888; margin:10px 0 0;" id="gridSizeHint">更改分割模式將重設所有畫面。</p>
-    
+        </div>
+
         <div style="margin-top:20px; padding:10px; border:1px solid #444; border-radius:6px;">
             <p id="languageLabel" style="color:#fff; font-weight:bold; margin:0 0 10px;">語言選擇：</p>
-            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px;">
-                <button id="langZhTwBtn" class="lang-btn" onclick="setLanguage('zh-TW')">繁體中文</button>
-                <button id="langZhCnBtn" class="lang-btn" onclick="setLanguage('zh-CN')">简体中文</button>
+            <div style="display:flex; justify-content:space-around; gap:10px;">
+                <button id="langZhTwBtn" class="lang-btn" onclick="setLanguage('zh-TW')">正體中文</button>
                 <button id="langEnUsBtn" class="lang-btn" onclick="setLanguage('en-US')">English</button>
-                <button id="langJaBtn" class="lang-btn" onclick="setLanguage('ja')">日本語</button>
-                <button id="langKoBtn" class="lang-btn" onclick="setLanguage('ko')">한국어</button>
-                <button id="langThBtn" class="lang-btn" onclick="setLanguage('th')">ไทย</button>
-                <button id="langViBtn" class="lang-btn" onclick="setLanguage('vi')">Tiếng Việt</button>
             </div>
         </div>
 
@@ -618,42 +614,87 @@
       '其他': ['其他']
     };
     // 新增：縣市與攝影機地點的英文對照表
-   /* ===== 語言包與地區翻譯 ===== */
-
-    // 縣市與分區的多國語言對照
-    const REGION_I18N = {
-        '台北': { en: 'Taipei', zh_cn: '台北', ja: '台北', ko: '타이베이', th: 'ไทเป', vi: 'Đài Bắc' },
-        '新北': { en: 'New Taipei', zh_cn: '新北', ja: '新北', ko: '신베이', th: 'นิวไทเป', vi: 'Tân Bắc' },
-        '基隆': { en: 'Keelung', zh_cn: '基隆', ja: '基隆', ko: '지룽', th: 'จีหลง', vi: 'Cơ Long' },
-        '桃園': { en: 'Taoyuan', zh_cn: '桃園', ja: '桃園', ko: '타오위안', th: 'เถาหยวน', vi: 'Đào Viên' },
-        '宜蘭': { en: 'Yilan', zh_cn: '宜兰', ja: '宜蘭', ko: '이란', th: 'อี๋หลาน', vi: 'Nghi Lan' },
-        '新竹': { en: 'Hsinchu', zh_cn: '新竹', ja: '新竹', ko: '신주', th: 'ซินจู๋', vi: 'Tân Trúc' },
-        '苗栗': { en: 'Miaoli', zh_cn: '苗栗', ja: '苗栗', ko: '먀오리', th: 'เหมียวลี่', vi: 'Miêu Lật' },
-        '台中': { en: 'Taichung', zh_cn: '台中', ja: '台中', ko: '타이중', th: 'ไถจง', vi: 'Đài Trung' },
-        '彰化': { en: 'Changhua', zh_cn: '彰化', ja: '彰化', ko: '장화', th: 'จางฮั่ว', vi: 'Chương Hóa' },
-        '南投': { en: 'Nantou', zh_cn: '南投', ja: '南投', ko: '난터우', th: 'หนานโถว', vi: 'Nam Đầu' },
-        '雲林': { en: 'Yunlin', zh_cn: '云林', ja: '雲林', ko: '윈린', th: 'หยุนหลิน', vi: 'Vân Lâm' },
-        '嘉義': { en: 'Chiayi', zh_cn: '嘉义', ja: '嘉義', ko: '자이', th: 'เจียอี้', vi: 'Gia Nghĩa' },
-        '台南': { en: 'Tainan', zh_cn: '台南', ja: '台南', ko: '타이난', th: 'ไถหนาน', vi: 'Đài Nam' },
-        '高雄': { en: 'Kaohsiung', zh_cn: '高雄', ja: '高雄', ko: '가오슝', th: 'เกาสง', vi: 'Cao Hùng' },
-        '屏東': { en: 'Pingtung', zh_cn: '屏东', ja: '屏東', ko: '핑둥', th: 'ปิงตง', vi: 'Bình Đông' },
-        '澎湖': { en: 'Penghu', zh_cn: '澎湖', ja: '澎湖', ko: '펑후', th: 'เพิงหู', vi: 'Bành Hồ' },
-        '花蓮': { en: 'Hualien', zh_cn: '花莲', ja: '花蓮', ko: '화롄', th: 'ฮวาเหลียน', vi: 'Hoa Liên' },
-        '台東': { en: 'Taitung', zh_cn: '台东', ja: '台東', ko: '타이둥', th: 'ไถตง', vi: 'Đài Đông' },
-        '金門': { en: 'Kinmen', zh_cn: '金门', ja: '金門', ko: '진먼', th: 'จินเหมิน', vi: 'Kim Môn' },
-        '馬祖': { en: 'Matsu', zh_cn: '马祖', ja: '馬祖', ko: '마조', th: 'มาซู', vi: 'Mã Tổ' },
-        '其他': { en: 'Others', zh_cn: '其他', ja: 'その他', ko: '기타', th: 'อื่นๆ', vi: 'Khác' },
-        '北部': { en: 'North', zh_cn: '北部', ja: '北部', ko: '북부', th: 'ภาคเหนือ', vi: 'Phía Bắc' },
-        '中部': { en: 'Central', zh_cn: '中部', ja: '中部', ko: '중부', th: 'ภาคกลาง', vi: 'Miền Trung' },
-        '南部': { en: 'South', zh_cn: '南部', ja: '南部', ko: '남부', th: 'ภาคใต้', vi: 'Miền Nam' },
-        '東部': { en: 'East', zh_cn: '东部', ja: '東部', ko: '동부', th: 'ภาคตะวันออก', vi: 'Phía Đông' },
-        '離島': { en: 'Islands', zh_cn: '离岛', ja: '離島', ko: '섬', th: 'เกาะ', vi: 'Hải đảo' }
+    const CITY_NAMES_EN = {
+        '台北': 'Taipei', '新北': 'New Taipei', '基隆': 'Keelung', '桃園': 'Taoyuan', '宜蘭': 'Yilan', '新竹': 'Hsinchu',
+        '苗栗': 'Miaoli', '台中': 'Taichung', '彰化': 'Changhua', '南投': 'Nantou', '雲林': 'Yunlin',
+        '嘉義': 'Chiayi', '台南': 'Tainan', '高雄': 'Kaohsiung', '屏東': 'Pingtung', '澎湖': 'Penghu',
+        '花蓮': 'Hualien', '台東': 'Taitung', '金門': 'Kinmen', '馬祖': 'Matsu', '其他': 'Others',
+        '北部': 'North', '中部': 'Central', '南部': 'South', '東部': 'East', '離島': 'Islands'
     };
 
+    const STREAM_NAME_EN = {
+        // 台北
+        "台北象山": "Elephant Mountain", "大稻埕": "Dadaocheng", "碧山巖": "Bishan Temple", "微風平台": "Breeze Platform",
+        "貓空指南宮": "Maokong Zhinan Temple", "擎天岡草原": "Qingtiangang Grassland", "陽明書屋": "Yangming Bookshelf",
+        "遠眺七星山": "Mt. Qixing View", "二坪子停車場": "Erpingzi Parking", "大屯自然公園": "Datun Nature Park",
+        "小油坑停車場": "Xiaoyoukeng Parking", "冷水坑停車場": "Lengshuikeng Parking",
+        // 新北
+        "新北淡水": "Tamsui", "新北鼻頭": "Bitou Cape", "中角灣": "Zhongjiao Bay", "十分瀑布公園": "Shifen Waterfall",
+        "新北九份": "Jiufen", "內洞國家森林遊樂區": "Neidong Forest Area", "三峽老街北段": "Sanxia Old St. (N)",
+        "三峽老街南段": "Sanxia Old St. (S)", "烏來吊橋": "Wulai Suspension Bridge", "員山子": "Yuanshanzi",
+        "文山農場大草皮": "Wenshan Farm",
+        // 基隆/新竹/桃園
+        "外木山": "Waimushan", "成功湖": "Cheng Kung Lake", "大草坪": "Great Lawn",
+        "桃園機場": "Taoyuan Airport", "TPE 南跑道": "TPE South Runway", "TPE 北跑道": "TPE North Runway",
+        "永安漁港": "Yongan Fishing Port", "拉拉山遊客中心": "Lalashan Visitor Ctr", "虎頭山環保公園": "Hutoushan Park",
+        "小烏來天空步道": "Xiao Wulai Skywalk", "角板山思親亭": "Jiaobanshan Pavilion", "三龜戲水觀景平台": "San-Gui-Xi-Shui",
+        "大溪橋": "Daxi Bridge", "奧爾森林學堂": "Owl Forest School", "角板山梅園": "Jiaobanshan Plum Garden",
+        "角板山生態池": "Jiaobanshan Pond", "大溪老街": "Daxi Old Street", "石門水庫": "Shihmen Reservoir",
+        "慈湖水岸廣場": "Cihu Waterfront", "薑母島": "Jiangmu Island", "上巴陵": "Upper Baling",
+        "機場凱悅": "Hyatt Place", "寰宇平台": "Huanyu Platform", "許厝港濕地": "Xucuogang Wetlands",
+        "桃園機場畫面/資訊": "Airport Info/View",
+        // 宜蘭
+        "宜蘭外澳": "Waiao Beach", "宜蘭福隆": "Fulong Beach", "石城漁港": "Shicheng Port", "無尾港": "Wuwei Port",
+        "石城漁港1": "Shicheng Port 1", "礁溪寒沐酒店": "Mu Jiao Xi Hotel",
+        // 苗栗/台中/彰化/南投
+        "汶水遊客中心": "Wenshui Visitor Ctr", "觀霧遊憩區": "Guanwu Rec Area", "雪見遊憩區": "Xuejian Rec Area",
+        "台中高美": "Gaomei Wetlands", "望高寮": "Wanggaoliao", "彰化王功": "Wanggong Port", "武嶺亭": "Wuling Pavilion",
+        // 嘉義/台南
+        "嘉義奮起湖": "Fenqihu", "二延平步道": "Eryanping Trail", "太平雲梯": "Taiping Suspension Bridge",
+        "觸口遊客中心": "Chukou Visitor Ctr", "愛情大草原": "Love Prairie", "生力農場": "Shengli Farm",
+        "里佳資訊站": "Lijia Info Station", "台南七股": "Qigu", "北汕尾水鳥保護區": "Beishanwei Birds",
+        "曾文水庫": "Zengwen Reservoir", "火山碧雲寺": "Biyun Temple",
+        // 高雄/屏東
+        "楠梓聖興橋": "Shengxing Bridge", "蚵寮國小": "Keliao Elementary", "旗津海水浴場": "Cijin Beach",
+        "壽山觀景台": "Shoushan Lookout", "蓮池潭": "Lotus Pond", "高雄燈塔": "Kaohsiung Lighthouse",
+        "旗津沙灘": "Cijin Beach Cam", "羌光橋": "Qiangguang Bridge", "墾丁南灣": "Kenting Nanwan",
+        "船帆石": "Chuanfanshi", "船帆石沙灘 (4K)": "Chuanfanshi Beach", "雀鯛公寓": "Damselfish Apt",
+        "頂流區": "Upcurrent Zone", "軸孔公園": "Acropora Park", "搖曳大草原": "Swaying Grassland",
+        // 花蓮/台東
+        "馬太鞍溪左岸": "Mataian Creek", "七星潭": "Qixingtan", "石梯坪": "Shitiping", "大石鼻山": "Dashibishan",
+        "長虹橋": "Changhong Bridge", "台東鯉魚山": "Liyushan", "台東金崙大橋": "Jinlun Bridge",
+        "台東金樽觀浪": "Jinzun Surf", "台東富山": "Fushan", "台東杉原灣": "Shanyuan Bay",
+        "台東富岡漁港": "Fugang Port", "台東華源曙光觀景台": "Huayuan Sunrise", "台東南橫口": "S. Cross-Island Hwy",
+        "台東池上天堂路": "Chishang Paradise Rd", "台東多良": "Duoliang Station", "鹿野高台": "Luye Highland",
+        "三仙台": "Sanxiantai", "金樽遊憩區": "Jinzun Rec Area", "都歷遊客中心": "Duli Visitor Ctr",
+        "加路蘭遊憩區": "Jialulan Rec Area", "綠島南寮": "Green Island Nanliao", "綠島帆船鼻": "Fanchuanbi",
+        "綠島柴口浮潛區": "Chaikou Snorkeling", "娜路彎酒店": "Naruwan Hotel",
+        // 離島/其他
+        "金門麒麟山公園": "Qilin Mt. Park", "金門134高地": "134 Highland", "金門建功嶼": "Jiangong Islet",
+        "北竿航空站休息室": "Beigan Airport", "蓮華寺正殿1": "Lianhua Temple 1", "蓮華寺正殿2": "Lianhua Temple 2",
+        "地震監測直播": "Earthquake Monitor", "松山機場航班資訊": "TSA Flight Info", "高雄機場航班資訊": "KHH Flight Info",
+        "桃園機場航班資訊": "TPE Flight Info"
+    };
+
+    /* ===== 語言包 (Localization) ===== */
     const LANGUAGES = {
         'zh-TW': {
             'title': '台灣即時直播多分割監看',
-            'cam_name': (i) => `畫面 ${i + 1}`,
+            // 修正 3x3 順序：左上,中上,右上,左中,中央,右中,左下,中下,右下
+            'cam_name': (index) => {
+                const names = ['左上', '右上', '左下', '右下'];
+                // 2x2 預設
+                const names3x3 = ['左上', '中上', '右上', '左中', '中央', '右中', '左下', '中下', '右下'];
+                // 3x3
+                const numCams = getGridDimension() * getGridDimension();
+                if (numCams === 9) {
+                    return names3x3[index] || `畫面 ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `畫面 ${index + 1}`;
+                } else {
+                    return `畫面 ${index + 1}`;
+                }
+            },
             'fullscreen_btn': '全螢幕',
             'settings_btn': '⚙️ 設定',
             'mute_btn_unmuted': '解除靜音',
@@ -662,64 +703,63 @@
             'back_btn': '🏠 返回地區列表',
             'loading': '載入中...',
             'source_prefix': '來源:',
+            // Settings Modal
             'settings_title': '⚙️ 程式設定',
             'grid_size_label': '畫面分割模式：',
             'grid_1x1': '1x1 (單畫面)',
             'grid_2x2': '2x2 (四分割)',
             'grid_3x3': '3x3 (九分割)',
             'grid_hint': '更改分割模式將重設所有畫面。',
+            'language_label': '語言選擇：',
+            'lang_zh_tw': '正體中文',
+            'lang_en_us': 'English',
             'labels_toggle_label': '畫面標籤顯示：',
             'labels_toggle_hide': '標籤隱藏',
             'labels_toggle_show': '標籤顯示',
             'settings_close_btn': '關閉設定',
+            // Music Modal
             'music_mode_title': '音樂播放模式',
             'music_mode_hint': '點擊下方按鈕選擇播放模式：',
             'mode_list_loop': '🔄 列表循環',
             'mode_shuffle': '🔀 隨機播放',
             'mode_stop_btn': '⏹️ 停止並結束播放',
             'queue_title': '🎶 播放列表狀態',
+            'queue_playing_playlist': '正在播放清單 ID：',
+            'queue_list_empty': '（清單尚未讀取或為空）',
+            'queue_total': (total, current, mode) => `總計：${total} 首 | 當前：第 ${current} 首 | 模式：${mode}`,
+            'queue_next_video': '下一首歌曲：',
+            'queue_playlist_pending': (id) => `⚠️ 有待播清單（ID: ${id}）將於當前歌曲結束後開始播放。`,
+            'queue_empty_queue': '播放列表為空。',
+            'queue_playing_queue': '正在播放列表單曲：',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': '關閉',
+            // Alerts
+            'alert_invalid_playlist': '無效的播放清單。',
+            'alert_playlist_playing': '該播放清單已在播放中。',
+            'alert_playlist_queued': (id) => `✅ 當前單曲播放完畢後，將自動開始播放清單 ID: ${id}。`,
+            'alert_playlist_loaded': (id) => `✅ 已載入播放清單 ID: ${id}。`,
+            'alert_song_added': (title) => `✅ 已將 ${title} 加入播放列表。`,
             'alert_no_video_found': '找不到符合的影片。',
+            'alert_found_and_added': (title) => `✅ 已找到並加入：${title}`,
             'alert_playing_now': '正在播放：',
-            'map_hide_btn': '地圖隱藏',
-            'map_show_btn': '地圖顯示'
-        },
-        'zh-CN': {
-            'title': '台湾即时直播多画面监控',
-            'cam_name': (i) => `画面 ${i + 1}`,
-            'fullscreen_btn': '全屏',
-            'settings_btn': '⚙️ 设置',
-            'mute_btn_unmuted': '取消静音',
-            'mute_btn_muted': '静音',
-            'request_btn': '🎶 点歌/清单',
-            'back_btn': '🏠 返回地区列表',
-            'loading': '加载中...',
-            'source_prefix': '来源:',
-            'settings_title': '⚙️ 程序设置',
-            'grid_size_label': '画面分割模式：',
-            'grid_1x1': '1x1 (单画面)',
-            'grid_2x2': '2x2 (四分割)',
-            'grid_3x3': '3x3 (九分割)',
-            'grid_hint': '更改分割模式将重置所有画面。',
-            'labels_toggle_label': '画面标签显示：',
-            'labels_toggle_hide': '隐藏标签',
-            'labels_toggle_show': '显示标签',
-            'settings_close_btn': '关闭设置',
-            'music_mode_title': '音乐播放模式',
-            'music_mode_hint': '点击下方按钮选择播放模式：',
-            'mode_list_loop': '🔄 列表循环',
-            'mode_shuffle': '🔀 随机播放',
-            'mode_stop_btn': '⏹️ 停止并结束播放',
-            'queue_title': '🎶 播放列表状态',
-            'queue_close_btn': '关闭',
-            'alert_no_video_found': '找不到符合的视频。',
-            'alert_playing_now': '正在播放：',
-            'map_hide_btn': '隐藏地图',
-            'map_show_btn': '显示地图'
+            'alert_play_index_error': '播放索引錯誤。',
         },
         'en-US': {
             'title': 'Taiwan Live Stream Multi-View Monitor',
-            'cam_name': (i) => `Cam ${i + 1}`,
+            'cam_name': (index) => {
+                const names = ['Top Left', 'Top Right', 'Bottom Left', 'Bottom Right'];
+                const names3x3 = ['Top Left', 'Top Center', 'Top Right', 'Middle Left', 'Center', 'Middle Right', 'Bottom Left', 'Bottom Center', 'Bottom Right'];
+                const numCams = getGridDimension() * getGridDimension();
+                
+                if (numCams === 9) {
+                    return names3x3[index] || `Cam ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `Cam ${index + 1}`;
+                } else {
+                    return `Cam ${index + 1}`;
+                }
+            },
             'fullscreen_btn': 'Fullscreen',
             'settings_btn': '⚙️ Settings',
             'mute_btn_unmuted': 'Unmute',
@@ -728,161 +768,107 @@
             'back_btn': '🏠 Back to Regions',
             'loading': 'Loading...',
             'source_prefix': 'Source:',
+            // Settings Modal
             'settings_title': '⚙️ Program Settings',
             'grid_size_label': 'Screen Grid Layout:',
             'grid_1x1': '1x1 (Single View)',
             'grid_2x2': '2x2 (Quad View)',
             'grid_3x3': '3x3 (Nine View)',
-            'grid_hint': 'Changing grid will reset views.',
-            'labels_toggle_label': 'Labels Display:',
+            'grid_hint': 'Changing the grid will reset all views.',
+            'language_label': 'Language Selection:',
+            'lang_zh_tw': 'Traditional Chinese',
+            'lang_en_us': 'English',
+            'labels_toggle_label': 'Screen Labels Display:',
             'labels_toggle_hide': 'Hide Labels',
             'labels_toggle_show': 'Show Labels',
             'settings_close_btn': 'Close Settings',
-            'music_mode_title': 'Playback Mode',
-            'music_mode_hint': 'Select playback mode:',
-            'mode_list_loop': '🔄 Loop',
+            // Music Modal
+            'music_mode_title': 'Music Playback Mode',
+            'music_mode_hint': 'Click a button below to select playback mode:',
+            'mode_list_loop': '🔄 List Loop',
             'mode_shuffle': '🔀 Shuffle',
-            'mode_stop_btn': '⏹️ Stop Playback',
+            'mode_stop_btn': '⏹️ Stop and End Playback',
             'queue_title': '🎶 Playlist Status',
+            'queue_playing_playlist': 'Currently playing Playlist ID:',
+            'queue_list_empty': '(Playlist not loaded or empty)',
+            'queue_total': (total, current, mode) => `Total: ${total} tracks | Current: #${current} | Mode: ${mode}`,
+            'queue_next_video': 'Next Video:',
+            'queue_playlist_pending': (id) => `⚠️ Pending playlist (ID: ${id}) will start after current song ends.`,
+            'queue_empty_queue': 'Playback queue is empty.',
+            'queue_playing_queue': 'Currently playing queued song:',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': 'Close',
-            'alert_no_video_found': 'No video found.',
+            // Alerts
+            'alert_invalid_playlist': 'Invalid playlist.',
+            'alert_playlist_playing': 'This playlist is already playing.',
+            'alert_playlist_queued': (id) => `✅ Playlist ID: ${id} will start automatically after the current song ends.`,
+            'alert_playlist_loaded': (id) => `✅ Playlist ID: ${id} loaded.`,
+            'alert_song_added': (title) => `✅ Added ${title} to the playback queue.`,
+            'alert_no_video_found': 'No matching video found.',
+            'alert_found_and_added': (title) => `✅ Found and added: ${title}`,
             'alert_playing_now': 'Now Playing:',
-            'map_hide_btn': 'Hide Map',
-            'map_show_btn': 'Show Map'
-        },
-        'ja': {
-            'title': '台湾ライブ配信マルチビューモニター',
-            'cam_name': (i) => `画面 ${i + 1}`,
-            'fullscreen_btn': '全画面',
-            'settings_btn': '⚙️ 設定',
-            'mute_btn_unmuted': 'ミュート解除',
-            'mute_btn_muted': 'ミュート',
-            'request_btn': '🎶 選曲/リスト',
-            'back_btn': '🏠 地域リストに戻る',
-            'loading': '読み込み中...',
-            'source_prefix': 'ソース:',
-            'settings_title': '⚙️ 設定',
-            'grid_size_label': '画面分割モード：',
-            'grid_1x1': '1x1 (シングル)',
-            'grid_2x2': '2x2 (4分割)',
-            'grid_3x3': '3x3 (9分割)',
-            'grid_hint': 'モードを変更すると画面がリセットされます。',
-            'labels_toggle_label': 'ラベル表示：',
-            'labels_toggle_hide': '非表示',
-            'labels_toggle_show': '表示',
-            'settings_close_btn': '閉じる',
-            'music_mode_title': '音楽再生モード',
-            'music_mode_hint': '再生モードを選択してください：',
-            'mode_list_loop': '🔄 リストループ',
-            'mode_shuffle': '🔀 シャッフル',
-            'mode_stop_btn': '⏹️ 停止',
-            'queue_title': '🎶 再生リストの状態',
-            'queue_close_btn': '閉じる',
-            'alert_no_video_found': '動画が見つかりません。',
-            'alert_playing_now': '再生中：',
-            'map_hide_btn': '地図を隠す',
-            'map_show_btn': '地図を表示'
-        },
-        'ko': {
-            'title': '대만 실시간 라이브 멀티뷰 모니터',
-            'cam_name': (i) => `화면 ${i + 1}`,
-            'fullscreen_btn': '전체 화면',
-            'settings_btn': '⚙️ 설정',
-            'mute_btn_unmuted': '음소거 해제',
-            'mute_btn_muted': '음소거',
-            'request_btn': '🎶 노래/리스트',
-            'back_btn': '🏠 지역 목록으로 복귀',
-            'loading': '로딩 중...',
-            'source_prefix': '출처:',
-            'settings_title': '⚙️ 프로그램 설정',
-            'grid_size_label': '화면 분할 모드:',
-            'grid_1x1': '1x1 (싱글 뷰)',
-            'grid_2x2': '2x2 (4분할)',
-            'grid_3x3': '3x3 (9분할)',
-            'grid_hint': '모드를 변경하면 화면이 초기화됩니다.',
-            'labels_toggle_label': '화면 라벨 표시:',
-            'labels_toggle_hide': '라벨 숨기기',
-            'labels_toggle_show': '라벨 표시',
-            'settings_close_btn': '설정 닫기',
-            'music_mode_title': '음악 재생 모드',
-            'music_mode_hint': '재생 모드를 선택하세요:',
-            'mode_list_loop': '🔄 리스트 반복',
-            'mode_shuffle': '🔀 셔플',
-            'mode_stop_btn': '⏹️ 정지',
-            'queue_title': '🎶 재생 목록 상태',
-            'queue_close_btn': '닫기',
-            'alert_no_video_found': '동영상을 찾을 수 없습니다.',
-            'alert_playing_now': '재생 중:',
-            'map_hide_btn': '지도 숨기기',
-            'map_show_btn': '지도 표시'
-        },
-        'th': {
-            'title': 'จอภาพมัลติวิวสตรีมสดไต้หวัน',
-            'cam_name': (i) => `กล้อง ${i + 1}`,
-            'fullscreen_btn': 'เต็มหน้าจอ',
-            'settings_btn': '⚙️ การตั้งค่า',
-            'mute_btn_unmuted': 'เลิกปิดเสียง',
-            'mute_btn_muted': 'ปิดเสียง',
-            'request_btn': '🎶 เพลง/รายการ',
-            'back_btn': '🏠 กลับ',
-            'loading': 'กำลังโหลด...',
-            'source_prefix': 'ที่มา:',
-            'settings_title': '⚙️ การตั้งค่าโปรแกรม',
-            'grid_size_label': 'รูปแบบหน้าจอ:',
-            'grid_1x1': '1x1 (มุมมองเดียว)',
-            'grid_2x2': '2x2 (4 หน้าจอ)',
-            'grid_3x3': '3x3 (9 หน้าจอ)',
-            'grid_hint': 'การเปลี่ยนโหมดจะรีเซ็ตหน้าจอทั้งหมด',
-            'labels_toggle_label': 'แสดงป้ายชื่อ:',
-            'labels_toggle_hide': 'ซ่อนป้ายชื่อ',
-            'labels_toggle_show': 'แสดงป้ายชื่อ',
-            'settings_close_btn': 'ปิด',
-            'music_mode_title': 'โหมดการเล่นเพลง',
-            'music_mode_hint': 'เลือกโหมดการเล่น:',
-            'mode_list_loop': '🔄 วนซ้ำรายการ',
-            'mode_shuffle': '🔀 สุ่ม',
-            'mode_stop_btn': '⏹️ หยุด',
-            'queue_title': '🎶 สถานะรายการเพลง',
-            'queue_close_btn': 'ปิด',
-            'alert_no_video_found': 'ไม่พบวิดีโอ',
-            'alert_playing_now': 'กำลังเล่น:',
-            'map_hide_btn': 'ซ่อนแผนที่',
-            'map_show_btn': 'แสดงแผนที่'
-        },
-        'vi': {
-            'title': 'Màn hình đa góc nhìn trực tiếp Đài Loan',
-            'cam_name': (i) => `Màn hình ${i + 1}`,
-            'fullscreen_btn': 'Toàn màn hình',
-            'settings_btn': '⚙️ Cài đặt',
-            'mute_btn_unmuted': 'Bật tiếng',
-            'mute_btn_muted': 'Tắt tiếng',
-            'request_btn': '🎶 Bài hát/DS',
-            'back_btn': '🏠 Quay lại',
-            'loading': 'Đang tải...',
-            'source_prefix': 'Nguồn:',
-            'settings_title': '⚙️ Cài đặt',
-            'grid_size_label': 'Chế độ chia màn hình:',
-            'grid_1x1': '1x1 (Đơn)',
-            'grid_2x2': '2x2 (4 màn hình)',
-            'grid_3x3': '3x3 (9 màn hình)',
-            'grid_hint': 'Thay đổi chế độ sẽ đặt lại tất cả màn hình.',
-            'labels_toggle_label': 'Hiển thị nhãn:',
-            'labels_toggle_hide': 'Ẩn nhãn',
-            'labels_toggle_show': 'Hiện nhãn',
-            'settings_close_btn': 'Đóng',
-            'music_mode_title': 'Chế độ phát nhạc',
-            'music_mode_hint': 'Chọn chế độ phát:',
-            'mode_list_loop': '🔄 Lặp danh sách',
-            'mode_shuffle': '🔀 Phát ngẫu nhiên',
-            'mode_stop_btn': '⏹️ Dừng',
-            'queue_title': '🎶 Trạng thái danh sách',
-            'queue_close_btn': 'Đóng',
-            'alert_no_video_found': 'Không tìm thấy video.',
-            'alert_playing_now': 'Đang phát:',
-            'map_hide_btn': 'Ẩn bản đồ',
-            'map_show_btn': 'Hiện bản đồ'
-        }
+            'alert_play_index_error': 'Playback index error.',
+      }
     };
+
+    function getTranslation(key, ...args) {
+        const langData = LANGUAGES[currentLang] || LANGUAGES['zh-TW'];
+        let text = langData[key] || LANGUAGES['zh-TW'][key] || key; 
+        if (typeof text === 'function') {
+            return text(...args);
+        }
+        return text;
+    }
+
+    function setLanguage(lang) {
+        if (LANGUAGES[lang]) {
+            currentLang = lang;
+            localStorage.setItem('language', lang);
+            updateUIForLanguage();
+        }
+    }
+
+    function updateUIForLanguage() {
+        document.getElementById('htmlLang').lang = currentLang;
+        document.getElementById('pageTitle').innerText = getTranslation('title');
+
+        // Control buttons
+        const camButtonsContainer = document.getElementById('camSelectButtons');
+        if (camButtonsContainer) { 
+            updateCamSelectButtons(getGridDimension() * getGridDimension());
+        }
+        
+        document.getElementById('fullscreenBtn').innerText = getTranslation('fullscreen_btn');
+        document.getElementById('settingsBtn').innerText = getTranslation('settings_btn');
+        document.getElementById('settingsBtn').title = getTranslation('settings_title');
+        document.getElementById('requestBtn').innerText = getTranslation('request_btn');
+        document.getElementById('requestBtn').title = getTranslation('request_btn');
+        // Modal Text
+        document.getElementById('settingsTitle').innerText = getTranslation('settings_title');
+        document.getElementById('gridSizeLabel').innerText = getTranslation('grid_size_label');
+        document.getElementById('grid1x1Btn').innerText = getTranslation('grid_1x1');
+        document.getElementById('grid2x2Btn').innerText = getTranslation('grid_2x2');
+        document.getElementById('grid3x3Btn').innerText = getTranslation('grid_3x3');
+        document.getElementById('gridSizeHint').innerText = getTranslation('grid_hint');
+        document.getElementById('languageLabel').innerText = getTranslation('language_label');
+        document.getElementById('langZhTwBtn').innerText = getTranslation('lang_zh_tw');
+        document.getElementById('langEnUsBtn').innerText = getTranslation('lang_en_us');
+        document.getElementById('labelsToggleLabel').innerText = getTranslation('labels_toggle_label');
+        document.getElementById('labelsToggleInModalBtn').innerText = isLabelsVisible ? getTranslation('labels_toggle_show') : getTranslation('labels_toggle_hide');
+        document.getElementById('musicModeTitle').innerText = getTranslation('music_mode_title');
+        document.getElementById('musicModeHint').innerText = getTranslation('music_mode_hint');
+        document.getElementById('modeListLoop').innerText = getTranslation('mode_list_loop');
+        document.getElementById('modeShuffle').innerText = getTranslation('mode_shuffle');
+        document.getElementById('modeStopBtn').innerText = getTranslation('mode_stop_btn');
+        document.getElementById('musicModeCloseBtn').innerText = getTranslation('settings_close_btn');
+        document.getElementById('queueTitle').innerText = getTranslation('queue_title');
+        document.getElementById('queueCloseBtn').innerText = getTranslation('queue_close_btn');
+        // Update stream labels and mute button status
+        refreshMuteButtonLabel();
+        for (let i = 0; i < MAX_PLAYERS; i++) {
+            updateLabel(i);
+        }
         
         // Update buttons in regionButtons (if visible)
         if (!currentCity) { // 只有在主列表時才需要重新渲染
@@ -1467,45 +1453,40 @@
             }
         }
         
-     // 更新單一格子的地圖紅點
-    function updateMiniMapDot(index) {
-        const state = streamState[index];
-        const dot = document.getElementById(`mapDot${index}`);
+        // 更新地圖紅點
+        updateMiniMapDot(index);
+    }
+
+    function setStream(streamKey) {
+        const stream = ALL_STREAMS[streamKey];
+        const index = selectedCamIndex;
         
-        if (!dot) return;
-
-        // 如果沒有串流資訊，或座標被設定為 null (如地震資訊)，則隱藏
-        if (!state) {
-            dot.style.display = 'none';
-            return;
-        }
-
-        // 1. 優先查精確地點座標
-        let coords = SPOT_COORDINATES[state.key];
-
-        // 特殊處理：如果座標明確被設為 null (例如地震資訊)，強制隱藏
-        if (coords === null) {
-            dot.style.display = 'none';
-            return;
-        }
-
-        // 2. 如果沒有精確座標，根據「縣市名稱」查通用中心座標
-        if (!coords) {
-            const cityName = state.key.split('-')[0]; // 例如 "台北"
-            coords = REGION_COORDINATES[cityName];
-        }
-
-        // 3. 套用座標 (如果仍找不到座標，預設顯示在海面上避免誤導，或隱藏)
-        if (coords) {
-            dot.style.display = 'block';
-            dot.style.top = `${coords.top}%`;
-            dot.style.left = `${coords.left}%`;
-        } else {
-            dot.style.display = 'none';
+        if (!stream || index >= MAX_PLAYERS) return;
+        
+        const player = players[index];
+        if (!player) return;
+        streamState[index] = { ...stream, key: streamKey };
+        updateLabel(index);
+        
+        try {
+            // 對於新的直播串流，使用 loadVideoById
+            player.loadVideoById(stream.id, 0);
+            player.playVideo();
+            // 載入新影片時，預設保持原本的靜音設定（如果是目前畫面，檢查狀態）
+            if (index !== selectedCamIndex) {
+                 player.mute();
+            } else {
+                 // 這裡我們不強制 unMute，而是讓他載入，使用者自己決定是否打開
+            }
+        } catch (e) {
+            console.error(`Error loading video for index ${index}:`, e);
+            streamState[index] = null;
+            updateLabel(index);
         }
     }
     
-   function renderRegionButtons() {
+    // 修正: 確保縣市列表能夠正確渲染
+    function renderRegionButtons() {
       const container = document.getElementById('regionButtons');
       container.innerHTML = '';
       currentCity = null;
@@ -1517,16 +1498,11 @@
         
         const regionLabel = document.createElement('span');
         regionLabel.className = 'region-label';
-        
         // 翻譯區域標籤 (北部、中部...)
         let regionText = region;
-        // 嘗試取得翻譯
-        let langKey = currentLang.toLowerCase().replace('-', '_'); // zh-TW -> zh_tw
-        if (!REGION_I18N[region]) langKey = null;
-        else if (REGION_I18N[region][langKey]) regionText = REGION_I18N[region][langKey];
-        else if (currentLang.startsWith('zh')) regionText = REGION_I18N[region][(currentLang === 'zh-CN' ? 'zh_cn' : 'zh_tw')] || region;
-        else regionText = REGION_I18N[region]['en'] || region; // 預設英文
-
+        if (currentLang === 'en-US' && CITY_NAMES_EN[region]) {
+             regionText = CITY_NAMES_EN[region];
+        }
         regionLabel.textContent = regionText + '：';
         container.appendChild(regionLabel);
 
@@ -1538,15 +1514,12 @@
             
             // 翻譯城市按鈕
             let cityText = city;
-            let cLangKey = currentLang.toLowerCase().replace('-', '_');
-            if (REGION_I18N[city]) {
-                 if (REGION_I18N[city][cLangKey]) cityText = REGION_I18N[city][cLangKey];
-                 else if (currentLang.startsWith('zh')) cityText = REGION_I18N[city][(currentLang === 'zh-CN' ? 'zh_cn' : 'zh_tw')] || city;
-                 else cityText = REGION_I18N[city]['en'] || city;
+            if (currentLang === 'en-US' && CITY_NAMES_EN[city]) {
+                cityText = CITY_NAMES_EN[city];
             }
-
             cityBtn.textContent = cityText;
-            cityBtn.title = cityText;
+            
+            cityBtn.title = `切換顯示 ${cityText} 的直播列表`;
             if (currentCity === city) {
                cityBtn.classList.add('active-city');
             }
@@ -2000,193 +1973,39 @@
     // 設定：是否顯示地圖 (讀取 LocalStorage)
     let isMiniMapVisible = localStorage.getItem('showMiniMap') !== 'false'; // 預設為 true (顯示)
 
-   /* ========================================= */
-    /* 精準地圖座標系統 (Top%, Left%) */
-    /* 基於 Blank_Taiwan_map.svg 的視覺比例 */
-    /* ========================================= */
-    
-    // 預設縣市中心點 (當找不到特定點位時的備案)
+    // 台灣地圖座標定義 (百分比 %：Top, Left)
     const REGION_COORDINATES = {
-        '台北': { top: 6, left: 78 },
-        '新北': { top: 8, left: 75 },
+        '台北': { top: 5, left: 78 },
+        '新北': { top: 8, left: 75 }, // 概略中心
         '基隆': { top: 3, left: 82 },
         '桃園': { top: 12, left: 68 },
         '新竹': { top: 18, left: 62 },
         '苗栗': { top: 25, left: 55 },
         '台中': { top: 35, left: 45 },
-        '彰化': { top: 42, left: 40 },
-        '南投': { top: 48, left: 55 },
-        '雲林': { top: 52, left: 35 },
-        '嘉義': { top: 58, left: 35 },
-        '台南': { top: 68, left: 30 },
+        '彰化': { top: 40, left: 40 },
+        '南投': { top: 45, left: 55 },
+        '雲林': { top: 50, left: 35 },
+        '嘉義': { top: 60, left: 35 },
+        '台南': { top: 70, left: 30 },
         '高雄': { top: 78, left: 35 },
         '屏東': { top: 85, left: 45 },
-        '宜蘭': { top: 22, left: 85 },
-        '花蓮': { top: 45, left: 82 },
-        '台東': { top: 78, left: 65 },
-        '金門': { top: 15, left: 5 }, 
-        '馬祖': { top: 2, left: 10 },
-        '澎湖': { top: 55, left: 10 },
+        '宜蘭': { top: 20, left: 85 },
+        '花蓮': { top: 45, left: 80 },
+        '台東': { top: 75, left: 60 },
+        '金門': { top: 15, left: 10 }, 
+        '馬祖': { top: 5, left: 15 },
+        '澎湖': { top: 60, left: 10 },
         '其他': { top: 50, left: 50 }
     };
 
-    // 極度精準的個別地點座標
+    // 特殊景點的精確座標修正
     const SPOT_COORDINATES = {
-        // --- 台北 ---
         "台北-象山看101": { top: 6, left: 79 },
-        "台北-大稻埕": { top: 6, left: 77 },
-        "台北-碧山巖": { top: 5, left: 80 },
-        "台北-微風平台": { top: 5, left: 78 },
-        "台北-貓空指南宮": { top: 7, left: 79 },
-        "台北-擎天岡草原": { top: 3, left: 78 }, // 陽明山系
-        "台北-陽明書屋": { top: 3.5, left: 77.5 },
-        "台北-遠眺七星山": { top: 3.2, left: 78 },
-        "台北-二坪子停車場": { top: 3.5, left: 76 },
-        "台北-大屯自然公園": { top: 3.4, left: 76.5 },
-        "台北-小油坑停車場": { top: 3.3, left: 77.8 },
-        "台北-冷水坑停車場": { top: 3.4, left: 78.5 },
-        
-        // --- 新北 ---
-        "新北-漁人碼頭": { top: 4, left: 74 }, // 淡水
-        "新北-鼻頭服務區": { top: 5, left: 88 }, // 東北角
-        "新北-中角灣": { top: 2, left: 80 }, // 金山
-        "新北-十分瀑布公園": { top: 8, left: 83 }, // 平溪
-        "新北-九份": { top: 6, left: 85 },
-        "新北-內洞國家森林遊樂區": { top: 12, left: 78 }, // 烏來
-        "新北-三峽老街北段": { top: 10, left: 74 },
-        "新北-三峽老街南段": { top: 10.2, left: 74.2 },
-        "新北-烏來吊橋": { top: 11, left: 78 },
-        "新北-員山子": { top: 6.5, left: 84 },
-        "新北-文山農場大草皮": { top: 9, left: 76 }, // 新店
-        
-        // --- 基隆 ---
-        "基隆-外木山": { top: 2.5, left: 81 },
-
-        // --- 新竹 ---
-        "新竹-成功湖": { top: 19, left: 63 }, // 清大
-        "新竹-大草坪": { top: 19.1, left: 63.1 },
-
-        // --- 桃園 (修正蓮華寺與機場) ---
-        "桃園-國際機場": { top: 9, left: 67 }, // 機場在海邊
-        "桃園-桃園機場南跑道": { top: 9.1, left: 67.2 },
-        "桃園-桃園機場北跑道": { top: 8.9, left: 66.8 },
-        "其他-桃園機場航班資訊": { top: 9, left: 67 },
-        "其他-桃園機場畫面/資訊": { top: 9, left: 67 },
-        "其他-蓮華寺正殿1": { top: 10, left: 66 }, // 觀音區/新屋區方向或市區
-        "其他-蓮華寺正殿2": { top: 10, left: 66 },
-        "桃園-永安漁港": { top: 12, left: 60 },
-        "桃園-拉拉山遊客中心": { top: 15, left: 75 }, // 山區
-        "桃園-虎頭山環保公園": { top: 11, left: 69 },
-        "桃園-小烏來天空步道": { top: 13, left: 72 },
-        "桃園-角板山思親亭": { top: 13.5, left: 71 },
-        "桃園-三龜戲水觀景平台": { top: 15, left: 74 },
-        "桃園-大溪橋": { top: 12.5, left: 70 },
-        "桃園-虎頭山奧爾森林學堂": { top: 11.1, left: 69.1 },
-        "桃園-角板山梅園": { top: 13.6, left: 71.1 },
-        "桃園-角板山生態池": { top: 13.7, left: 71.2 },
-        "桃園-大溪老街": { top: 12.6, left: 70.1 },
-        "桃園-石門水庫": { top: 13, left: 70 },
-        "桃園-慈湖水岸廣場": { top: 12.8, left: 70.5 },
-        "桃園-阿姆坪薑母島": { top: 13.2, left: 70.8 },
-        "桃園-上巴陵": { top: 15.5, left: 75.5 },
-        "桃園-桃園國際機場凱悅酒店": { top: 9.2, left: 67.5 },
-        "桃園-小烏來寰宇平台": { top: 13.1, left: 72.1 },
-        "桃園-許厝港濕地": { top: 9.5, left: 65 },
-
-        // --- 宜蘭 ---
-        "宜蘭-外澳沙灘": { top: 18, left: 88 },
-        "宜蘭-福隆海水浴場": { top: 10, left: 89 }, // 其實在新北貢寮交界
-        "宜蘭-石城漁港": { top: 12, left: 89 },
-        "宜蘭-無尾港": { top: 25, left: 88 }, // 蘇澳
-        "宜蘭-礁溪寒沐酒店": { top: 19, left: 86 },
-
-        // --- 苗栗/雪霸 ---
-        "苗栗-汶水遊客中心(雪霸)": { top: 28, left: 58 },
-        "苗栗-觀霧遊憩區(雪霸)": { top: 22, left: 65 }, // 深山
-        "苗栗-雪見遊憩區(雪霸)": { top: 29, left: 62 },
-
-        // --- 台中 ---
-        "台中-高美濕地": { top: 32, left: 42 },
-        "台中-望高寮": { top: 35, left: 45 },
-        
-        // --- 彰化 ---
-        "彰化-王功漁港": { top: 43, left: 38 },
-
-        // --- 南投 ---
-        "南投-合歡山武嶺亭": { top: 38, left: 62 }, // 中央山脈高處
-
-        // --- 嘉義 ---
-        "嘉義-奮起湖": { top: 58, left: 48 },
-        "嘉義-二延平步道": { top: 59, left: 47 },
-        "嘉義-太平雲梯": { top: 57, left: 46 },
-        "嘉義-觸口遊客中心": { top: 60, left: 45 },
-        "嘉義-愛情大草原": { top: 60.1, left: 45.2 },
-        "嘉義-生力農場": { top: 58.5, left: 47.5 },
-        "嘉義-里佳資訊站": { top: 62, left: 50 },
-
-        // --- 台南 ---
-        "台南-七股賞鳥台": { top: 65, left: 28 },
-        "台南-北汕尾水鳥保護區": { top: 67, left: 29 },
-        "台南-曾文水庫": { top: 62, left: 40 },
-        "台南-火山碧雲寺": { top: 60, left: 38 }, // 關子嶺
-
-        // --- 高雄 (精準化) ---
-        "高雄-楠梓聖興橋": { top: 76, left: 34 },
-        "高雄-蚵寮國小": { top: 75, left: 33 }, // 梓官
-        "高雄-旗津海水浴場": { top: 79, left: 33 },
-        "高雄-壽山觀景台": { top: 78, left: 34 },
-        "高雄-蓮池潭": { top: 77, left: 34 },
-        "高雄-高雄燈塔": { top: 78.5, left: 33 },
-        "高雄-旗津沙灘": { top: 79.2, left: 33.2 },
-        "其他-高雄機場航班資訊": { top: 80, left: 35 }, // 小港
-
-        // --- 屏東 (大幅修正墾丁位置) ---
-        "屏東-羌光橋": { top: 82, left: 45 }, // 佳冬/林邊一帶
-        "屏東-墾丁南灣": { top: 96, left: 54 }, 
-        "屏東-船帆石": { top: 97, left: 56 }, 
-        "屏東-船帆石沙灘": { top: 97.1, left: 56.1 },
-        "屏東-雀鯛公寓": { top: 96.5, left: 54.5 }, // 核三廠出水口海域
-        "屏東-頂流區": { top: 96.6, left: 54.6 },
-        "屏東-軸孔公園": { top: 96.4, left: 54.4 },
-        "屏東-搖曳大草原": { top: 96.3, left: 54.3 },
-        
-        // --- 花蓮 ---
-        "花蓮-馬太鞍溪左岸": { top: 52, left: 78 }, // 光復
-        "花蓮-七星潭": { top: 43, left: 82 },
-        "花蓮-石梯坪": { top: 58, left: 79 }, // 豐濱
-        "花蓮-大石鼻山": { top: 56, left: 79.5 },
-        "花蓮-長虹橋": { top: 59, left: 78.5 },
-
-        // --- 台東 ---
-        "台東-鯉魚山": { top: 78, left: 66 }, // 台東市
-        "台東-金崙大橋": { top: 82, left: 64 },
-        "台東-金樽觀浪": { top: 74, left: 68 }, // 東河
-        "台東-富山": { top: 76, left: 67 },
-        "台東-杉原灣": { top: 76.5, left: 67.2 },
-        "台東-富岡漁港": { top: 77.5, left: 66.8 },
-        "台東-華源曙光觀景台": { top: 80, left: 65 },
-        "台東-南橫埡口": { top: 65, left: 58 }, // 海端山區
-        "台東-池上天堂路": { top: 68, left: 65 },
-        "台東-多良車站": { top: 83, left: 63 },
-        "台東-鹿野高台": { top: 70, left: 66 },
-        "台東-成功三仙台": { top: 68, left: 72 },
-        "台東-金樽遊憩區": { top: 73, left: 69 },
-        "台東-都歷遊客中心": { top: 71, left: 70 },
-        "台東-加路蘭遊憩區": { top: 77, left: 67 },
-        "台東-綠島南寮": { top: 80, left: 80 }, // 綠島
-        "台東-綠島帆船鼻": { top: 81, left: 81 },
-        "台東-綠島柴口浮潛區": { top: 79, left: 80.5 },
-        "台東-娜路彎酒店": { top: 78.2, left: 65.8 },
-
-        // --- 離島 ---
-        "金門-麒麟山森林公園": { top: 15, left: 5 }, // 烈嶼
-        "金門-134高地": { top: 14, left: 8 },
-        "金門-建功嶼": { top: 16, left: 7 },
-        "馬祖-北竿航空站休息室": { top: 2, left: 10 },
-
-        // --- 其他 (特殊處理) ---
-        "其他-地震監測直播": null, // 隱藏紅點
-        "其他-松山機場航班資訊": { top: 6.5, left: 78.5 }, // 台北松山
+        "屏東-墾丁南灣": { top: 96, left: 55 }, 
+        "屏東-船帆石": { top: 97, left: 56 },
+        "屏東-鵝鑾鼻": { top: 98, left: 58 },
+        "嘉義-阿里山": { top: 58, left: 48 },
+        "南投-合歡山": { top: 40, left: 60 }
     };
 
     // 初始化地圖設定
@@ -2208,19 +2027,22 @@
         }
     }
 
-   function toggleMiniMaps() {
+    // 切換地圖開關
+    function toggleMiniMaps() {
         const body = document.body;
         const btn = document.getElementById('mapsToggleBtn');
 
         if (isMiniMapVisible) {
+            // 變為隱藏
             body.classList.add('hide-mini-maps');
             isMiniMapVisible = false;
-            btn.innerText = getTranslation('map_hide_btn'); // 使用翻譯
+            btn.innerText = '地圖隱藏';
             localStorage.setItem('showMiniMap', 'false');
         } else {
+            // 變為顯示
             body.classList.remove('hide-mini-maps');
             isMiniMapVisible = true;
-            btn.innerText = getTranslation('map_show_btn'); // 使用翻譯
+            btn.innerText = '地圖顯示';
             localStorage.setItem('showMiniMap', 'true');
         }
     }
