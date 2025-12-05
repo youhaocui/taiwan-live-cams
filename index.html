@@ -260,7 +260,7 @@
 
    
     <div class="divider"></div>
-    <button id="muteBtn" onclick="toggleMute()">解除靜音</button>
+    <button id="muteBtn" onclick="toggleMute()">靜音</button>
 
     <div class="divider"></div>
     <button id="requestBtn" onclick="requestSong()" title="輸入網址/ID點歌或播放清單">🎶 點歌/清單</button>
@@ -397,10 +397,17 @@
 
         <div style="margin-top:20px; padding:10px; border:1px solid #444; border-radius:6px;">
             <p id="languageLabel" style="color:#fff; font-weight:bold; margin:0 0 10px;">語言選擇：</p>
-            <div style="display:flex; justify-content:space-around; gap:10px;">
-                <button id="langZhTwBtn" class="lang-btn" onclick="setLanguage('zh-TW')">正體中文</button>
-                <button id="langEnUsBtn" class="lang-btn" onclick="setLanguage('en-US')">English</button>
-            </div>
+            <select id="languageSelect" onchange="setLanguage(this.value)" style="width:100%; padding:10px; background-color:#333; color:#fff; border:1px solid #555; border-radius:6px; font-size:14px; cursor:pointer;">
+                <option value="zh-TW">正體中文 (繁體中文)</option>
+                <option value="zh-CN">简体中文 (簡體中文)</option>
+                <option value="en-US">English (US)</option>
+                <option value="en-GB">English (UK)</option>
+                <option value="ja-JP">日本語 (日文)</option>
+                <option value="ko-KR">한국어 (韓文)</option>
+                <option value="th-TH">ไทย (泰文)</option>
+                <option value="vi-VN">Tiếng Việt (越南文)</option>
+                <option value="it-IT">Italiano (義大利文)</option>
+            </select>
         </div>
 
         <div style="margin-top:20px; padding:10px; border:1px solid #444; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
@@ -809,6 +816,433 @@
             'alert_found_and_added': (title) => `✅ Found and added: ${title}`,
             'alert_playing_now': 'Now Playing:',
             'alert_play_index_error': 'Playback index error.',
+      },
+      'zh-CN': {
+            'title': '台湾实时直播多分割监看',
+            'cam_name': (index) => {
+                const names = ['左上', '右上', '左下', '右下'];
+                const names3x3 = ['左上', '中上', '右上', '左中', '中央', '右中', '左下', '中下', '右下'];
+                const numCams = getGridDimension() * getGridDimension();
+                if (numCams === 9) {
+                    return names3x3[index] || `画面 ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `画面 ${index + 1}`;
+                } else {
+                    return `画面 ${index + 1}`;
+                }
+            },
+            'fullscreen_btn': '全屏',
+            'settings_btn': '⚙️ 设置',
+            'mute_btn_unmuted': '解除静音',
+            'mute_btn_muted': '静音',
+            'request_btn': '🎶 点歌/清单',
+            'back_btn': '🏠 返回地区列表',
+            'loading': '加载中...',
+            'source_prefix': '来源:',
+            'settings_title': '⚙️ 程序设置',
+            'grid_size_label': '画面分割模式：',
+            'grid_1x1': '1x1 (单画面)',
+            'grid_2x2': '2x2 (四分割)',
+            'grid_3x3': '3x3 (九分割)',
+            'grid_hint': '更改分割模式将重置所有画面。',
+            'language_label': '语言选择：',
+            'lang_zh_tw': '繁体中文',
+            'lang_en_us': 'English',
+            'labels_toggle_label': '画面标签显示：',
+            'labels_toggle_hide': '标签隐藏',
+            'labels_toggle_show': '标签显示',
+            'settings_close_btn': '关闭设置',
+            'music_mode_title': '音乐播放模式',
+            'music_mode_hint': '点击下方按钮选择播放模式：',
+            'mode_list_loop': '🔄 列表循环',
+            'mode_shuffle': '🔀 随机播放',
+            'mode_stop_btn': '⏹️ 停止并结束播放',
+            'queue_title': '🎶 播放列表状态',
+            'queue_playing_playlist': '正在播放清单 ID：',
+            'queue_list_empty': '（清单尚未读取或为空）',
+            'queue_total': (total, current, mode) => `总计：${total} 首 | 当前：第 ${current} 首 | 模式：${mode}`,
+            'queue_next_video': '下一首歌曲：',
+            'queue_playlist_pending': (id) => `⚠️ 有待播清单（ID: ${id}）将于当前歌曲结束后开始播放。`,
+            'queue_empty_queue': '播放列表为空。',
+            'queue_playing_queue': '正在播放列表单曲：',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
+            'queue_close_btn': '关闭',
+            'alert_invalid_playlist': '无效的播放清单。',
+            'alert_playlist_playing': '该播放清单已在播放中。',
+            'alert_playlist_queued': (id) => `✅ 当前单曲播放完毕后，将自动开始播放清单 ID: ${id}。`,
+            'alert_playlist_loaded': (id) => `✅ 已载入播放清单 ID: ${id}。`,
+            'alert_song_added': (title) => `✅ 已将 ${title} 加入播放列表。`,
+            'alert_no_video_found': '找不到符合的视频。',
+            'alert_found_and_added': (title) => `✅ 已找到并加入：${title}`,
+            'alert_playing_now': '正在播放：',
+            'alert_play_index_error': '播放索引错误。',
+      },
+      'en-GB': {
+            'title': 'Taiwan Live Stream Multi-View Monitor',
+            'cam_name': (index) => {
+                const names = ['Top Left', 'Top Right', 'Bottom Left', 'Bottom Right'];
+                const names3x3 = ['Top Left', 'Top Centre', 'Top Right', 'Middle Left', 'Centre', 'Middle Right', 'Bottom Left', 'Bottom Centre', 'Bottom Right'];
+                const numCams = getGridDimension() * getGridDimension();
+                if (numCams === 9) {
+                    return names3x3[index] || `Cam ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `Cam ${index + 1}`;
+                } else {
+                    return `Cam ${index + 1}`;
+                }
+            },
+            'fullscreen_btn': 'Fullscreen',
+            'settings_btn': '⚙️ Settings',
+            'mute_btn_unmuted': 'Unmute',
+            'mute_btn_muted': 'Mute',
+            'request_btn': '🎶 Song/Playlist',
+            'back_btn': '🏠 Back to Regions',
+            'loading': 'Loading...',
+            'source_prefix': 'Source:',
+            'settings_title': '⚙️ Programme Settings',
+            'grid_size_label': 'Screen Grid Layout:',
+            'grid_1x1': '1x1 (Single View)',
+            'grid_2x2': '2x2 (Quad View)',
+            'grid_3x3': '3x3 (Nine View)',
+            'grid_hint': 'Changing the grid will reset all views.',
+            'language_label': 'Language Selection:',
+            'lang_zh_tw': 'Traditional Chinese',
+            'lang_en_us': 'English',
+            'labels_toggle_label': 'Screen Labels Display:',
+            'labels_toggle_hide': 'Hide Labels',
+            'labels_toggle_show': 'Show Labels',
+            'settings_close_btn': 'Close Settings',
+            'music_mode_title': 'Music Playback Mode',
+            'music_mode_hint': 'Click a button below to select playback mode:',
+            'mode_list_loop': '🔄 List Loop',
+            'mode_shuffle': '🔀 Shuffle',
+            'mode_stop_btn': '⏹️ Stop and End Playback',
+            'queue_title': '🎶 Playlist Status',
+            'queue_playing_playlist': 'Currently playing Playlist ID:',
+            'queue_list_empty': '(Playlist not loaded or empty)',
+            'queue_total': (total, current, mode) => `Total: ${total} tracks | Current: #${current} | Mode: ${mode}`,
+            'queue_next_video': 'Next Video:',
+            'queue_playlist_pending': (id) => `⚠️ Pending playlist (ID: ${id}) will start after current song ends.`,
+            'queue_empty_queue': 'Playback queue is empty.',
+            'queue_playing_queue': 'Currently playing queued song:',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
+            'queue_close_btn': 'Close',
+            'alert_invalid_playlist': 'Invalid playlist.',
+            'alert_playlist_playing': 'This playlist is already playing.',
+            'alert_playlist_queued': (id) => `✅ Playlist ID: ${id} will start automatically after the current song ends.`,
+            'alert_playlist_loaded': (id) => `✅ Playlist ID: ${id} loaded.`,
+            'alert_song_added': (title) => `✅ Added ${title} to the playback queue.`,
+            'alert_no_video_found': 'No matching video found.',
+            'alert_found_and_added': (title) => `✅ Found and added: ${title}`,
+            'alert_playing_now': 'Now Playing:',
+            'alert_play_index_error': 'Playback index error.',
+      },
+      'ja-JP': {
+            'title': '台湾ライブストリーム多分割監視',
+            'cam_name': (index) => {
+                const names = ['左上', '右上', '左下', '右下'];
+                const names3x3 = ['左上', '中上', '右上', '左中', '中央', '右中', '左下', '中下', '右下'];
+                const numCams = getGridDimension() * getGridDimension();
+                if (numCams === 9) {
+                    return names3x3[index] || `画面 ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `画面 ${index + 1}`;
+                } else {
+                    return `画面 ${index + 1}`;
+                }
+            },
+            'fullscreen_btn': '全画面',
+            'settings_btn': '⚙️ 設定',
+            'mute_btn_unmuted': 'ミュート解除',
+            'mute_btn_muted': 'ミュート',
+            'request_btn': '🎶 曲/プレイリスト',
+            'back_btn': '🏠 地域リストに戻る',
+            'loading': '読み込み中...',
+            'source_prefix': 'ソース:',
+            'settings_title': '⚙️ プログラム設定',
+            'grid_size_label': '画面分割モード：',
+            'grid_1x1': '1x1 (単画面)',
+            'grid_2x2': '2x2 (四分割)',
+            'grid_3x3': '3x3 (九分割)',
+            'grid_hint': '分割モードを変更すると、すべての画面がリセットされます。',
+            'language_label': '言語選択：',
+            'lang_zh_tw': '繁体中国語',
+            'lang_en_us': 'English',
+            'labels_toggle_label': '画面ラベル表示：',
+            'labels_toggle_hide': 'ラベル非表示',
+            'labels_toggle_show': 'ラベル表示',
+            'settings_close_btn': '設定を閉じる',
+            'music_mode_title': '音楽再生モード',
+            'music_mode_hint': '下のボタンをクリックして再生モードを選択：',
+            'mode_list_loop': '🔄 リストループ',
+            'mode_shuffle': '🔀 シャッフル',
+            'mode_stop_btn': '⏹️ 停止して再生終了',
+            'queue_title': '🎶 プレイリスト状態',
+            'queue_playing_playlist': '現在再生中のプレイリスト ID：',
+            'queue_list_empty': '（プレイリストが読み込まれていないか空です）',
+            'queue_total': (total, current, mode) => `合計：${total} 曲 | 現在：${current} 曲目 | モード：${mode}`,
+            'queue_next_video': '次の曲：',
+            'queue_playlist_pending': (id) => `⚠️ 待機中のプレイリスト（ID: ${id}）は現在の曲終了後に開始されます。`,
+            'queue_empty_queue': '再生キューが空です。',
+            'queue_playing_queue': '現在再生中のキュー曲：',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
+            'queue_close_btn': '閉じる',
+            'alert_invalid_playlist': '無効なプレイリストです。',
+            'alert_playlist_playing': 'このプレイリストは既に再生中です。',
+            'alert_playlist_queued': (id) => `✅ プレイリスト ID: ${id} は現在の曲終了後に自動的に開始されます。`,
+            'alert_playlist_loaded': (id) => `✅ プレイリスト ID: ${id} を読み込みました。`,
+            'alert_song_added': (title) => `✅ ${title} を再生キューに追加しました。`,
+            'alert_no_video_found': '一致する動画が見つかりません。',
+            'alert_found_and_added': (title) => `✅ 見つけて追加しました：${title}`,
+            'alert_playing_now': '再生中：',
+            'alert_play_index_error': '再生インデックスエラー。',
+      },
+      'ko-KR': {
+            'title': '대만 실시간 스트림 다중 화면 모니터',
+            'cam_name': (index) => {
+                const names = ['좌상', '우상', '좌하', '우하'];
+                const names3x3 = ['좌상', '중상', '우상', '좌중', '중앙', '우중', '좌하', '중하', '우하'];
+                const numCams = getGridDimension() * getGridDimension();
+                if (numCams === 9) {
+                    return names3x3[index] || `화면 ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `화면 ${index + 1}`;
+                } else {
+                    return `화면 ${index + 1}`;
+                }
+            },
+            'fullscreen_btn': '전체 화면',
+            'settings_btn': '⚙️ 설정',
+            'mute_btn_unmuted': '음소거 해제',
+            'mute_btn_muted': '음소거',
+            'request_btn': '🎶 노래/재생 목록',
+            'back_btn': '🏠 지역 목록으로 돌아가기',
+            'loading': '로딩 중...',
+            'source_prefix': '출처:',
+            'settings_title': '⚙️ 프로그램 설정',
+            'grid_size_label': '화면 분할 모드：',
+            'grid_1x1': '1x1 (단일 화면)',
+            'grid_2x2': '2x2 (4분할)',
+            'grid_3x3': '3x3 (9분할)',
+            'grid_hint': '분할 모드를 변경하면 모든 화면이 재설정됩니다.',
+            'language_label': '언어 선택：',
+            'lang_zh_tw': '번체 중국어',
+            'lang_en_us': 'English',
+            'labels_toggle_label': '화면 레이블 표시：',
+            'labels_toggle_hide': '레이블 숨기기',
+            'labels_toggle_show': '레이블 표시',
+            'settings_close_btn': '설정 닫기',
+            'music_mode_title': '음악 재생 모드',
+            'music_mode_hint': '아래 버튼을 클릭하여 재생 모드를 선택하세요：',
+            'mode_list_loop': '🔄 목록 반복',
+            'mode_shuffle': '🔀 셔플',
+            'mode_stop_btn': '⏹️ 중지 및 재생 종료',
+            'queue_title': '🎶 재생 목록 상태',
+            'queue_playing_playlist': '현재 재생 중인 재생 목록 ID：',
+            'queue_list_empty': '（재생 목록이 로드되지 않았거나 비어 있음）',
+            'queue_total': (total, current, mode) => `총: ${total}곡 | 현재: ${current}곡 | 모드: ${mode}`,
+            'queue_next_video': '다음 곡：',
+            'queue_playlist_pending': (id) => `⚠️ 대기 중인 재생 목록（ID: ${id}）은 현재 곡 종료 후 시작됩니다.`,
+            'queue_empty_queue': '재생 대기열이 비어 있습니다.',
+            'queue_playing_queue': '현재 재생 중인 대기열 곡：',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
+            'queue_close_btn': '닫기',
+            'alert_invalid_playlist': '유효하지 않은 재생 목록입니다.',
+            'alert_playlist_playing': '이 재생 목록은 이미 재생 중입니다.',
+            'alert_playlist_queued': (id) => `✅ 재생 목록 ID: ${id}는 현재 곡 종료 후 자동으로 시작됩니다.`,
+            'alert_playlist_loaded': (id) => `✅ 재생 목록 ID: ${id}를 로드했습니다.`,
+            'alert_song_added': (title) => `✅ ${title}을(를) 재생 대기열에 추가했습니다.`,
+            'alert_no_video_found': '일치하는 동영상을 찾을 수 없습니다.',
+            'alert_found_and_added': (title) => `✅ 찾아서 추가했습니다: ${title}`,
+            'alert_playing_now': '재생 중：',
+            'alert_play_index_error': '재생 인덱스 오류.',
+      },
+      'th-TH': {
+            'title': 'มอนิเตอร์สตรีมสดหลายมุมมองของไต้หวัน',
+            'cam_name': (index) => {
+                const names = ['ซ้ายบน', 'ขวาบน', 'ซ้ายล่าง', 'ขวาล่าง'];
+                const names3x3 = ['ซ้ายบน', 'กลางบน', 'ขวาบน', 'ซ้ายกลาง', 'กลาง', 'ขวากลาง', 'ซ้ายล่าง', 'กลางล่าง', 'ขวาล่าง'];
+                const numCams = getGridDimension() * getGridDimension();
+                if (numCams === 9) {
+                    return names3x3[index] || `หน้าจอ ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `หน้าจอ ${index + 1}`;
+                } else {
+                    return `หน้าจอ ${index + 1}`;
+                }
+            },
+            'fullscreen_btn': 'เต็มจอ',
+            'settings_btn': '⚙️ ตั้งค่า',
+            'mute_btn_unmuted': 'ยกเลิกปิดเสียง',
+            'mute_btn_muted': 'ปิดเสียง',
+            'request_btn': '🎶 เพลง/เพลย์ลิสต์',
+            'back_btn': '🏠 กลับไปยังรายการภูมิภาค',
+            'loading': 'กำลังโหลด...',
+            'source_prefix': 'แหล่งที่มา:',
+            'settings_title': '⚙️ ตั้งค่าโปรแกรม',
+            'grid_size_label': 'โหมดแบ่งหน้าจอ：',
+            'grid_1x1': '1x1 (หน้าจอเดียว)',
+            'grid_2x2': '2x2 (สี่ส่วน)',
+            'grid_3x3': '3x3 (เก้าส่วน)',
+            'grid_hint': 'การเปลี่ยนกริดจะรีเซ็ตหน้าจอทั้งหมด',
+            'language_label': 'เลือกภาษา：',
+            'lang_zh_tw': 'จีนตัวเต็ม',
+            'lang_en_us': 'English',
+            'labels_toggle_label': 'แสดงป้ายหน้าจอ：',
+            'labels_toggle_hide': 'ซ่อนป้าย',
+            'labels_toggle_show': 'แสดงป้าย',
+            'settings_close_btn': 'ปิดการตั้งค่า',
+            'music_mode_title': 'โหมดเล่นเพลง',
+            'music_mode_hint': 'คลิกปุ่มด้านล่างเพื่อเลือกโหมดการเล่น：',
+            'mode_list_loop': '🔄 วนลูปรายการ',
+            'mode_shuffle': '🔀 สุ่ม',
+            'mode_stop_btn': '⏹️ หยุดและสิ้นสุดการเล่น',
+            'queue_title': '🎶 สถานะเพลย์ลิสต์',
+            'queue_playing_playlist': 'กำลังเล่นเพลย์ลิสต์ ID：',
+            'queue_list_empty': '（เพลย์ลิสต์ยังไม่ได้โหลดหรือว่างเปล่า）',
+            'queue_total': (total, current, mode) => `รวม: ${total} เพลง | ปัจจุบัน: เพลงที่ ${current} | โหมด: ${mode}`,
+            'queue_next_video': 'เพลงถัดไป：',
+            'queue_playlist_pending': (id) => `⚠️ เพลย์ลิสต์ที่รอ（ID: ${id}）จะเริ่มหลังจากเพลงปัจจุบันจบ`,
+            'queue_empty_queue': 'คิวการเล่นว่างเปล่า',
+            'queue_playing_queue': 'กำลังเล่นเพลงในคิว：',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
+            'queue_close_btn': 'ปิด',
+            'alert_invalid_playlist': 'เพลย์ลิสต์ไม่ถูกต้อง',
+            'alert_playlist_playing': 'เพลย์ลิสต์นี้กำลังเล่นอยู่แล้ว',
+            'alert_playlist_queued': (id) => `✅ เพลย์ลิสต์ ID: ${id} จะเริ่มอัตโนมัติหลังจากเพลงปัจจุบันจบ`,
+            'alert_playlist_loaded': (id) => `✅ โหลดเพลย์ลิสต์ ID: ${id} แล้ว`,
+            'alert_song_added': (title) => `✅ เพิ่ม ${title} ลงในคิวการเล่นแล้ว`,
+            'alert_no_video_found': 'ไม่พบวิดีโอที่ตรงกัน',
+            'alert_found_and_added': (title) => `✅ พบและเพิ่ม: ${title}`,
+            'alert_playing_now': 'กำลังเล่น：',
+            'alert_play_index_error': 'ข้อผิดพลาดดัชนีการเล่น',
+      },
+      'vi-VN': {
+            'title': 'Màn hình giám sát nhiều luồng trực tiếp Đài Loan',
+            'cam_name': (index) => {
+                const names = ['Trên trái', 'Trên phải', 'Dưới trái', 'Dưới phải'];
+                const names3x3 = ['Trên trái', 'Trên giữa', 'Trên phải', 'Giữa trái', 'Giữa', 'Giữa phải', 'Dưới trái', 'Dưới giữa', 'Dưới phải'];
+                const numCams = getGridDimension() * getGridDimension();
+                if (numCams === 9) {
+                    return names3x3[index] || `Màn hình ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `Màn hình ${index + 1}`;
+                } else {
+                    return `Màn hình ${index + 1}`;
+                }
+            },
+            'fullscreen_btn': 'Toàn màn hình',
+            'settings_btn': '⚙️ Cài đặt',
+            'mute_btn_unmuted': 'Bỏ tắt tiếng',
+            'mute_btn_muted': 'Tắt tiếng',
+            'request_btn': '🎶 Bài hát/Danh sách',
+            'back_btn': '🏠 Quay lại danh sách khu vực',
+            'loading': 'Đang tải...',
+            'source_prefix': 'Nguồn:',
+            'settings_title': '⚙️ Cài đặt chương trình',
+            'grid_size_label': 'Chế độ chia màn hình：',
+            'grid_1x1': '1x1 (Một màn hình)',
+            'grid_2x2': '2x2 (Bốn phần)',
+            'grid_3x3': '3x3 (Chín phần)',
+            'grid_hint': 'Thay đổi lưới sẽ đặt lại tất cả các màn hình.',
+            'language_label': 'Chọn ngôn ngữ：',
+            'lang_zh_tw': 'Tiếng Trung phồn thể',
+            'lang_en_us': 'English',
+            'labels_toggle_label': 'Hiển thị nhãn màn hình：',
+            'labels_toggle_hide': 'Ẩn nhãn',
+            'labels_toggle_show': 'Hiển thị nhãn',
+            'settings_close_btn': 'Đóng cài đặt',
+            'music_mode_title': 'Chế độ phát nhạc',
+            'music_mode_hint': 'Nhấp vào nút bên dưới để chọn chế độ phát：',
+            'mode_list_loop': '🔄 Lặp danh sách',
+            'mode_shuffle': '🔀 Ngẫu nhiên',
+            'mode_stop_btn': '⏹️ Dừng và kết thúc phát',
+            'queue_title': '🎶 Trạng thái danh sách phát',
+            'queue_playing_playlist': 'Đang phát Danh sách ID：',
+            'queue_list_empty': '（Danh sách chưa được tải hoặc trống）',
+            'queue_total': (total, current, mode) => `Tổng: ${total} bài | Hiện tại: bài ${current} | Chế độ: ${mode}`,
+            'queue_next_video': 'Bài tiếp theo：',
+            'queue_playlist_pending': (id) => `⚠️ Danh sách đang chờ（ID: ${id}）sẽ bắt đầu sau khi bài hiện tại kết thúc.`,
+            'queue_empty_queue': 'Hàng đợi phát trống.',
+            'queue_playing_queue': 'Đang phát bài trong hàng đợi：',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
+            'queue_close_btn': 'Đóng',
+            'alert_invalid_playlist': 'Danh sách phát không hợp lệ.',
+            'alert_playlist_playing': 'Danh sách phát này đã đang phát.',
+            'alert_playlist_queued': (id) => `✅ Danh sách phát ID: ${id} sẽ tự động bắt đầu sau khi bài hiện tại kết thúc.`,
+            'alert_playlist_loaded': (id) => `✅ Đã tải danh sách phát ID: ${id}.`,
+            'alert_song_added': (title) => `✅ Đã thêm ${title} vào hàng đợi phát.`,
+            'alert_no_video_found': 'Không tìm thấy video phù hợp.',
+            'alert_found_and_added': (title) => `✅ Đã tìm thấy và thêm: ${title}`,
+            'alert_playing_now': 'Đang phát：',
+            'alert_play_index_error': 'Lỗi chỉ mục phát.',
+      },
+      'it-IT': {
+            'title': 'Monitor Multi-Vista Stream Live Taiwan',
+            'cam_name': (index) => {
+                const names = ['In alto a sinistra', 'In alto a destra', 'In basso a sinistra', 'In basso a destra'];
+                const names3x3 = ['In alto a sinistra', 'In alto al centro', 'In alto a destra', 'A sinistra al centro', 'Centro', 'A destra al centro', 'In basso a sinistra', 'In basso al centro', 'In basso a destra'];
+                const numCams = getGridDimension() * getGridDimension();
+                if (numCams === 9) {
+                    return names3x3[index] || `Schermo ${index + 1}`;
+                } else if (numCams === 4) {
+                    return names[index] || `Schermo ${index + 1}`;
+                } else {
+                    return `Schermo ${index + 1}`;
+                }
+            },
+            'fullscreen_btn': 'Schermo intero',
+            'settings_btn': '⚙️ Impostazioni',
+            'mute_btn_unmuted': 'Riattiva audio',
+            'mute_btn_muted': 'Disattiva audio',
+            'request_btn': '🎶 Canzone/Playlist',
+            'back_btn': '🏠 Torna alle regioni',
+            'loading': 'Caricamento...',
+            'source_prefix': 'Fonte:',
+            'settings_title': '⚙️ Impostazioni programma',
+            'grid_size_label': 'Layout griglia schermo:',
+            'grid_1x1': '1x1 (Vista singola)',
+            'grid_2x2': '2x2 (Vista quadrupla)',
+            'grid_3x3': '3x3 (Vista nonupla)',
+            'grid_hint': 'Cambiare la griglia reimposterà tutte le viste.',
+            'language_label': 'Selezione lingua:',
+            'lang_zh_tw': 'Cinese tradizionale',
+            'lang_en_us': 'English',
+            'labels_toggle_label': 'Visualizzazione etichette schermo:',
+            'labels_toggle_hide': 'Nascondi etichette',
+            'labels_toggle_show': 'Mostra etichette',
+            'settings_close_btn': 'Chiudi impostazioni',
+            'music_mode_title': 'Modalità riproduzione musica',
+            'music_mode_hint': 'Clicca un pulsante qui sotto per selezionare la modalità di riproduzione:',
+            'mode_list_loop': '🔄 Ciclo lista',
+            'mode_shuffle': '🔀 Casuale',
+            'mode_stop_btn': '⏹️ Ferma e termina riproduzione',
+            'queue_title': '🎶 Stato playlist',
+            'queue_playing_playlist': 'Riproduzione playlist ID:',
+            'queue_list_empty': '(Playlist non caricata o vuota)',
+            'queue_total': (total, current, mode) => `Totale: ${total} brani | Corrente: #${current} | Modalità: ${mode}`,
+            'queue_next_video': 'Prossimo video:',
+            'queue_playlist_pending': (id) => `⚠️ Playlist in attesa (ID: ${id}) inizierà dopo la fine della canzone corrente.`,
+            'queue_empty_queue': 'La coda di riproduzione è vuota.',
+            'queue_playing_queue': 'Riproduzione canzone in coda:',
+            'queue_mode_current': () => `▶️`,
+            'queue_mode_index': (index) => `${index + 1}`,
+            'queue_close_btn': 'Chiudi',
+            'alert_invalid_playlist': 'Playlist non valida.',
+            'alert_playlist_playing': 'Questa playlist è già in riproduzione.',
+            'alert_playlist_queued': (id) => `✅ La playlist ID: ${id} inizierà automaticamente dopo la fine della canzone corrente.`,
+            'alert_playlist_loaded': (id) => `✅ Playlist ID: ${id} caricata.`,
+            'alert_song_added': (title) => `✅ Aggiunto ${title} alla coda di riproduzione.`,
+            'alert_no_video_found': 'Nessun video corrispondente trovato.',
+            'alert_found_and_added': (title) => `✅ Trovato e aggiunto: ${title}`,
+            'alert_playing_now': 'In riproduzione:',
+            'alert_play_index_error': 'Errore indice riproduzione.',
       }
     };
 
@@ -852,8 +1286,11 @@
         document.getElementById('grid3x3Btn').innerText = getTranslation('grid_3x3');
         document.getElementById('gridSizeHint').innerText = getTranslation('grid_hint');
         document.getElementById('languageLabel').innerText = getTranslation('language_label');
-        document.getElementById('langZhTwBtn').innerText = getTranslation('lang_zh_tw');
-        document.getElementById('langEnUsBtn').innerText = getTranslation('lang_en_us');
+        // 更新語言下拉選單的選中值
+        const languageSelect = document.getElementById('languageSelect');
+        if (languageSelect) {
+            languageSelect.value = currentLang;
+        }
         document.getElementById('labelsToggleLabel').innerText = getTranslation('labels_toggle_label');
         document.getElementById('labelsToggleInModalBtn').innerText = isLabelsVisible ? getTranslation('labels_toggle_show') : getTranslation('labels_toggle_hide');
         document.getElementById('musicModeTitle').innerText = getTranslation('music_mode_title');
@@ -880,14 +1317,7 @@
              }
         }
         
-        // Update language buttons active state
-        document.querySelectorAll('.lang-btn').forEach(btn => {
-            btn.classList.remove('active');
-        });
-        const langBtn = document.getElementById(`lang${currentLang.replace('-', '')}Btn`);
-        if (langBtn) {
-            langBtn.classList.add('active');
-        }
+        // 更新語言下拉選單的選中值（已在上面處理）
     }
     
 
@@ -1393,9 +1823,10 @@
 
         const btn = document.getElementById('muteBtn');
         if (btn) {
+            // 修正邏輯：已靜音時顯示「解除靜音」，未靜音時顯示「靜音」
             btn.innerText = currentMuted ? 
-                getTranslation('mute_btn_muted') : 
-                getTranslation('mute_btn_unmuted');
+                getTranslation('mute_btn_unmuted') : 
+                getTranslation('mute_btn_muted');
         }
     }
     
@@ -1998,14 +2429,148 @@
         '其他': { top: 50, left: 50 }
     };
 
-    // 特殊景點的精確座標修正
+    // 所有景點的精確座標（基於台灣地圖實際位置）
     const SPOT_COORDINATES = {
+        // 台北
         "台北-象山看101": { top: 6, left: 79 },
-        "屏東-墾丁南灣": { top: 96, left: 55 }, 
+        "台北-大稻埕": { top: 7, left: 78 },
+        "台北-碧山巖": { top: 5, left: 79 },
+        "台北-微風平台": { top: 6, left: 78 },
+        "台北-貓空指南宮": { top: 5, left: 78 },
+        "台北-擎天岡草原": { top: 4, left: 78 },
+        "台北-陽明書屋": { top: 4, left: 78 },
+        "台北-遠眺七星山": { top: 4, left: 78 },
+        "台北-二坪子停車場": { top: 4, left: 78 },
+        "台北-大屯自然公園": { top: 4, left: 78 },
+        "台北-小油坑停車場": { top: 4, left: 78 },
+        "台北-冷水坑停車場": { top: 4, left: 78 },
+        // 新北
+        "新北-漁人碼頭": { top: 8, left: 76 },
+        "新北-鼻頭服務區": { top: 6, left: 80 },
+        "新北-中角灣": { top: 7, left: 77 },
+        "新北-十分瀑布公園": { top: 7, left: 77 },
+        "新北-九份": { top: 6, left: 79 },
+        "新北-內洞國家森林遊樂區": { top: 9, left: 77 },
+        "新北-三峽老街北段": { top: 10, left: 74 },
+        "新北-三峽老街南段": { top: 10, left: 74 },
+        "新北-烏來吊橋": { top: 9, left: 76 },
+        "新北-員山子": { top: 8, left: 75 },
+        "新北-文山農場大草皮": { top: 9, left: 76 },
+        // 基隆
+        "基隆-外木山": { top: 3, left: 81 },
+        // 新竹
+        "新竹-成功湖": { top: 18, left: 62 },
+        "新竹-大草坪": { top: 18, left: 62 },
+        // 桃園
+        "桃園-國際機場": { top: 12, left: 68 },
+        "桃園-桃園機場南跑道": { top: 12, left: 68 },
+        "桃園-桃園機場北跑道": { top: 12, left: 68 },
+        "桃園-永安漁港": { top: 13, left: 67 },
+        "桃園-拉拉山遊客中心": { top: 15, left: 70 },
+        "桃園-虎頭山環保公園": { top: 12, left: 69 },
+        "桃園-小烏來天空步道": { top: 14, left: 70 },
+        "桃園-角板山思親亭": { top: 14, left: 70 },
+        "桃園-三龜戲水觀景平台": { top: 14, left: 70 },
+        "桃園-大溪橋": { top: 12, left: 69 },
+        "桃園-虎頭山奧爾森林學堂": { top: 12, left: 69 },
+        "桃園-角板山梅園": { top: 14, left: 70 },
+        "桃園-角板山生態池": { top: 14, left: 70 },
+        "桃園-大溪老街": { top: 12, left: 69 },
+        "桃園-石門水庫": { top: 13, left: 70 },
+        "桃園-慈湖水岸廣場": { top: 13, left: 70 },
+        "桃園-阿姆坪薑母島": { top: 13, left: 70 },
+        "桃園-上巴陵": { top: 15, left: 70 },
+        "桃園-桃園國際機場凱悅酒店": { top: 12, left: 68 },
+        "桃園-小烏來寰宇平台": { top: 14, left: 70 },
+        "桃園-許厝港濕地": { top: 13, left: 68 },
+        "其他-蓮華寺正殿1": { top: 12, left: 69 }, // 蓮華寺在桃園
+        "其他-蓮華寺正殿2": { top: 12, left: 69 }, // 蓮華寺在桃園
+        // 宜蘭
+        "宜蘭-外澳沙灘": { top: 20, left: 85 },
+        "宜蘭-福隆海水浴場": { top: 19, left: 84 },
+        "宜蘭-石城漁港": { top: 20, left: 85 },
+        "宜蘭-無尾港": { top: 21, left: 84 },
+        "宜蘭-石城漁港": { top: 20, left: 85 },
+        "宜蘭-礁溪寒沐酒店": { top: 20, left: 84 },
+        // 苗栗
+        "苗栗-汶水遊客中心(雪霸)": { top: 25, left: 55 },
+        "苗栗-觀霧遊憩區(雪霸)": { top: 24, left: 56 },
+        "苗栗-雪見遊憩區(雪霸)": { top: 25, left: 55 },
+        // 台中
+        "台中-高美濕地": { top: 35, left: 45 },
+        "台中-望高寮": { top: 35, left: 45 },
+        // 彰化
+        "彰化-王功漁港": { top: 40, left: 40 },
+        // 南投
+        "南投-合歡山武嶺亭": { top: 40, left: 60 },
+        // 嘉義
+        "嘉義-奮起湖": { top: 58, left: 48 },
+        "嘉義-二延平步道": { top: 58, left: 48 },
+        "嘉義-太平雲梯": { top: 58, left: 48 },
+        "嘉義-觸口遊客中心": { top: 60, left: 35 },
+        "嘉義-愛情大草原": { top: 58, left: 48 },
+        "嘉義-生力農場": { top: 58, left: 48 },
+        "嘉義-里佳資訊站": { top: 58, left: 48 },
+        // 台南
+        "台南-七股賞鳥台": { top: 70, left: 30 },
+        "台南-北汕尾水鳥保護區": { top: 70, left: 30 },
+        "台南-曾文水庫": { top: 68, left: 38 },
+        "台南-火山碧雲寺": { top: 69, left: 32 },
+        // 高雄
+        "高雄-楠梓聖興橋": { top: 78, left: 35 },
+        "高雄-蚵寮國小": { top: 79, left: 34 },
+        "高雄-旗津海水浴場": { top: 78, left: 35 },
+        "高雄-壽山觀景台": { top: 78, left: 35 },
+        "高雄-蓮池潭": { top: 78, left: 35 },
+        "高雄-高雄燈塔": { top: 78, left: 35 },
+        "高雄-旗津沙灘": { top: 78, left: 35 },
+        // 屏東
+        "屏東-羌光橋": { top: 85, left: 45 },
+        "屏東-墾丁南灣": { top: 96, left: 55 },
         "屏東-船帆石": { top: 97, left: 56 },
-        "屏東-鵝鑾鼻": { top: 98, left: 58 },
-        "嘉義-阿里山": { top: 58, left: 48 },
-        "南投-合歡山": { top: 40, left: 60 }
+        "屏東-船帆石沙灘": { top: 97, left: 56 },
+        "屏東-雀鯛公寓": { top: 96, left: 55 },
+        "屏東-頂流區": { top: 96, left: 55 },
+        "屏東-軸孔公園": { top: 96, left: 55 },
+        "屏東-搖曳大草原": { top: 96, left: 55 },
+        // 花蓮
+        "花蓮-馬太鞍溪左岸": { top: 45, left: 80 },
+        "花蓮-七星潭": { top: 45, left: 80 },
+        "花蓮-石梯坪": { top: 48, left: 82 },
+        "花蓮-大石鼻山": { top: 48, left: 82 },
+        "花蓮-長虹橋": { top: 50, left: 83 },
+        // 台東
+        "台東-鯉魚山": { top: 75, left: 60 },
+        "台東-金崙大橋": { top: 80, left: 62 },
+        "台東-金樽觀浪": { top: 76, left: 61 },
+        "台東-富山": { top: 76, left: 61 },
+        "台東-杉原灣": { top: 76, left: 61 },
+        "台東-富岡漁港": { top: 75, left: 60 },
+        "台東-華源曙光觀景台": { top: 79, left: 62 },
+        "台東-南橫埡口": { top: 72, left: 58 },
+        "台東-池上天堂路": { top: 72, left: 58 },
+        "台東-多良車站": { top: 81, left: 63 },
+        "台東-鹿野高台": { top: 73, left: 59 },
+        "台東-成功三仙台": { top: 74, left: 61 },
+        "台東-金樽遊憩區": { top: 76, left: 61 },
+        "台東-都歷遊客中心": { top: 75, left: 61 },
+        "台東-加路蘭遊憩區": { top: 75, left: 60 },
+        "台東-綠島南寮": { top: 78, left: 65 },
+        "台東-綠島帆船鼻": { top: 78, left: 65 },
+        "台東-綠島柴口浮潛區": { top: 78, left: 65 },
+        "台東-娜路彎酒店": { top: 75, left: 60 },
+        // 金門
+        "金門-麒麟山森林公園": { top: 15, left: 10 },
+        "金門-134高地": { top: 15, left: 10 },
+        "金門-建功嶼": { top: 15, left: 10 },
+        // 馬祖
+        "馬祖-北竿航空站休息室": { top: 5, left: 15 },
+        // 其他（地震直播不用座標，機場資訊用機場座標）
+        "其他-松山機場航班資訊": { top: 6, left: 78 },
+        "其他-高雄機場航班資訊": { top: 78, left: 35 },
+        "其他-桃園機場航班資訊": { top: 12, left: 68 },
+        "其他-桃園機場畫面/資訊": { top: 12, left: 68 }
+        // 注意：地震監測直播不使用座標
     };
 
     // 初始化地圖設定
@@ -2055,6 +2620,12 @@
         if (!dot) return;
 
         if (!state) {
+            dot.style.display = 'none';
+            return;
+        }
+
+        // 地震監測直播不使用座標
+        if (state.key && state.key.includes('地震監測直播')) {
             dot.style.display = 'none';
             return;
         }
