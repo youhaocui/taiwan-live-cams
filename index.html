@@ -416,7 +416,7 @@
         </div>
         
         <div style="margin-top:10px; padding:10px; border:1px solid #444; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
-            <p style="color:#fff; font-weight:bold; margin:0;">小地圖顯示：</p>
+            <p id="mapsToggleLabel" style="color:#fff; font-weight:bold; margin:0;">小地圖顯示：</p>
             <button id="mapsToggleBtn" onclick="toggleMiniMaps()">地圖開啟</button>
         </div>
 
@@ -620,14 +620,75 @@
       '離島': ['金門', '馬祖'],
       '其他': ['其他']
     };
-    // 新增：縣市與攝影機地點的英文對照表
-    const CITY_NAMES_EN = {
-        '台北': 'Taipei', '新北': 'New Taipei', '基隆': 'Keelung', '桃園': 'Taoyuan', '宜蘭': 'Yilan', '新竹': 'Hsinchu',
-        '苗栗': 'Miaoli', '台中': 'Taichung', '彰化': 'Changhua', '南投': 'Nantou', '雲林': 'Yunlin',
-        '嘉義': 'Chiayi', '台南': 'Tainan', '高雄': 'Kaohsiung', '屏東': 'Pingtung', '澎湖': 'Penghu',
-        '花蓮': 'Hualien', '台東': 'Taitung', '金門': 'Kinmen', '馬祖': 'Matsu', '其他': 'Others',
-        '北部': 'North', '中部': 'Central', '南部': 'South', '東部': 'East', '離島': 'Islands'
+    // 多語言城市名稱對照表
+    const CITY_NAMES = {
+        'zh-TW': {
+            '台北': '台北', '新北': '新北', '基隆': '基隆', '桃園': '桃園', '宜蘭': '宜蘭', '新竹': '新竹',
+            '苗栗': '苗栗', '台中': '台中', '彰化': '彰化', '南投': '南投', '雲林': '雲林',
+            '嘉義': '嘉義', '台南': '台南', '高雄': '高雄', '屏東': '屏東', '澎湖': '澎湖',
+            '花蓮': '花蓮', '台東': '台東', '金門': '金門', '馬祖': '馬祖', '其他': '其他',
+            '北部': '北部', '中部': '中部', '南部': '南部', '東部': '東部', '離島': '離島'
+        },
+        'zh-CN': {
+            '台北': '台北', '新北': '新北', '基隆': '基隆', '桃園': '桃園', '宜蘭': '宜蘭', '新竹': '新竹',
+            '苗栗': '苗栗', '台中': '台中', '彰化': '彰化', '南投': '南投', '雲林': '雲林',
+            '嘉義': '嘉義', '台南': '台南', '高雄': '高雄', '屏東': '屏東', '澎湖': '澎湖',
+            '花蓮': '花蓮', '台東': '台東', '金門': '金門', '馬祖': '馬祖', '其他': '其他',
+            '北部': '北部', '中部': '中部', '南部': '南部', '東部': '東部', '離島': '離島'
+        },
+        'en-US': {
+            '台北': 'Taipei', '新北': 'New Taipei', '基隆': 'Keelung', '桃園': 'Taoyuan', '宜蘭': 'Yilan', '新竹': 'Hsinchu',
+            '苗栗': 'Miaoli', '台中': 'Taichung', '彰化': 'Changhua', '南投': 'Nantou', '雲林': 'Yunlin',
+            '嘉義': 'Chiayi', '台南': 'Tainan', '高雄': 'Kaohsiung', '屏東': 'Pingtung', '澎湖': 'Penghu',
+            '花蓮': 'Hualien', '台東': 'Taitung', '金門': 'Kinmen', '馬祖': 'Matsu', '其他': 'Others',
+            '北部': 'North', '中部': 'Central', '南部': 'South', '東部': 'East', '離島': 'Islands'
+        },
+        'en-GB': {
+            '台北': 'Taipei', '新北': 'New Taipei', '基隆': 'Keelung', '桃園': 'Taoyuan', '宜蘭': 'Yilan', '新竹': 'Hsinchu',
+            '苗栗': 'Miaoli', '台中': 'Taichung', '彰化': 'Changhua', '南投': 'Nantou', '雲林': 'Yunlin',
+            '嘉義': 'Chiayi', '台南': 'Tainan', '高雄': 'Kaohsiung', '屏東': 'Pingtung', '澎湖': 'Penghu',
+            '花蓮': 'Hualien', '台東': 'Taitung', '金門': 'Kinmen', '馬祖': 'Matsu', '其他': 'Others',
+            '北部': 'North', '中部': 'Central', '南部': 'South', '東部': 'East', '離島': 'Islands'
+        },
+        'ja-JP': {
+            '台北': '台北', '新北': '新北', '基隆': '基隆', '桃園': '桃園', '宜蘭': '宜蘭', '新竹': '新竹',
+            '苗栗': '苗栗', '台中': '台中', '彰化': '彰化', '南投': '南投', '雲林': '雲林',
+            '嘉義': '嘉義', '台南': '台南', '高雄': '高雄', '屏東': '屏東', '澎湖': '澎湖',
+            '花蓮': '花蓮', '台東': '台東', '金門': '金門', '馬祖': '馬祖', '其他': 'その他',
+            '北部': '北部', '中部': '中部', '南部': '南部', '東部': '東部', '離島': '離島'
+        },
+        'ko-KR': {
+            '台北': '타이베이', '新北': '신베이', '基隆': '지룽', '桃園': '타오위안', '宜蘭': '이란', '新竹': '신주',
+            '苗栗': '먀오리', '台中': '타이중', '彰化': '장화', '南投': '난터우', '雲林': '윈린',
+            '嘉義': '자이', '台南': '타이난', '高雄': '가오슝', '屏東': '핑둥', '澎湖': '펑후',
+            '花蓮': '화롄', '台東': '타이둥', '金門': '진먼', '馬祖': '마쭈', '其他': '기타',
+            '北部': '북부', '中部': '중부', '南部': '남부', '東部': '동부', '離島': '외도'
+        },
+        'th-TH': {
+            '台北': 'ไทเป', '新北': 'ซินเป่ย์', '基隆': 'จีหลง', '桃園': 'เถาหยวน', '宜蘭': 'อี๋หลาน', '新竹': 'ซินจู๋',
+            '苗栗': 'เหมียวลี่', '台中': 'ไทจง', '彰化': 'จางฮวา', '南投': 'หนานโถว', '雲林': 'ยฺหวินหลิน',
+            '嘉義': 'เจียอี้', '台南': 'ไถหนาน', '高雄': 'เกาสฺยง', '屏東': 'ผิงตง', '澎湖': 'เผิงหู',
+            '花蓮': 'ฮวาเหลียน', '台東': 'ไถตง', '金門': 'จินเหมิน', '馬祖': 'หมาจู่', '其他': 'อื่นๆ',
+            '北部': 'เหนือ', '中部': 'กลาง', '南部': 'ใต้', '東部': 'ตะวันออก', '離島': 'เกาะ'
+        },
+        'vi-VN': {
+            '台北': 'Đài Bắc', '新北': 'Tân Bắc', '基隆': 'Cơ Long', '桃園': 'Đào Viên', '宜蘭': 'Nghi Lan', '新竹': 'Tân Trúc',
+            '苗栗': 'Miêu Lật', '台中': 'Đài Trung', '彰化': 'Chương Hóa', '南投': 'Nam Đầu', '雲林': 'Vân Lâm',
+            '嘉義': 'Gia Nghĩa', '台南': 'Đài Nam', '高雄': 'Cao Hùng', '屏東': 'Bình Đông', '澎湖': 'Bành Hồ',
+            '花蓮': 'Hoa Liên', '台東': 'Đài Đông', '金門': 'Kim Môn', '馬祖': 'Mã Tổ', '其他': 'Khác',
+            '北部': 'Bắc', '中部': 'Trung', '南部': 'Nam', '東部': 'Đông', '離島': 'Đảo'
+        },
+        'it-IT': {
+            '台北': 'Taipei', '新北': 'New Taipei', '基隆': 'Keelung', '桃園': 'Taoyuan', '宜蘭': 'Yilan', '新竹': 'Hsinchu',
+            '苗栗': 'Miaoli', '台中': 'Taichung', '彰化': 'Changhua', '南投': 'Nantou', '雲林': 'Yunlin',
+            '嘉義': 'Chiayi', '台南': 'Tainan', '高雄': 'Kaohsiung', '屏東': 'Pingtung', '澎湖': 'Penghu',
+            '花蓮': 'Hualien', '台東': 'Taitung', '金門': 'Kinmen', '馬祖': 'Matsu', '其他': 'Altri',
+            '北部': 'Nord', '中部': 'Centro', '南部': 'Sud', '東部': 'Est', '離島': 'Isole'
+        }
     };
+    
+    // 保留英文對照表以向後兼容
+    const CITY_NAMES_EN = CITY_NAMES['en-US'];
 
     const STREAM_NAME_EN = {
         // 台北
@@ -741,6 +802,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': '關閉',
+            'queue_full_list': '完整清單：',
             // Alerts
             'alert_invalid_playlist': '無效的播放清單。',
             'alert_playlist_playing': '該播放清單已在播放中。',
@@ -751,6 +813,20 @@
             'alert_found_and_added': (title) => `✅ 已找到並加入：${title}`,
             'alert_playing_now': '正在播放：',
             'alert_play_index_error': '播放索引錯誤。',
+            // Music button titles
+            'music_prev_btn': '上一首',
+            'music_next_btn': '下一首',
+            'music_play_btn': '播放',
+            'music_pause_btn': '暫停',
+            'music_mode_btn': '模式設定',
+            'music_queue_btn': '查看播放列表狀態',
+            'settings_btn_title': '畫面分割、語言與標籤設定',
+            'request_btn_title': '輸入網址/ID點歌或播放清單',
+            'request_prompt': '輸入網址/ID點歌或播放清單\n（例如：影片ID: dQw4w9WgXcQ，或播放清單網址，或關鍵字）',
+            'maps_toggle_label': '小地圖顯示：',
+            'maps_toggle_show': '地圖顯示',
+            'maps_toggle_hide': '地圖隱藏',
+            'city_btn_title': (city) => `切換顯示 ${city} 的直播列表`,
         },
         'en-US': {
             'title': 'Taiwan Live Stream Multi-View Monitor',
@@ -806,6 +882,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': 'Close',
+            'queue_full_list': 'Full List:',
             // Alerts
             'alert_invalid_playlist': 'Invalid playlist.',
             'alert_playlist_playing': 'This playlist is already playing.',
@@ -816,6 +893,20 @@
             'alert_found_and_added': (title) => `✅ Found and added: ${title}`,
             'alert_playing_now': 'Now Playing:',
             'alert_play_index_error': 'Playback index error.',
+            // Music button titles
+            'music_prev_btn': 'Previous',
+            'music_next_btn': 'Next',
+            'music_play_btn': 'Play',
+            'music_pause_btn': 'Pause',
+            'music_mode_btn': 'Mode Settings',
+            'music_queue_btn': 'View Playlist Status',
+            'settings_btn_title': 'Grid Layout, Language & Label Settings',
+            'request_btn_title': 'Enter URL/ID to request song or playlist',
+            'request_prompt': 'Enter URL/ID to request song or playlist\n(Example: Video ID: dQw4w9WgXcQ, or playlist URL, or keywords)',
+            'maps_toggle_label': 'Mini Map Display:',
+            'maps_toggle_show': 'Show Map',
+            'maps_toggle_hide': 'Hide Map',
+            'city_btn_title': (city) => `Switch to show ${city} live streams`,
       },
       'zh-CN': {
             'title': '台湾实时直播多分割监看',
@@ -868,6 +959,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': '关闭',
+            'queue_full_list': '完整清单：',
             'alert_invalid_playlist': '无效的播放清单。',
             'alert_playlist_playing': '该播放清单已在播放中。',
             'alert_playlist_queued': (id) => `✅ 当前单曲播放完毕后，将自动开始播放清单 ID: ${id}。`,
@@ -877,6 +969,20 @@
             'alert_found_and_added': (title) => `✅ 已找到并加入：${title}`,
             'alert_playing_now': '正在播放：',
             'alert_play_index_error': '播放索引错误。',
+            // Music button titles
+            'music_prev_btn': '上一首',
+            'music_next_btn': '下一首',
+            'music_play_btn': '播放',
+            'music_pause_btn': '暂停',
+            'music_mode_btn': '模式设置',
+            'music_queue_btn': '查看播放列表状态',
+            'settings_btn_title': '画面分割、语言与标签设置',
+            'request_btn_title': '输入网址/ID点歌或播放清单',
+            'request_prompt': '输入网址/ID点歌或播放清单\n（例如：影片ID: dQw4w9WgXcQ，或播放清单网址，或关键字）',
+            'maps_toggle_label': '小地图显示：',
+            'maps_toggle_show': '地图显示',
+            'maps_toggle_hide': '地图隐藏',
+            'city_btn_title': (city) => `切换显示 ${city} 的直播列表`,
       },
       'en-GB': {
             'title': 'Taiwan Live Stream Multi-View Monitor',
@@ -929,6 +1035,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': 'Close',
+            'queue_full_list': 'Full List:',
             'alert_invalid_playlist': 'Invalid playlist.',
             'alert_playlist_playing': 'This playlist is already playing.',
             'alert_playlist_queued': (id) => `✅ Playlist ID: ${id} will start automatically after the current song ends.`,
@@ -938,6 +1045,19 @@
             'alert_found_and_added': (title) => `✅ Found and added: ${title}`,
             'alert_playing_now': 'Now Playing:',
             'alert_play_index_error': 'Playback index error.',
+            // Music button titles
+            'music_prev_btn': 'Previous',
+            'music_next_btn': 'Next',
+            'music_play_btn': 'Play',
+            'music_pause_btn': 'Pause',
+            'music_mode_btn': 'Mode Settings',
+            'music_queue_btn': 'View Playlist Status',
+            'settings_btn_title': 'Grid Layout, Language & Label Settings',
+            'request_btn_title': 'Enter URL/ID to request song or playlist',
+            'request_prompt': 'Enter URL/ID to request song or playlist\n(Example: Video ID: dQw4w9WgXcQ, or playlist URL, or keywords)',
+            'maps_toggle_label': 'Mini Map Display:',
+            'maps_toggle_show': 'Show Map',
+            'maps_toggle_hide': 'Hide Map',
       },
       'ja-JP': {
             'title': '台湾ライブストリーム多分割監視',
@@ -990,6 +1110,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': '閉じる',
+            'queue_full_list': '完全なリスト：',
             'alert_invalid_playlist': '無効なプレイリストです。',
             'alert_playlist_playing': 'このプレイリストは既に再生中です。',
             'alert_playlist_queued': (id) => `✅ プレイリスト ID: ${id} は現在の曲終了後に自動的に開始されます。`,
@@ -999,6 +1120,20 @@
             'alert_found_and_added': (title) => `✅ 見つけて追加しました：${title}`,
             'alert_playing_now': '再生中：',
             'alert_play_index_error': '再生インデックスエラー。',
+            // Music button titles
+            'music_prev_btn': '前の曲',
+            'music_next_btn': '次の曲',
+            'music_play_btn': '再生',
+            'music_pause_btn': '一時停止',
+            'music_mode_btn': 'モード設定',
+            'music_queue_btn': 'プレイリスト状態を表示',
+            'settings_btn_title': '画面分割、言語とラベル設定',
+            'request_btn_title': 'URL/IDを入力して曲またはプレイリストをリクエスト',
+            'request_prompt': 'URL/IDを入力して曲またはプレイリストをリクエスト\n（例：動画ID: dQw4w9WgXcQ、またはプレイリストURL、またはキーワード）',
+            'maps_toggle_label': 'ミニマップ表示：',
+            'maps_toggle_show': '地図表示',
+            'maps_toggle_hide': '地図非表示',
+            'city_btn_title': (city) => `${city}のライブストリームリストを表示に切り替え`,
       },
       'ko-KR': {
             'title': '대만 실시간 스트림 다중 화면 모니터',
@@ -1051,6 +1186,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': '닫기',
+            'queue_full_list': '전체 목록：',
             'alert_invalid_playlist': '유효하지 않은 재생 목록입니다.',
             'alert_playlist_playing': '이 재생 목록은 이미 재생 중입니다.',
             'alert_playlist_queued': (id) => `✅ 재생 목록 ID: ${id}는 현재 곡 종료 후 자동으로 시작됩니다.`,
@@ -1060,6 +1196,20 @@
             'alert_found_and_added': (title) => `✅ 찾아서 추가했습니다: ${title}`,
             'alert_playing_now': '재생 중：',
             'alert_play_index_error': '재생 인덱스 오류.',
+            // Music button titles
+            'music_prev_btn': '이전 곡',
+            'music_next_btn': '다음 곡',
+            'music_play_btn': '재생',
+            'music_pause_btn': '일시 정지',
+            'music_mode_btn': '모드 설정',
+            'music_queue_btn': '재생 목록 상태 보기',
+            'settings_btn_title': '화면 분할, 언어 및 레이블 설정',
+            'request_btn_title': 'URL/ID를 입력하여 노래 또는 재생 목록 요청',
+            'request_prompt': 'URL/ID를 입력하여 노래 또는 재생 목록 요청\n(예: 동영상 ID: dQw4w9WgXcQ, 또는 재생 목록 URL, 또는 키워드)',
+            'maps_toggle_label': '미니맵 표시：',
+            'maps_toggle_show': '지도 표시',
+            'maps_toggle_hide': '지도 숨기기',
+            'city_btn_title': (city) => `${city}의 라이브 스트림 목록 표시로 전환`,
       },
       'th-TH': {
             'title': 'มอนิเตอร์สตรีมสดหลายมุมมองของไต้หวัน',
@@ -1112,6 +1262,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': 'ปิด',
+            'queue_full_list': 'รายการทั้งหมด：',
             'alert_invalid_playlist': 'เพลย์ลิสต์ไม่ถูกต้อง',
             'alert_playlist_playing': 'เพลย์ลิสต์นี้กำลังเล่นอยู่แล้ว',
             'alert_playlist_queued': (id) => `✅ เพลย์ลิสต์ ID: ${id} จะเริ่มอัตโนมัติหลังจากเพลงปัจจุบันจบ`,
@@ -1121,6 +1272,20 @@
             'alert_found_and_added': (title) => `✅ พบและเพิ่ม: ${title}`,
             'alert_playing_now': 'กำลังเล่น：',
             'alert_play_index_error': 'ข้อผิดพลาดดัชนีการเล่น',
+            // Music button titles
+            'music_prev_btn': 'เพลงก่อนหน้า',
+            'music_next_btn': 'เพลงถัดไป',
+            'music_play_btn': 'เล่น',
+            'music_pause_btn': 'หยุดชั่วคราว',
+            'music_mode_btn': 'ตั้งค่าโหมด',
+            'music_queue_btn': 'ดูสถานะเพลย์ลิสต์',
+            'settings_btn_title': 'การตั้งค่าการแบ่งหน้าจอ ภาษา และป้าย',
+            'request_btn_title': 'ป้อน URL/ID เพื่อขอเพลงหรือเพลย์ลิสต์',
+            'request_prompt': 'ป้อน URL/ID เพื่อขอเพลงหรือเพลย์ลิสต์\n(ตัวอย่าง: วิดีโอ ID: dQw4w9WgXcQ หรือ URL เพลย์ลิสต์ หรือคำค้นหา)',
+            'maps_toggle_label': 'แสดงแผนที่ขนาดเล็ก：',
+            'maps_toggle_show': 'แสดงแผนที่',
+            'maps_toggle_hide': 'ซ่อนแผนที่',
+            'city_btn_title': (city) => `สลับเพื่อแสดงรายการสตรีมสดของ${city}`,
       },
       'vi-VN': {
             'title': 'Màn hình giám sát nhiều luồng trực tiếp Đài Loan',
@@ -1173,6 +1338,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': 'Đóng',
+            'queue_full_list': 'Danh sách đầy đủ：',
             'alert_invalid_playlist': 'Danh sách phát không hợp lệ.',
             'alert_playlist_playing': 'Danh sách phát này đã đang phát.',
             'alert_playlist_queued': (id) => `✅ Danh sách phát ID: ${id} sẽ tự động bắt đầu sau khi bài hiện tại kết thúc.`,
@@ -1182,6 +1348,20 @@
             'alert_found_and_added': (title) => `✅ Đã tìm thấy và thêm: ${title}`,
             'alert_playing_now': 'Đang phát：',
             'alert_play_index_error': 'Lỗi chỉ mục phát.',
+            // Music button titles
+            'music_prev_btn': 'Bài trước',
+            'music_next_btn': 'Bài tiếp theo',
+            'music_play_btn': 'Phát',
+            'music_pause_btn': 'Tạm dừng',
+            'music_mode_btn': 'Cài đặt chế độ',
+            'music_queue_btn': 'Xem trạng thái danh sách phát',
+            'settings_btn_title': 'Cài đặt chia màn hình, ngôn ngữ và nhãn',
+            'request_btn_title': 'Nhập URL/ID để yêu cầu bài hát hoặc danh sách phát',
+            'request_prompt': 'Nhập URL/ID để yêu cầu bài hát hoặc danh sách phát\n(Ví dụ: Video ID: dQw4w9WgXcQ, hoặc URL danh sách phát, hoặc từ khóa)',
+            'maps_toggle_label': 'Hiển thị bản đồ nhỏ：',
+            'maps_toggle_show': 'Hiển thị bản đồ',
+            'maps_toggle_hide': 'Ẩn bản đồ',
+            'city_btn_title': (city) => `Chuyển để hiển thị danh sách phát trực tiếp của ${city}`,
       },
       'it-IT': {
             'title': 'Monitor Multi-Vista Stream Live Taiwan',
@@ -1234,6 +1414,7 @@
             'queue_mode_current': () => `▶️`,
             'queue_mode_index': (index) => `${index + 1}`,
             'queue_close_btn': 'Chiudi',
+            'queue_full_list': 'Lista completa:',
             'alert_invalid_playlist': 'Playlist non valida.',
             'alert_playlist_playing': 'Questa playlist è già in riproduzione.',
             'alert_playlist_queued': (id) => `✅ La playlist ID: ${id} inizierà automaticamente dopo la fine della canzone corrente.`,
@@ -1243,6 +1424,20 @@
             'alert_found_and_added': (title) => `✅ Trovato e aggiunto: ${title}`,
             'alert_playing_now': 'In riproduzione:',
             'alert_play_index_error': 'Errore indice riproduzione.',
+            // Music button titles
+            'music_prev_btn': 'Precedente',
+            'music_next_btn': 'Successivo',
+            'music_play_btn': 'Riproduci',
+            'music_pause_btn': 'Pausa',
+            'music_mode_btn': 'Impostazioni modalità',
+            'music_queue_btn': 'Visualizza stato playlist',
+            'settings_btn_title': 'Impostazioni layout griglia, lingua ed etichette',
+            'request_btn_title': 'Inserisci URL/ID per richiedere canzone o playlist',
+            'request_prompt': 'Inserisci URL/ID per richiedere canzone o playlist\n(Esempio: Video ID: dQw4w9WgXcQ, o URL playlist, o parole chiave)',
+            'maps_toggle_label': 'Visualizzazione mappa mini:',
+            'maps_toggle_show': 'Mostra mappa',
+            'maps_toggle_hide': 'Nascondi mappa',
+            'city_btn_title': (city) => `Passa a mostrare gli stream live di ${city}`,
       }
     };
 
@@ -1275,9 +1470,14 @@
         
         document.getElementById('fullscreenBtn').innerText = getTranslation('fullscreen_btn');
         document.getElementById('settingsBtn').innerText = getTranslation('settings_btn');
-        document.getElementById('settingsBtn').title = getTranslation('settings_title');
+        document.getElementById('settingsBtn').title = getTranslation('settings_btn_title');
         document.getElementById('requestBtn').innerText = getTranslation('request_btn');
-        document.getElementById('requestBtn').title = getTranslation('request_btn');
+        document.getElementById('requestBtn').title = getTranslation('request_btn_title');
+        // 更新音樂控制按鈕標題
+        document.getElementById('prevSongBtn').title = getTranslation('music_prev_btn');
+        document.getElementById('nextSongBtn').title = getTranslation('music_next_btn');
+        document.getElementById('modeBtn').title = getTranslation('music_mode_btn');
+        document.getElementById('playlistQueueBtn').title = getTranslation('music_queue_btn');
         // Modal Text
         document.getElementById('settingsTitle').innerText = getTranslation('settings_title');
         document.getElementById('gridSizeLabel').innerText = getTranslation('grid_size_label');
@@ -1301,6 +1501,15 @@
         document.getElementById('musicModeCloseBtn').innerText = getTranslation('settings_close_btn');
         document.getElementById('queueTitle').innerText = getTranslation('queue_title');
         document.getElementById('queueCloseBtn').innerText = getTranslation('queue_close_btn');
+        // 更新地圖標籤
+        const mapsToggleLabel = document.getElementById('mapsToggleLabel');
+        if (mapsToggleLabel) {
+            mapsToggleLabel.innerText = getTranslation('maps_toggle_label');
+        }
+        const mapsToggleBtn = document.getElementById('mapsToggleBtn');
+        if (mapsToggleBtn) {
+            mapsToggleBtn.innerText = isMiniMapVisible ? getTranslation('maps_toggle_show') : getTranslation('maps_toggle_hide');
+        }
         // Update stream labels and mute button status
         refreshMuteButtonLabel();
         for (let i = 0; i < MAX_PLAYERS; i++) {
@@ -1849,6 +2058,63 @@
         refreshMuteButtonLabel();
     }
     
+    // 統一的景點名稱翻譯函數
+    function translateStreamName(label) {
+        if (!label) return label;
+        
+        // 如果是中文或簡體中文，直接返回
+        if (currentLang === 'zh-TW' || currentLang === 'zh-CN') {
+            return label;
+        }
+        
+        // 對於其他語言，使用英文翻譯作為基礎
+        let translated = label;
+        const cityNames = CITY_NAMES[currentLang] || CITY_NAMES['en-US'];
+        
+        // 先檢查是否有完整的英文翻譯
+        if (currentLang === 'en-US' || currentLang === 'en-GB') {
+            if (STREAM_NAME_EN[label]) {
+                translated = STREAM_NAME_EN[label];
+            } else {
+                // 替換城市名稱
+                Object.keys(CITY_NAMES_EN).forEach(zh => {
+                    if (translated.startsWith(zh)) {
+                        translated = translated.replace(zh, cityNames[zh] || CITY_NAMES_EN[zh]);
+                    }
+                });
+            }
+        } else {
+            // 對於其他語言，先轉換為英文，然後可以根據需要進一步翻譯
+            // 這裡先使用英文翻譯作為基礎
+            let englishText = label;
+            if (STREAM_NAME_EN[label]) {
+                englishText = STREAM_NAME_EN[label];
+            } else {
+                Object.keys(CITY_NAMES_EN).forEach(zh => {
+                    if (englishText.startsWith(zh)) {
+                        englishText = englishText.replace(zh, CITY_NAMES_EN[zh]);
+                    }
+                });
+            }
+            // 對於非英文語言，替換城市名稱為對應語言
+            Object.keys(CITY_NAMES_EN).forEach(zh => {
+                const enCity = CITY_NAMES_EN[zh];
+                if (englishText.startsWith(enCity)) {
+                    englishText = englishText.replace(enCity, cityNames[zh] || enCity);
+                }
+            });
+            translated = englishText;
+        }
+        
+        return translated;
+    }
+    
+    // 統一的城市名稱翻譯函數
+    function translateCityName(city) {
+        const cityNames = CITY_NAMES[currentLang] || CITY_NAMES['zh-TW'];
+        return cityNames[city] || city;
+    }
+
     function updateLabel(index) {
         const labelElement = document.getElementById(`label${index}`);
         const sourceElement = labelElement ? labelElement.querySelector('.source-on-screen') : null;
@@ -1857,22 +2123,12 @@
 
         const state = streamState[index];
         if (state) {
-            // 英文翻譯邏輯
-            let displayText = state.label;
-            if (currentLang === 'en-US') {
-                if (STREAM_NAME_EN[displayText]) {
-                    displayText = STREAM_NAME_EN[displayText];
-                } else {
-                    Object.keys(CITY_NAMES_EN).forEach(zh => {
-                        if (displayText.startsWith(zh)) {
-                           displayText = displayText.replace(zh, CITY_NAMES_EN[zh]);
-                        }
-                    });
-                }
-            }
+            // 使用統一的翻譯函數
+            let displayText = translateStreamName(state.label);
 
             labelElement.textContent = displayText || getTranslation('loading');
             if (sourceElement) {
+                // 來源頻道名不翻譯
                 sourceElement.textContent = `${getTranslation('source_prefix')} ${state.source || 'N/A'}`;
                 labelElement.appendChild(sourceElement);
             }
@@ -1930,11 +2186,10 @@
         const regionLabel = document.createElement('span');
         regionLabel.className = 'region-label';
         // 翻譯區域標籤 (北部、中部...)
-        let regionText = region;
-        if (currentLang === 'en-US' && CITY_NAMES_EN[region]) {
-             regionText = CITY_NAMES_EN[region];
-        }
-        regionLabel.textContent = regionText + '：';
+        let regionText = translateCityName(region);
+        // 根據語言調整標點符號
+        const colon = (currentLang === 'en-US' || currentLang === 'en-GB') ? ':' : '：';
+        regionLabel.textContent = regionText + colon;
         container.appendChild(regionLabel);
 
         cities.forEach(city => {
@@ -1944,13 +2199,11 @@
             cityBtn.className = 'city-btn';
             
             // 翻譯城市按鈕
-            let cityText = city;
-            if (currentLang === 'en-US' && CITY_NAMES_EN[city]) {
-                cityText = CITY_NAMES_EN[city];
-            }
+            let cityText = translateCityName(city);
             cityBtn.textContent = cityText;
             
-            cityBtn.title = `切換顯示 ${cityText} 的直播列表`;
+            // 翻譯按鈕提示文字
+            cityBtn.title = getTranslation('city_btn_title', cityText);
             if (currentCity === city) {
                cityBtn.classList.add('active-city');
             }
@@ -1979,21 +2232,11 @@
         streamBtn.className = 'stream-btn';
         
         // 翻譯攝影機地點按鈕
-        let btnText = stream.label;
-        if (currentLang === 'en-US') {
-            if (STREAM_NAME_EN[btnText]) {
-                btnText = STREAM_NAME_EN[btnText];
-             } else {
-                 Object.keys(CITY_NAMES_EN).forEach(zh => {
-                    if (btnText.startsWith(zh)) {
-                        btnText = btnText.replace(zh, CITY_NAMES_EN[zh] + " ");
-                    }
-                });
-            }
-        }
+        let btnText = translateStreamName(stream.label);
         
         streamBtn.textContent = btnText;
-        streamBtn.title = `${getTranslation('alert_playing_now')}${stream.label} (${stream.source})`;
+        // 來源頻道名不翻譯
+        streamBtn.title = `${getTranslation('alert_playing_now')}${btnText} (${stream.source})`;
         streamBtn.onclick = () => setStream(stream.key);
         container.appendChild(streamBtn);
       });
@@ -2083,7 +2326,7 @@
     
     /* ===== 核心修正：點歌邏輯修正 `requestSong` 函式 ===== */
     async function requestSong() {
-        const input = prompt(getTranslation('request_btn') + "\n" + getTranslation('music_mode_hint', '（例如：影片ID: dQw4w9WgXcQ，或播放清單網址，或關鍵字）'));
+        const input = prompt(getTranslation('request_prompt'));
         if (!input) return;
 
         const isPlaylistRequest = input.includes('list=');
@@ -2194,7 +2437,7 @@
         const btn = document.getElementById('playPauseBtn');
         if (btn) {
             btn.innerText = playing ? '⏸️' : '▶️';
-            btn.title = playing ? '暫停' : '播放';
+            btn.title = playing ? getTranslation('music_pause_btn') : getTranslation('music_play_btn');
         }
     }
 
@@ -2324,7 +2567,7 @@
                     escapeHtml(musicQueue[idx + 1].title) : 'N/A'}</p>`;
                 }
 
-                content += `<p style="color:#fff; font-weight:bold; margin-top:15px; margin-bottom:5px;">完整清單：</p>`;
+                content += `<p style="color:#fff; font-weight:bold; margin-top:15px; margin-bottom:5px;">${getTranslation('queue_full_list')}</p>`;
                 content += '<ul class="modal-list" style="list-style:none; padding:0; margin:0;">';
                 musicQueue.forEach((item, index) => {
                     const isCurrent = index === idx;
@@ -2580,10 +2823,10 @@
         
         if (!isMiniMapVisible) {
             body.classList.add('hide-mini-maps');
-            if(btn) btn.innerText = '地圖隱藏';
+            if(btn) btn.innerText = getTranslation('maps_toggle_hide');
         } else {
             body.classList.remove('hide-mini-maps');
-            if(btn) btn.innerText = '地圖顯示';
+            if(btn) btn.innerText = getTranslation('maps_toggle_show');
         }
         
         // 初始載入時更新所有格子地圖
@@ -2601,13 +2844,13 @@
             // 變為隱藏
             body.classList.add('hide-mini-maps');
             isMiniMapVisible = false;
-            btn.innerText = '地圖隱藏';
+            btn.innerText = getTranslation('maps_toggle_hide');
             localStorage.setItem('showMiniMap', 'false');
         } else {
             // 變為顯示
             body.classList.remove('hide-mini-maps');
             isMiniMapVisible = true;
-            btn.innerText = '地圖顯示';
+            btn.innerText = getTranslation('maps_toggle_show');
             localStorage.setItem('showMiniMap', 'true');
         }
     }
