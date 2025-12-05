@@ -622,25 +622,11 @@
     <div id="lyricsHeader">
       <span id="lyricsTitle">歌詞</span>
       <div id="lyricsControls">
-        <button id="lyricsEditBtn" onclick="openLyricsInput()" title="編輯歌詞">✏️</button>
         <button id="lyricsMinimizeBtn" onclick="minimizeLyrics()" title="最小化">➖</button>
         <button id="lyricsCloseBtn" onclick="toggleLyrics()" title="關閉">✕</button>
       </div>
     </div>
-    <div id="lyricsContent" class="empty">點擊編輯按鈕輸入歌詞</div>
-  </div>
-
-  <!-- 歌詞輸入彈窗 -->
-  <div id="lyricsInputModal">
-    <div id="lyricsInputContent">
-      <h3 id="lyricsInputTitle">編輯歌詞</h3>
-      <textarea id="lyricsTextarea" placeholder="在此輸入歌詞..."></textarea>
-      <div class="button-group">
-        <button onclick="saveLyrics()" style="background:#0078d7; color:#fff; border:none;">儲存</button>
-        <button onclick="clearLyrics()" style="background:#d70000; color:#fff; border:none;">清除</button>
-        <button onclick="closeLyricsInput()" style="background:#444; color:#fff; border:none;">取消</button>
-      </div>
-    </div>
+    <div id="lyricsContent" class="empty">等待播放歌曲...</div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
@@ -799,7 +785,12 @@
     
     // 歌詞相關變數
     let isLyricsVisible = localStorage.getItem('showLyrics') === 'true';
-    let currentLyrics = localStorage.getItem('currentLyrics') || '';
+    let currentLyrics = '';
+    let lyricsData = null; // 存储歌词数据（可能包含时间轴）
+    let lyricsLines = []; // 解析后的歌词行
+    let currentLyricsLineIndex = 0; // 当前显示的歌词行索引
+    let lyricsUpdateInterval = null; // 歌词更新定时器
+    let currentSongTitle = ''; // 当前歌曲标题
     let lyricsPosition = JSON.parse(localStorage.getItem('lyricsPosition') || '{"x": 50, "y": 20}'); // 百分比位置
     let isLyricsMinimized = false;
     let isDraggingLyrics = false;
@@ -1883,9 +1874,17 @@
       if (!isPlaying) return;
       if (event.data == YT.PlayerState.PLAYING) {
         updatePlayPauseButton(true);
+        // 开始歌词同步
+        startLyricsSync();
+        // 获取当前歌曲信息并自动获取歌词
+        fetchCurrentSongLyrics();
       } else if (event.data == YT.PlayerState.PAUSED) {
         updatePlayPauseButton(false);
+        // 暂停歌词同步
+        stopLyricsSync();
       } else if (event.data == YT.PlayerState.ENDED) {
+        // 停止歌词同步
+        stopLyricsSync();
         updatePlayPauseButton(false);
         // 核心修正 1: 播放完畢後，檢查是否有待播清單
         if (pendingPlaylistId) {
@@ -1901,6 +1900,10 @@
             updatePlayPauseButton(true);
             // 背景抓取播放清單的每首 id + title，填充 musicQueue
             loadPlaylistMetadata(currentPlaylistId);
+            // 等待一下後獲取第一首歌的歌詞
+            setTimeout(() => {
+                fetchCurrentSongLyrics();
+            }, 1000);
             return;
             // 清單開始播放，結束單曲邏輯
         }
@@ -1923,6 +1926,10 @@
             // 如果是列表循環模式，且到達最後一首，會回到第一首 (YouTube 播放清單內建循環機制可能也會處理)
             musicPlayer.playVideoAt(next);
           }
+          // 切換歌曲後獲取新歌詞
+          setTimeout(() => {
+            fetchCurrentSongLyrics();
+          }, 500);
         } else if (musicQueue.length > 0) {
           if (playbackMode === 'shuffle') {
             let nextIndex;
@@ -1952,6 +1959,9 @@
         currentPlaylistId = null;
         pendingPlaylistId = null;
         isPlaying = false;
+        currentSongTitle = '';
+        stopLyricsSync();
+        clearLyrics();
         try { musicPlayer.stopVideo();
         } catch(e) {}
         document.getElementById('musicControlsContainer').style.display = 'none';
@@ -2553,11 +2563,15 @@
         const currentSong = musicQueue[currentMusicIndex];
         currentPlaylistId = null; 
         pendingPlaylistId = null;
+        currentSongTitle = currentSong.title || '';
         musicPlayer.loadVideoById(currentSong.id, 0);
         document.getElementById('musicControlsContainer').style.display = 'flex';
         isPlaying = true;
         updatePlayPauseButton(true);
         updateMediaSession(currentSong.title);
+        
+        // 自动获取歌词
+        fetchSongLyrics(currentSong.title);
     }
     
     /* ===== 核心修正：點歌邏輯修正 `requestSong` 函式 ===== */
@@ -2607,6 +2621,10 @@
             updatePlayPauseButton(true);
             
             loadPlaylistMetadata(listId);
+            // 播放清單開始後，等待一下再獲取第一首歌的歌詞
+            setTimeout(() => {
+                fetchCurrentSongLyrics();
+            }, 1000);
             alert(getTranslation('alert_playlist_loaded', listId));
             return;
         }
@@ -2625,14 +2643,6 @@
             if (isPlayerIdle) {
                 currentMusicIndex = currentMusicIndex === -1 ? 0 : musicQueue.length - 1;
                 loadAndPlayCurrentSong();
-            }
-            
-            // 显示浮动歌词（如果已启用）
-            if (isLyricsVisible) {
-                const container = document.getElementById('lyricsContainer');
-                if (!container.classList.contains('show')) {
-                    container.classList.add('show');
-                }
             }
 
             document.getElementById('musicControlsContainer').style.display = 'flex';
@@ -2658,14 +2668,6 @@
         if (isPlayerIdle) {
             currentMusicIndex = currentMusicIndex === -1 ? 0 : musicQueue.length - 1;
             loadAndPlayCurrentSong();
-        }
-        
-        // 显示浮动歌词（如果已启用）
-        if (isLyricsVisible) {
-            const container = document.getElementById('lyricsContainer');
-            if (!container.classList.contains('show')) {
-                container.classList.add('show');
-            }
         }
 
         document.getElementById('musicControlsContainer').style.display = 'flex';
@@ -3154,8 +3156,259 @@
     }
     
     /* ========================================= */
-    /* 浮動歌詞功能 */
+    /* 自動獲取歌詞功能 */
     /* ========================================= */
+    
+    // 從歌曲標題中提取藝術家和歌曲名
+    function parseSongTitle(title) {
+        // 常見格式: "Artist - Song" 或 "Song (feat. Artist)" 或 "Song"
+        let artist = '';
+        let song = title;
+        
+        // 嘗試解析 "Artist - Song" 格式
+        if (title.includes(' - ')) {
+            const parts = title.split(' - ');
+            if (parts.length >= 2) {
+                artist = parts[0].trim();
+                song = parts.slice(1).join(' - ').trim();
+            }
+        }
+        // 嘗試解析 "(feat." 或 "(ft." 格式
+        else if (title.includes('(feat.') || title.includes('(ft.')) {
+            const match = title.match(/^(.+?)\s*\(feat\.\s*(.+?)\)/i) || title.match(/^(.+?)\s*\(ft\.\s*(.+?)\)/i);
+            if (match) {
+                song = match[1].trim();
+                artist = match[2].trim();
+            }
+        }
+        
+        // 清理歌曲名（移除常見後綴）
+        song = song.replace(/\s*\(.*?\)\s*$/, '').replace(/\s*\[.*?\]\s*$/, '').trim();
+        
+        return { artist, song };
+    }
+    
+    // 使用 Lyrics.ovh API 獲取歌詞
+    async function fetchSongLyrics(songTitle) {
+        if (!songTitle) return;
+        
+        const { artist, song } = parseSongTitle(songTitle);
+        const searchQuery = artist ? `${artist} ${song}` : song;
+        
+        // 更新標題顯示
+        const titleElement = document.getElementById('lyricsTitle');
+        if (titleElement) {
+            titleElement.textContent = `正在搜尋: ${songTitle}`;
+        }
+        
+        try {
+            // 使用 Lyrics.ovh API (免費，無需API key)
+            const url = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist || '')}/${encodeURIComponent(song)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.lyrics) {
+                currentLyrics = data.lyrics;
+                lyricsData = data;
+                parseLyrics(currentLyrics);
+                updateLyricsDisplay();
+                
+                // 更新標題
+                if (titleElement) {
+                    titleElement.textContent = songTitle;
+                }
+            } else {
+                // 如果找不到，嘗試只搜尋歌曲名
+                if (artist) {
+                    const fallbackUrl = `https://api.lyrics.ovh/v1//${encodeURIComponent(song)}`;
+                    const fallbackResponse = await fetch(fallbackUrl);
+                    const fallbackData = await fallbackResponse.json();
+                    
+                    if (fallbackData.lyrics) {
+                        currentLyrics = fallbackData.lyrics;
+                        lyricsData = fallbackData;
+                        parseLyrics(currentLyrics);
+                        updateLyricsDisplay();
+                        if (titleElement) {
+                            titleElement.textContent = songTitle;
+                        }
+                    } else {
+                        showLyricsError('找不到歌詞');
+                    }
+                } else {
+                    showLyricsError('找不到歌詞');
+                }
+            }
+        } catch (error) {
+            console.error('獲取歌詞失敗:', error);
+            showLyricsError('無法獲取歌詞');
+        }
+    }
+    
+    // 獲取當前播放歌曲的歌詞
+    function fetchCurrentSongLyrics() {
+        if (!musicPlayer || !isMusicReady) return;
+        
+        let songTitle = '';
+        
+        // 嘗試從播放清單獲取
+        if (currentPlaylistId) {
+            try {
+                const idx = musicPlayer.getPlaylistIndex();
+                if (idx >= 0 && idx < musicQueue.length && musicQueue[idx]) {
+                    songTitle = musicQueue[idx].title;
+                }
+            } catch(e) {
+                console.log('無法從播放清單獲取索引:', e);
+            }
+        }
+        
+        // 如果播放清單中沒有，從單曲列表獲取
+        if (!songTitle && currentMusicIndex >= 0 && currentMusicIndex < musicQueue.length && musicQueue[currentMusicIndex]) {
+            songTitle = musicQueue[currentMusicIndex].title;
+        }
+        
+        // 如果還是沒有，嘗試從YouTube播放器獲取標題
+        if (!songTitle) {
+            try {
+                const videoData = musicPlayer.getVideoData();
+                if (videoData && videoData.title) {
+                    songTitle = videoData.title;
+                }
+            } catch(e) {
+                console.log('無法從播放器獲取標題:', e);
+            }
+        }
+        
+        if (songTitle && songTitle !== currentSongTitle) {
+            currentSongTitle = songTitle;
+            fetchSongLyrics(songTitle);
+        } else if (!songTitle) {
+            // 如果還是沒有標題，等待一下再試
+            setTimeout(() => {
+                fetchCurrentSongLyrics();
+            }, 1000);
+        }
+    }
+    
+    // 解析歌詞（處理時間軸格式，如 LRC）
+    function parseLyrics(lyricsText) {
+        lyricsLines = [];
+        currentLyricsLineIndex = 0;
+        
+        // 檢查是否為 LRC 格式（帶時間軸）
+        const lrcPattern = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.+)/g;
+        const lrcMatches = [...lyricsText.matchAll(lrcPattern)];
+        
+        if (lrcMatches.length > 0) {
+            // LRC 格式，解析時間軸
+            lyricsLines = lrcMatches.map(match => {
+                const minutes = parseInt(match[1]);
+                const seconds = parseInt(match[2]);
+                const milliseconds = parseInt(match[3].padEnd(3, '0'));
+                const time = minutes * 60 + seconds + milliseconds / 1000;
+                return {
+                    time: time,
+                    text: match[4].trim()
+                };
+            });
+        } else {
+            // 普通文本格式，按行分割
+            const lines = lyricsText.split('\n').filter(line => line.trim());
+            lyricsLines = lines.map((line, index) => ({
+                time: null, // 沒有時間軸
+                text: line.trim()
+            }));
+        }
+    }
+    
+    // 開始歌詞同步
+    function startLyricsSync() {
+        stopLyricsSync(); // 先停止現有的
+        
+        if (!isLyricsVisible || lyricsLines.length === 0) return;
+        
+        lyricsUpdateInterval = setInterval(() => {
+            updateLyricsByTime();
+        }, 100); // 每100ms更新一次
+    }
+    
+    // 停止歌詞同步
+    function stopLyricsSync() {
+        if (lyricsUpdateInterval) {
+            clearInterval(lyricsUpdateInterval);
+            lyricsUpdateInterval = null;
+        }
+    }
+    
+    // 根據播放時間更新歌詞顯示
+    function updateLyricsByTime() {
+        if (!musicPlayer || !isMusicReady || lyricsLines.length === 0) return;
+        
+        try {
+            const currentTime = musicPlayer.getCurrentTime();
+            
+            // 如果有時間軸，根據時間顯示對應的歌詞
+            if (lyricsLines[0].time !== null) {
+                let lineIndex = 0;
+                for (let i = lyricsLines.length - 1; i >= 0; i--) {
+                    if (currentTime >= lyricsLines[i].time) {
+                        lineIndex = i;
+                        break;
+                    }
+                }
+                
+                if (lineIndex !== currentLyricsLineIndex) {
+                    currentLyricsLineIndex = lineIndex;
+                    const content = document.getElementById('lyricsContent');
+                    if (content) {
+                        content.textContent = lyricsLines[lineIndex].text;
+                        content.classList.remove('empty');
+                    }
+                }
+            } else {
+                // 沒有時間軸，顯示所有歌詞
+                const content = document.getElementById('lyricsContent');
+                if (content && currentLyrics) {
+                    content.textContent = currentLyrics;
+                    content.classList.remove('empty');
+                }
+            }
+        } catch(e) {
+            console.error('更新歌詞失敗:', e);
+        }
+    }
+    
+    // 顯示歌詞錯誤
+    function showLyricsError(message) {
+        const content = document.getElementById('lyricsContent');
+        const titleElement = document.getElementById('lyricsTitle');
+        if (content) {
+            content.textContent = message;
+            content.classList.add('empty');
+        }
+        if (titleElement && currentSongTitle) {
+            titleElement.textContent = currentSongTitle;
+        }
+    }
+    
+    // 清除歌詞
+    function clearLyrics() {
+        currentLyrics = '';
+        lyricsData = null;
+        lyricsLines = [];
+        currentLyricsLineIndex = 0;
+        currentSongTitle = '';
+        const content = document.getElementById('lyricsContent');
+        if (content) {
+            content.textContent = '等待播放歌曲...';
+            content.classList.add('empty');
+        }
+        const titleElement = document.getElementById('lyricsTitle');
+        if (titleElement) {
+            titleElement.textContent = '歌詞';
+        }
+    }
     
     function toggleLyrics() {
         isLyricsVisible = !isLyricsVisible;
@@ -3163,36 +3416,19 @@
         if (isLyricsVisible) {
             container.classList.add('show');
             updateLyricsDisplay();
+            // 如果正在播放，開始同步
+            if (isPlaying && musicPlayer) {
+                try {
+                    if (musicPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+                        startLyricsSync();
+                    }
+                } catch(e) {}
+            }
         } else {
             container.classList.remove('show');
+            stopLyricsSync();
         }
         localStorage.setItem('showLyrics', isLyricsVisible ? 'true' : 'false');
-    }
-    
-    function openLyricsInput() {
-        const modal = document.getElementById('lyricsInputModal');
-        const textarea = document.getElementById('lyricsTextarea');
-        textarea.value = currentLyrics;
-        modal.style.display = 'flex';
-    }
-    
-    function closeLyricsInput() {
-        document.getElementById('lyricsInputModal').style.display = 'none';
-    }
-    
-    function saveLyrics() {
-        const textarea = document.getElementById('lyricsTextarea');
-        currentLyrics = textarea.value;
-        localStorage.setItem('currentLyrics', currentLyrics);
-        updateLyricsDisplay();
-        closeLyricsInput();
-    }
-    
-    function clearLyrics() {
-        currentLyrics = '';
-        localStorage.setItem('currentLyrics', '');
-        updateLyricsDisplay();
-        closeLyricsInput();
     }
     
     function minimizeLyrics() {
@@ -3210,10 +3446,16 @@
     function updateLyricsDisplay() {
         const content = document.getElementById('lyricsContent');
         if (currentLyrics && currentLyrics.trim()) {
-            content.textContent = currentLyrics;
-            content.classList.remove('empty');
+            if (lyricsLines.length > 0 && lyricsLines[0].time !== null) {
+                // 有時間軸，顯示當前行
+                updateLyricsByTime();
+            } else {
+                // 沒有時間軸，顯示全部
+                content.textContent = currentLyrics;
+                content.classList.remove('empty');
+            }
         } else {
-            content.textContent = '點擊編輯按鈕輸入歌詞';
+            content.textContent = '等待播放歌曲...';
             content.classList.add('empty');
         }
     }
@@ -3252,6 +3494,20 @@
                 isDraggingLyrics = false;
             });
         }
+        
+        // 監聽播放清單變化，自動獲取新歌詞
+        setInterval(() => {
+            if (isPlaying && isLyricsVisible && musicPlayer) {
+                try {
+                    if (currentPlaylistId) {
+                        const idx = musicPlayer.getPlaylistIndex();
+                        if (idx >= 0 && musicQueue[idx] && musicQueue[idx].title !== currentSongTitle) {
+                            fetchCurrentSongLyrics();
+                        }
+                    }
+                } catch(e) {}
+            }
+        }, 2000); // 每2秒檢查一次
     }
     
   </script>
