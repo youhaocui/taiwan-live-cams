@@ -3188,62 +3188,90 @@
         return { artist, song };
     }
     
-    // 使用 Lyrics.ovh API 獲取歌詞
-    async function fetchSongLyrics(songTitle) {
-        if (!songTitle) return;
-        
-        const { artist, song } = parseSongTitle(songTitle);
-        const searchQuery = artist ? `${artist} ${song}` : song;
-        
-        // 更新標題顯示
-        const titleElement = document.getElementById('lyricsTitle');
-        if (titleElement) {
-            titleElement.textContent = `正在搜尋: ${songTitle}`;
-        }
-        
-        try {
-            // 使用 Lyrics.ovh API (免費，無需API key)
-            const url = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist || '')}/${encodeURIComponent(song)}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (data.lyrics) {
-                currentLyrics = data.lyrics;
-                lyricsData = data;
-                parseLyrics(currentLyrics);
-                updateLyricsDisplay();
-                
-                // 更新標題
-                if (titleElement) {
-                    titleElement.textContent = songTitle;
-                }
-            } else {
-                // 如果找不到，嘗試只搜尋歌曲名
-                if (artist) {
-                    const fallbackUrl = `https://api.lyrics.ovh/v1//${encodeURIComponent(song)}`;
-                    const fallbackResponse = await fetch(fallbackUrl);
-                    const fallbackData = await fallbackResponse.json();
-                    
-                    if (fallbackData.lyrics) {
-                        currentLyrics = fallbackData.lyrics;
-                        lyricsData = fallbackData;
-                        parseLyrics(currentLyrics);
-                        updateLyricsDisplay();
-                        if (titleElement) {
-                            titleElement.textContent = songTitle;
-                        }
-                    } else {
-                        showLyricsError('找不到歌詞');
-                    }
-                } else {
-                    showLyricsError('找不到歌詞');
-                }
-            }
-        } catch (error) {
-            console.error('獲取歌詞失敗:', error);
-            showLyricsError('無法獲取歌詞');
-        }
-    }
+// 使用 LRCLIB API 獲取歌詞 (取代失效的 Lyrics.ovh API)
+    async function fetchSongLyrics(songTitle) {
+        // 檢查必要物件是否存在，並嘗試獲取歌曲時長 (Duration)
+        // LRCLIB 依賴 musicPlayer.getDuration() 來提高搜尋準確性
+        if (!songTitle || !musicPlayer || !musicPlayer.getDuration) {
+            showLyricsError('無法取得歌曲資訊或播放器物件');
+            return;
+        }
+
+        const { artist, song } = parseSongTitle(songTitle);
+        const titleElement = document.getElementById('lyricsTitle');
+
+        // 獲取歌曲總時長（秒），必須為整數
+        let duration = 0;
+        try {
+            duration = Math.round(musicPlayer.getDuration()); 
+        } catch(e) {
+            console.warn("無法取得歌曲時長，將不傳遞 duration 參數。");
+        }
+
+        if (titleElement) {
+            titleElement.textContent = `正在搜尋 (LRCLIB): ${songTitle}`;
+        }
+        
+        try {
+            // 1. 建構 LRCLIB 搜尋 URL
+            const baseUrl = 'https://api.lrclib.net/v1/search';
+            let url = `${baseUrl}?artist_name=${encodeURIComponent(artist || '')}&track_name=${encodeURIComponent(song)}`;
+            
+            if (duration > 0) {
+                 url += `&duration=${duration}`;
+            }
+
+            // 2. 執行 API 請求
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP 錯誤! 狀態碼: ${response.status}`);
+            }
+            
+            const data = await response.json(); // 預期返回一個結果陣列
+
+            if (data.length > 0) {
+                // 優先尋找第一個有同步歌詞 (syncedLyrics) 的結果
+                const bestMatch = data.find(item => item.syncedLyrics) || data[0];
+                const lrcLyrics = bestMatch.syncedLyrics; 
+                const plainLyrics = bestMatch.plainLyrics;
+
+                if (lrcLyrics) {
+                    // 3. 處理同步歌詞 (LRC)
+                    currentLyrics = lrcLyrics;
+                    
+                    // 使用您原有的函數解析 LRC 文本
+                    parseLyrics(currentLyrics); 
+                    
+                    // 啟動同步
+                    startLyricsSync(); 
+                    
+                    if (titleElement) {
+                        titleElement.textContent = `${bestMatch.artistName || artist} - ${bestMatch.trackName || song} (同步歌詞)`;
+                    }
+                } else if (plainLyrics) {
+                    // 4. 處理純文本歌詞
+                    currentLyrics = plainLyrics;
+                    
+                    parseLyrics(currentLyrics); // 解析（會被視為無時間軸）
+                    stopLyricsSync(); // 停止同步
+                    updateLyricsDisplay(); // 顯示全部純文本
+
+                    if (titleElement) {
+                        titleElement.textContent = `${bestMatch.artistName || artist} - ${bestMatch.trackName || song} (純文字歌詞)`;
+                    }
+                } else {
+                    showLyricsError('LRCLIB 找不到歌詞內容');
+                }
+            } else {
+                showLyricsError('LRCLIB 未找到該歌曲的歌詞');
+            }
+
+        } catch (error) {
+            console.error('獲取歌詞失敗:', error);
+            showLyricsError('無法獲取歌詞 (API 連線或解析錯誤)');
+        }
+    }
     
     // 獲取當前播放歌曲的歌詞
     function fetchCurrentSongLyrics() {
@@ -3513,3 +3541,4 @@
   </script>
 </body>
 </html>
+
