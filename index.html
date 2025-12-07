@@ -3214,9 +3214,9 @@
         
         try {
             // 1. 建構 LRCLIB 搜尋 URL
-            const baseUrl = 'https://api.lrclib.net/v1/search';
-            let url = `${baseUrl}?artist_name=${encodeURIComponent(artist || '')}&track_name=${encodeURIComponent(song)}`;
-            
+            const baseUrl = 'https://api.lrclib.net/api/search'; 
+            let url = `${baseUrl}?artist_name=${encodeURIComponent(artist || '')}&track_name=${encodeURIComponent(song)}`;
+           
             if (duration > 0) {
                  url += `&duration=${duration}`;
             }
@@ -3541,4 +3541,5 @@
   </script>
 </body>
 </html>
+
 
