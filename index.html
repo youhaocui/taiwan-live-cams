@@ -656,7 +656,6 @@
       "新北-烏來吊橋": {"id":"jGoYvmTxLyU","label":"烏來吊橋","source":"水利署水利防災組"},
       "新北-員山子": {"id":"JkGKqXOt9Ls","label":"員山子","source":"水利署水利防災組"},
       "新北-文山農場大草皮": {"id":"_LRkfObNP_U","label":"文山農場大草皮","source":"新北市農會文山農場"},
-      "新北-淡水渡船頭": {"id":"mkVazklsmtg","label":"淡水渡船頭","source":"紅樹林有線電視"},
       "基隆-外木山": {"id":"LInNQYAbAwQ","label":"外木山","source":"GoOcean海洋遊憩風險資訊"},
       "新竹-成功湖": {"id":"Y6xJKj8k2ys","label":"成功湖","source":"國立清華大學計通中心學科組"},
       "新竹-大草坪": {"id":"x_FuMf2ke1o","label":"大草坪","source":"國立清華大學計通中心學科組"},
@@ -704,8 +703,7 @@
       "台南-七股賞鳥台": {"id":"5KJe2gCTngA","label":"台南七股","source":"台江國家公園管理處"},
       "台南-北汕尾水鳥保護區": {"id":"FES0gWTFUHQ","label":"北汕尾水鳥保護區","source":"台江國家公園管理處"},
       "台南-曾文水庫": {"id":"EH4V8IwFIp4","label":"曾文水庫","source":"西拉雅國家風景區管理處"},
-      "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"},
-      "台南-黃金海岸": {"id":"uCXgNUJO9e8","label":"黃金海岸","source":"水利署防災組"},      
+      "台南-火山碧雲寺": {"id":"zkX6X9p-6iA","label":"火山碧雲寺","source":"西拉雅國家風景區管理處"}, 
       "高雄-楠梓聖興橋": {"id":"1vVCtk5OXVk","label":"楠梓聖興橋","source":"水利署水利防災組"},
       "高雄-蚵寮國小": {"id":"sKrqs-5Auqo","label":"蚵寮國小","source":"水利署水利防災組"},
       "高雄-旗津海水浴場": {"id":"ka7FV0sCvxQ","label":"旗津海水浴場","source":"高雄旅遊網"},
@@ -889,166 +887,58 @@
     const CITY_NAMES_EN = CITY_NAMES['en-US'];
 
     const STREAM_NAME_EN = {
-    // 台北 (Taipei)
-    "台北-象山看101": "Xiangshan View of 101",
-    "台北-大稻埕": "Dadaocheng Wharf",
-    "台北-碧山巖": "Bishan Temple",
-    "台北-微風平台": "Breeze Platform",
-    "台北-貓空指南宮": "Maokong Zhinan Temple",
-    "台北-擎天岡草原": "Qingtiangang Grassland",
-    "台北-陽明書屋": "Yangming Shuwu",
-    "台北-遠眺七星山": "Qixing Mountain View",
-    "台北-二坪子停車場": "Erpingzi Parking Lot",
-    "台北-大屯自然公園": "Datun Nature Park",
-    "台北-小油坑停車場": "Xiaoyoukeng Parking Lot",
-    "台北-冷水坑停車場": "Lengshuikeng Parking Lot",
-
-    // 新北 (New Taipei)
-    "新北-漁人碼頭": "Fisherman's Wharf",
-    "新北-鼻頭服務區": "Bitou Service Area",
-    "新北-中角灣": "Zhongjiao Bay",
-    "新北-十分瀑布公園": "Shifen Waterfall Park",
-    "新北-九份": "Jiufen",
-    "新北-內洞國家森林遊樂區": "Neidong Forest Area",
-    "新北-三峽老街北段": "Sanxia Old Street (North)",
-    "新北-三峽老街南段": "Sanxia Old Street (South)",
-    "新北-烏來吊橋": "Wulai Suspension Bridge",
-    "新北-員山子": "Yuanshanzi Diversion Weir",
-    "新北-文山農場大草皮": "Wenshan Farm Grassland",
-    "新北-淡水渡船頭": "Tamsui Ferry Pier",
-
-    // 基隆 (Keelung)
-    "基隆-外木山": "Waimushan Beach",
-
-    // 新竹 (Hsinchu)
-    "新竹-成功湖": "Chenggong Lake",
-    "新竹-大草坪": "Great Lawn (NTHU)",
-
-    // 桃園 (Taoyuan)
-    "桃園-國際機場": "Taoyuan International Airport",
-    "桃園-桃園機場南跑道": "Taoyuan Airport South Runway",
-    "桃園-桃園機場北跑道": "Taoyuan Airport North Runway",
-    "桃園-永安漁港": "Yungan Fishing Port",
-    "桃園-拉拉山遊客中心": "Lalashan Visitor Center",
-    "桃園-虎頭山環保公園": "Hutoushan Eco Park",
-    "桃園-小烏來天空步道": "Xiaowulai Skywalk",
-    "桃園-角板山思親亭": "Jiaobanshan Siqinting",
-    "桃園-三龜戲水觀景平台": "Three Turtles Platform",
-    "桃園-大溪橋": "Daxi Bridge",
-    "桃園-虎頭山奧爾森林學堂": "Hutoushan Owl Forest School",
-    "桃園-角板山梅園": "Jiaobanshan Plum Garden",
-    "桃園-角板山生態池": "Jiaobanshan Eco Pond",
-    "桃園-大溪老街": "Daxi Old Street",
-    "桃園-石門水庫": "Shihmen Reservoir",
-    "桃園-慈湖水岸廣場": "Cihu Waterfront Plaza",
-    "桃園-阿姆坪薑母島": "Amuping Jiangmu Island",
-    "桃園-上巴陵": "Shang Baleng",
-    "桃園-桃園國際機場凱悅酒店": "Airport Hyatt Regency",
-    "桃園-小烏來寰宇平台": "Xiaowulai Universal Platform",
-    "桃園-許厝港濕地": "Xucuogang Wetland",
-
-    // 宜蘭 (Yilan)
-    "宜蘭-外澳沙灘": "Waiao Beach",
-    "宜蘭-福隆海水浴場": "Fulong Beach",
-    "宜蘭-石城漁港": "Shicheng Fishing Port", // 統一名稱
-    "宜蘭-無尾港": "Wuwei Port",
-    "宜蘭-礁溪寒沐酒店": "Mu Jiao Xi Hotel",
-
-    // 苗栗 (Miaoli)
-    "苗栗-汶水遊客中心(雪霸)": "Wenshui Visitor Center (Sheipa)",
-    "苗栗-觀霧遊憩區(雪霸)": "Guanwu Recreation Area (Sheipa)",
-    "苗栗-雪見遊憩區(雪霸)": "Xuejian Recreation Area (Sheipa)",
-
-    // 台中 (Taichung)
-    "台中-高美濕地": "Gaomei Wetland",
-    "台中-望高寮": "Wanggaoliao Viewing Deck",
-
-    // 彰化 (Changhua)
-    "彰化-王功漁港": "Wangong Fishing Port",
-
-    // 南投 (Nantou)
-    "南投-合歡山武嶺亭": "Hehuanshan Wuling Pavilion",
-
-    // 嘉義 (Chiayi)
-    "嘉義-奮起湖": "Fenqihu",
-    "嘉義-二延平步道": "Eryenping Trail",
-    "嘉義-太平雲梯": "Taiping Sky Bridge",
-    "嘉義-觸口遊客中心": "Chukou Visitor Center",
-    "嘉義-愛情大草原": "Love Grassland",
-    "嘉義-生力農場": "Shengli Farm",
-    "嘉義-里佳資訊站": "Lijia Info Station",
-
-    // 台南 (Tainan)
-    "台南-七股賞鳥台": "Qigu Bird Watching Platform",
-    "台南-北汕尾水鳥保護區": "Beishanwei Bird Reserve",
-    "台南-曾文水庫": "Zengwen Reservoir",
-    "台南-火山碧雲寺": "Huoshan Biyun Temple",
-    "台南-黃金海岸": "Golden Coast",
-
-    // 高雄 (Kaohsiung)
-    "高雄-楠梓聖興橋": "Nanzi Shengxing Bridge",
-    "高雄-蚵寮國小": "Keliao Elementary School",
-    "高雄-旗津海水浴場": "Cijin Beach",
-    "高雄-壽山觀景台": "Shoushan Viewing Platform",
-    "高雄-蓮池潭": "Lotus Lake",
-    "高雄-高雄燈塔": "Kaohsiung Lighthouse",
-    "高雄-旗津沙灘": "Cijin Sand Beach",
-
-    // 屏東 (Pingtung)
-    "屏東-羌光橋": "Qiangguang Bridge",
-    "屏東-墾丁南灣": "Kenting Nanwan Beach",
-    "屏東-船帆石": "Sail Rock",
-    "屏東-船帆石沙灘": "Sail Rock Beach",
-    "屏東-雀鯛公寓": "Damselfish Apartment",
-    "屏東-頂流區": "Dingleu Zone",
-    "屏東-軸孔公園": "Zhoukong Park",
-    "屏東-搖曳大草原": "Waving Grassland",
-
-    // 花蓮 (Hualien)
-    "花蓮-馬太鞍溪左岸": "Mata'an River Left Bank",
-    "花蓮-七星潭": "Qixingtan Beach",
-    "花蓮-石梯坪": "Shitiping",
-    "花蓮-大石鼻山": "Dashibishan",
-    "花蓮-長虹橋": "Changhong Bridge",
-
-    // 台東 (Taitung)
-    "台東-鯉魚山": "Liyu Mountain",
-    "台東-金崙大橋": "Jinlun Bridge",
-    "台東-金樽觀浪": "Jinzun Wave Viewing",
-    "台東-富山": "Fushan",
-    "台東-杉原灣": "Sanyuan Bay",
-    "台東-富岡漁港": "Fugang Fishing Port",
-    "台東-華源曙光觀景台": "Huayuan Sunrise Platform",
-    "台東-南橫埡口": "Southern Cross-Island Central Ridge",
-    "台東-池上天堂路": "Chishang Heaven Road",
-    "台東-多良車站": "Duoliang Station",
-    "台東-鹿野高台": "Luye Highland",
-    "台東-成功三仙台": "Chenggong Sanxiantai",
-    "台東-金樽遊憩區": "Jinzun Recreation Area",
-    "台東-都歷遊客中心": "Duli Visitor Center",
-    "台東-加路蘭遊憩區": "Jialulan Recreation Area",
-    "台東-綠島南寮": "Green Island Nanliao",
-    "台東-綠島帆船鼻": "Green Island Fan-Chuan-Pi",
-    "台東-綠島柴口浮潛區": "Green Island Chai-Kou Snorkeling",
-    "台東-娜路彎酒店": "Naruwan Hotel",
-
-    // 金門 (Kinmen)
-    "金門-麒麟山森林公園": "Qilinshan Forest Park",
-    "金門-134高地": "134 Highland",
-    "金門-建功嶼": "Jian Gong Islet",
-
-    // 馬祖 (Matsu)
-    "馬祖-北竿航空站休息室": "Beigan Airport Lounge",
-
-    // 其他 (Other)
-    "其他-蓮華寺正殿1": "Lianhua Temple Main Hall 1",
-    "其他-蓮華寺正殿2": "Lianhua Temple Main Hall 2",
-    "其他-地震監測直播": "Earthquake Monitoring Stream",
-    "其他-松山機場航班資訊": "Songshan Airport Flight Info",
-    "其他-高雄機場航班資訊": "Kaohsiung Airport Flight Info",
-    "其他-桃園機場航班資訊": "Taoyuan Airport Flight Info",
-    "其他-桃園機場畫面/資訊": "Taoyuan Airport Stream/Info"
-};
+        // 台北
+        "台北象山": "Elephant Mountain", "大稻埕": "Dadaocheng", "碧山巖": "Bishan Temple", "微風平台": "Breeze Platform",
+        "貓空指南宮": "Maokong Zhinan Temple", "擎天岡草原": "Qingtiangang Grassland", "陽明書屋": "Yangming Bookshelf",
+        "遠眺七星山": "Mt. Qixing View", "二坪子停車場": "Erpingzi Parking", "大屯自然公園": "Datun Nature Park",
+        "小油坑停車場": "Xiaoyoukeng Parking", "冷水坑停車場": "Lengshuikeng Parking",
+        // 新北
+        "新北淡水": "Tamsui", "新北鼻頭": "Bitou Cape", "中角灣": "Zhongjiao Bay", "十分瀑布公園": "Shifen Waterfall",
+        "新北九份": "Jiufen", "內洞國家森林遊樂區": "Neidong Forest Area", "三峽老街北段": "Sanxia Old St. (N)",
+        "三峽老街南段": "Sanxia Old St. (S)", "烏來吊橋": "Wulai Suspension Bridge", "員山子": "Yuanshanzi",
+        "文山農場大草皮": "Wenshan Farm",
+        // 基隆/新竹/桃園
+        "外木山": "Waimushan", "成功湖": "Cheng Kung Lake", "大草坪": "Great Lawn",
+        "桃園機場": "Taoyuan Airport", "TPE 南跑道": "TPE South Runway", "TPE 北跑道": "TPE North Runway",
+        "永安漁港": "Yongan Fishing Port", "拉拉山遊客中心": "Lalashan Visitor Ctr", "虎頭山環保公園": "Hutoushan Park",
+        "小烏來天空步道": "Xiao Wulai Skywalk", "角板山思親亭": "Jiaobanshan Pavilion", "三龜戲水觀景平台": "San-Gui-Xi-Shui",
+        "大溪橋": "Daxi Bridge", "奧爾森林學堂": "Owl Forest School", "角板山梅園": "Jiaobanshan Plum Garden",
+        "角板山生態池": "Jiaobanshan Pond", "大溪老街": "Daxi Old Street", "石門水庫": "Shihmen Reservoir",
+        "慈湖水岸廣場": "Cihu Waterfront", "薑母島": "Jiangmu Island", "上巴陵": "Upper Baling",
+        "機場凱悅": "Hyatt Place", "寰宇平台": "Huanyu Platform", "許厝港濕地": "Xucuogang Wetlands",
+        "桃園機場畫面/資訊": "Airport Info/View",
+        // 宜蘭
+        "宜蘭外澳": "Waiao Beach", "宜蘭福隆": "Fulong Beach", "石城漁港": "Shicheng Port", "無尾港": "Wuwei Port",
+        "石城漁港1": "Shicheng Port 1", "礁溪寒沐酒店": "Mu Jiao Xi Hotel",
+        // 苗栗/台中/彰化/南投
+        "汶水遊客中心": "Wenshui Visitor Ctr", "觀霧遊憩區": "Guanwu Rec Area", "雪見遊憩區": "Xuejian Rec Area",
+        "台中高美": "Gaomei Wetlands", "望高寮": "Wanggaoliao", "彰化王功": "Wanggong Port", "武嶺亭": "Wuling Pavilion",
+        // 嘉義/台南
+        "嘉義奮起湖": "Fenqihu", "二延平步道": "Eryanping Trail", "太平雲梯": "Taiping Suspension Bridge",
+        "觸口遊客中心": "Chukou Visitor Ctr", "愛情大草原": "Love Prairie", "生力農場": "Shengli Farm",
+        "里佳資訊站": "Lijia Info Station", "台南七股": "Qigu", "北汕尾水鳥保護區": "Beishanwei Birds",
+        "曾文水庫": "Zengwen Reservoir", "火山碧雲寺": "Biyun Temple",
+        // 高雄/屏東
+        "楠梓聖興橋": "Shengxing Bridge", "蚵寮國小": "Keliao Elementary", "旗津海水浴場": "Cijin Beach",
+        "壽山觀景台": "Shoushan Lookout", "蓮池潭": "Lotus Pond", "高雄燈塔": "Kaohsiung Lighthouse",
+        "旗津沙灘": "Cijin Beach Cam", "羌光橋": "Qiangguang Bridge", "墾丁南灣": "Kenting Nanwan",
+        "船帆石": "Chuanfanshi", "船帆石沙灘 (4K)": "Chuanfanshi Beach", "雀鯛公寓": "Damselfish Apt",
+        "頂流區": "Upcurrent Zone", "軸孔公園": "Acropora Park", "搖曳大草原": "Swaying Grassland",
+        // 花蓮/台東
+        "馬太鞍溪左岸": "Mataian Creek", "七星潭": "Qixingtan", "石梯坪": "Shitiping", "大石鼻山": "Dashibishan",
+        "長虹橋": "Changhong Bridge", "台東鯉魚山": "Liyushan", "台東金崙大橋": "Jinlun Bridge",
+        "台東金樽觀浪": "Jinzun Surf", "台東富山": "Fushan", "台東杉原灣": "Shanyuan Bay",
+        "台東富岡漁港": "Fugang Port", "台東華源曙光觀景台": "Huayuan Sunrise", "台東南橫口": "S. Cross-Island Hwy",
+        "台東池上天堂路": "Chishang Paradise Rd", "台東多良": "Duoliang Station", "鹿野高台": "Luye Highland",
+        "三仙台": "Sanxiantai", "金樽遊憩區": "Jinzun Rec Area", "都歷遊客中心": "Duli Visitor Ctr",
+        "加路蘭遊憩區": "Jialulan Rec Area", "綠島南寮": "Green Island Nanliao", "綠島帆船鼻": "Fanchuanbi",
+        "綠島柴口浮潛區": "Chaikou Snorkeling", "娜路彎酒店": "Naruwan Hotel",
+        // 離島/其他
+        "金門麒麟山公園": "Qilin Mt. Park", "金門134高地": "134 Highland", "金門建功嶼": "Jiangong Islet",
+        "北竿航空站休息室": "Beigan Airport", "蓮華寺正殿1": "Lianhua Temple 1", "蓮華寺正殿2": "Lianhua Temple 2",
+        "地震監測直播": "Earthquake Monitor", "松山機場航班資訊": "TSA Flight Info", "高雄機場航班資訊": "KHH Flight Info",
+        "桃園機場航班資訊": "TPE Flight Info"
+    };
 
     /* ===== 語言包 (Localization) ===== */
     const LANGUAGES = {
@@ -3043,7 +2933,8 @@
         '其他': { top: 50, left: 50 }
     };
 
-        const SPOT_COORDINATES = {
+    // 所有景點的精確座標（基於台灣地圖實際位置）
+    const SPOT_COORDINATES = {
         // 台北
         "台北-象山看101": { top: 6, left: 79 },
         "台北-大稻埕": { top: 7, left: 78 },
@@ -3069,7 +2960,6 @@
         "新北-烏來吊橋": { top: 9, left: 76 },
         "新北-員山子": { top: 8, left: 75 },
         "新北-文山農場大草皮": { top: 9, left: 76 },
-        "新北-淡水渡船頭": { top: 8, left: 76 },
         // 基隆
         "基隆-外木山": { top: 3, left: 81 },
         // 新竹
@@ -3130,7 +3020,6 @@
         "台南-北汕尾水鳥保護區": { top: 70, left: 30 },
         "台南-曾文水庫": { top: 68, left: 38 },
         "台南-火山碧雲寺": { top: 69, left: 32 },
-        "台南-黃金海岸": { top: 64, left: 29 },
         // 高雄
         "高雄-楠梓聖興橋": { top: 78, left: 35 },
         "高雄-蚵寮國小": { top: 79, left: 34 },
@@ -3266,361 +3155,7 @@
         dot.style.left = `${coords.left}%`;
     }
     
-    /* ========================================= */
-    /* 自動獲取歌詞功能 */
-    /* ========================================= */
-    
-    // 從歌曲標題中提取藝術家和歌曲名
-    function parseSongTitle(title) {
-        // 常見格式: "Artist - Song" 或 "Song (feat. Artist)" 或 "Song"
-        let artist = '';
-        let song = title;
-        
-        // 嘗試解析 "Artist - Song" 格式
-        if (title.includes(' - ')) {
-            const parts = title.split(' - ');
-            if (parts.length >= 2) {
-                artist = parts[0].trim();
-                song = parts.slice(1).join(' - ').trim();
-            }
-        }
-        // 嘗試解析 "(feat." 或 "(ft." 格式
-        else if (title.includes('(feat.') || title.includes('(ft.')) {
-            const match = title.match(/^(.+?)\s*\(feat\.\s*(.+?)\)/i) || title.match(/^(.+?)\s*\(ft\.\s*(.+?)\)/i);
-            if (match) {
-                song = match[1].trim();
-                artist = match[2].trim();
-            }
-        }
-        
-        // 清理歌曲名（移除常見後綴）
-        song = song.replace(/\s*\(.*?\)\s*$/, '').replace(/\s*\[.*?\]\s*$/, '').trim();
-        
-        return { artist, song };
-    }
-    
-    // 使用 Lyrics.ovh API 獲取歌詞
-    async function fetchSongLyrics(songTitle) {
-        if (!songTitle) return;
-        
-        const { artist, song } = parseSongTitle(songTitle);
-        const searchQuery = artist ? `${artist} ${song}` : song;
-        
-        // 更新標題顯示
-        const titleElement = document.getElementById('lyricsTitle');
-        if (titleElement) {
-            titleElement.textContent = `正在搜尋: ${songTitle}`;
-        }
-        
-        try {
-            // 使用 Lyrics.ovh API (免費，無需API key)
-            const url = `https://api.lyrics.ovh/v1/${encodeURIComponent(artist || '')}/${encodeURIComponent(song)}`;
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (data.lyrics) {
-                currentLyrics = data.lyrics;
-                lyricsData = data;
-                parseLyrics(currentLyrics);
-                updateLyricsDisplay();
-                
-                // 更新標題
-                if (titleElement) {
-                    titleElement.textContent = songTitle;
-                }
-            } else {
-                // 如果找不到，嘗試只搜尋歌曲名
-                if (artist) {
-                    const fallbackUrl = `https://api.lyrics.ovh/v1//${encodeURIComponent(song)}`;
-                    const fallbackResponse = await fetch(fallbackUrl);
-                    const fallbackData = await fallbackResponse.json();
-                    
-                    if (fallbackData.lyrics) {
-                        currentLyrics = fallbackData.lyrics;
-                        lyricsData = fallbackData;
-                        parseLyrics(currentLyrics);
-                        updateLyricsDisplay();
-                        if (titleElement) {
-                            titleElement.textContent = songTitle;
-                        }
-                    } else {
-                        showLyricsError('找不到歌詞');
-                    }
-                } else {
-                    showLyricsError('找不到歌詞');
-                }
-            }
-        } catch (error) {
-            console.error('獲取歌詞失敗:', error);
-            showLyricsError('無法獲取歌詞');
-        }
-    }
-    
-    // 獲取當前播放歌曲的歌詞
-    function fetchCurrentSongLyrics() {
-        if (!musicPlayer || !isMusicReady) return;
-        
-        let songTitle = '';
-        
-        // 嘗試從播放清單獲取
-        if (currentPlaylistId) {
-            try {
-                const idx = musicPlayer.getPlaylistIndex();
-                if (idx >= 0 && idx < musicQueue.length && musicQueue[idx]) {
-                    songTitle = musicQueue[idx].title;
-                }
-            } catch(e) {
-                console.log('無法從播放清單獲取索引:', e);
-            }
-        }
-        
-        // 如果播放清單中沒有，從單曲列表獲取
-        if (!songTitle && currentMusicIndex >= 0 && currentMusicIndex < musicQueue.length && musicQueue[currentMusicIndex]) {
-            songTitle = musicQueue[currentMusicIndex].title;
-        }
-        
-        // 如果還是沒有，嘗試從YouTube播放器獲取標題
-        if (!songTitle) {
-            try {
-                const videoData = musicPlayer.getVideoData();
-                if (videoData && videoData.title) {
-                    songTitle = videoData.title;
-                }
-            } catch(e) {
-                console.log('無法從播放器獲取標題:', e);
-            }
-        }
-        
-        if (songTitle && songTitle !== currentSongTitle) {
-            currentSongTitle = songTitle;
-            fetchSongLyrics(songTitle);
-        } else if (!songTitle) {
-            // 如果還是沒有標題，等待一下再試
-            setTimeout(() => {
-                fetchCurrentSongLyrics();
-            }, 1000);
-        }
-    }
-    
-    // 解析歌詞（處理時間軸格式，如 LRC）
-    function parseLyrics(lyricsText) {
-        lyricsLines = [];
-        currentLyricsLineIndex = 0;
-        
-        // 檢查是否為 LRC 格式（帶時間軸）
-        const lrcPattern = /\[(\d{2}):(\d{2})\.(\d{2,3})\](.+)/g;
-        const lrcMatches = [...lyricsText.matchAll(lrcPattern)];
-        
-        if (lrcMatches.length > 0) {
-            // LRC 格式，解析時間軸
-            lyricsLines = lrcMatches.map(match => {
-                const minutes = parseInt(match[1]);
-                const seconds = parseInt(match[2]);
-                const milliseconds = parseInt(match[3].padEnd(3, '0'));
-                const time = minutes * 60 + seconds + milliseconds / 1000;
-                return {
-                    time: time,
-                    text: match[4].trim()
-                };
-            });
-        } else {
-            // 普通文本格式，按行分割
-            const lines = lyricsText.split('\n').filter(line => line.trim());
-            lyricsLines = lines.map((line, index) => ({
-                time: null, // 沒有時間軸
-                text: line.trim()
-            }));
-        }
-    }
-    
-    // 開始歌詞同步
-    function startLyricsSync() {
-        stopLyricsSync(); // 先停止現有的
-        
-        if (!isLyricsVisible || lyricsLines.length === 0) return;
-        
-        lyricsUpdateInterval = setInterval(() => {
-            updateLyricsByTime();
-        }, 100); // 每100ms更新一次
-    }
-    
-    // 停止歌詞同步
-    function stopLyricsSync() {
-        if (lyricsUpdateInterval) {
-            clearInterval(lyricsUpdateInterval);
-            lyricsUpdateInterval = null;
-        }
-    }
-    
-    // 根據播放時間更新歌詞顯示
-    function updateLyricsByTime() {
-        if (!musicPlayer || !isMusicReady || lyricsLines.length === 0) return;
-        
-        try {
-            const currentTime = musicPlayer.getCurrentTime();
-            
-            // 如果有時間軸，根據時間顯示對應的歌詞
-            if (lyricsLines[0].time !== null) {
-                let lineIndex = 0;
-                for (let i = lyricsLines.length - 1; i >= 0; i--) {
-                    if (currentTime >= lyricsLines[i].time) {
-                        lineIndex = i;
-                        break;
-                    }
-                }
-                
-                if (lineIndex !== currentLyricsLineIndex) {
-                    currentLyricsLineIndex = lineIndex;
-                    const content = document.getElementById('lyricsContent');
-                    if (content) {
-                        content.textContent = lyricsLines[lineIndex].text;
-                        content.classList.remove('empty');
-                    }
-                }
-            } else {
-                // 沒有時間軸，顯示所有歌詞
-                const content = document.getElementById('lyricsContent');
-                if (content && currentLyrics) {
-                    content.textContent = currentLyrics;
-                    content.classList.remove('empty');
-                }
-            }
-        } catch(e) {
-            console.error('更新歌詞失敗:', e);
-        }
-    }
-    
-    // 顯示歌詞錯誤
-    function showLyricsError(message) {
-        const content = document.getElementById('lyricsContent');
-        const titleElement = document.getElementById('lyricsTitle');
-        if (content) {
-            content.textContent = message;
-            content.classList.add('empty');
-        }
-        if (titleElement && currentSongTitle) {
-            titleElement.textContent = currentSongTitle;
-        }
-    }
-    
-    // 清除歌詞
-    function clearLyrics() {
-        currentLyrics = '';
-        lyricsData = null;
-        lyricsLines = [];
-        currentLyricsLineIndex = 0;
-        currentSongTitle = '';
-        const content = document.getElementById('lyricsContent');
-        if (content) {
-            content.textContent = '等待播放歌曲...';
-            content.classList.add('empty');
-        }
-        const titleElement = document.getElementById('lyricsTitle');
-        if (titleElement) {
-            titleElement.textContent = '歌詞';
-        }
-    }
-    
-    function toggleLyrics() {
-        isLyricsVisible = !isLyricsVisible;
-        const container = document.getElementById('lyricsContainer');
-        if (isLyricsVisible) {
-            container.classList.add('show');
-            updateLyricsDisplay();
-            // 如果正在播放，開始同步
-            if (isPlaying && musicPlayer) {
-                try {
-                    if (musicPlayer.getPlayerState() === YT.PlayerState.PLAYING) {
-                        startLyricsSync();
-                    }
-                } catch(e) {}
-            }
-        } else {
-            container.classList.remove('show');
-            stopLyricsSync();
-        }
-        localStorage.setItem('showLyrics', isLyricsVisible ? 'true' : 'false');
-    }
-    
-    function minimizeLyrics() {
-        const container = document.getElementById('lyricsContainer');
-        isLyricsMinimized = !isLyricsMinimized;
-        if (isLyricsMinimized) {
-            container.style.transform = 'translateX(-50%) scale(0.5)';
-            container.style.opacity = '0.5';
-        } else {
-            container.style.transform = 'translateX(-50%) scale(1)';
-            container.style.opacity = '1';
-        }
-    }
-    
-    function updateLyricsDisplay() {
-        const content = document.getElementById('lyricsContent');
-        if (currentLyrics && currentLyrics.trim()) {
-            if (lyricsLines.length > 0 && lyricsLines[0].time !== null) {
-                // 有時間軸，顯示當前行
-                updateLyricsByTime();
-            } else {
-                // 沒有時間軸，顯示全部
-                content.textContent = currentLyrics;
-                content.classList.remove('empty');
-            }
-        } else {
-            content.textContent = '等待播放歌曲...';
-            content.classList.add('empty');
-        }
-    }
-    
-    // 初始化歌词显示
-    function initializeLyrics() {
-        if (isLyricsVisible) {
-            const container = document.getElementById('lyricsContainer');
-            container.classList.add('show');
-            updateLyricsDisplay();
-        }
-        
-        // 歌词拖拽功能
-        const container = document.getElementById('lyricsContainer');
-        if (container) {
-            container.addEventListener('mousedown', (e) => {
-                if (e.target.closest('#lyricsControls')) return;
-                isDraggingLyrics = true;
-                dragStartPos.x = e.clientX - container.offsetLeft;
-                dragStartPos.y = e.clientY - container.offsetTop;
-            });
-            
-            document.addEventListener('mousemove', (e) => {
-                if (!isDraggingLyrics) return;
-                const container = document.getElementById('lyricsContainer');
-                const x = e.clientX - dragStartPos.x;
-                const y = e.clientY - dragStartPos.y;
-                const maxX = window.innerWidth - container.offsetWidth;
-                const maxY = window.innerHeight - container.offsetHeight;
-                container.style.left = Math.max(0, Math.min(x, maxX)) + 'px';
-                container.style.top = Math.max(0, Math.min(y, maxY)) + 'px';
-                container.style.transform = 'none';
-            });
-            
-            document.addEventListener('mouseup', () => {
-                isDraggingLyrics = false;
-            });
-        }
-        
-        // 監聽播放清單變化，自動獲取新歌詞
-        setInterval(() => {
-            if (isPlaying && isLyricsVisible && musicPlayer) {
-                try {
-                    if (currentPlaylistId) {
-                        const idx = musicPlayer.getPlaylistIndex();
-                        if (idx >= 0 && musicQueue[idx] && musicQueue[idx].title !== currentSongTitle) {
-                            fetchCurrentSongLyrics();
-                        }
-                    }
-                } catch(e) {}
-            }
-        }, 2000); // 每2秒檢查一次
-    }
     
   </script>
 </body>
-  </html>
+</html>
